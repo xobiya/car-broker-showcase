@@ -259,10 +259,10 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
               {vehicle.brokerPhone && (
                 <a
                   href={`tel:${vehicle.brokerPhone}`}
-                  className="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                 >
-                  <Phone size={14} />
-                  <span>{vehicle.brokerPhone}</span>
+                  <Phone size={16} />
+                  <span>Call Now</span>
                 </a>
               )}
               {vehicle.brokerPhone && (
@@ -270,9 +270,9 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
                   href={`https://wa.me/${vehicle.brokerPhone.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="w-full bg-green-50 hover:bg-green-100 text-green-800 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-green-200"
                 >
-                  <span>Contact via WhatsApp</span>
+                  <span>WhatsApp</span>
                 </a>
               )}
             </div>
@@ -337,6 +337,16 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
 
         </div>
       </div>
+
+      {/* Floating Call Button - Mobile Only */}
+      {vehicle.brokerPhone && (
+        <a
+          href={`tel:${vehicle.brokerPhone}`}
+          className="fixed sm:hidden bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 flex items-center justify-center transition-all active:scale-90"
+        >
+          <Phone size={22} />
+        </a>
+      )}
 
       {/* Similar Vehicles */}
       {similarVehicles.length > 0 && (

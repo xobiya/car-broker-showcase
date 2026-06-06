@@ -336,9 +336,80 @@ function VehicleFormModal({ editing, onSave, onCancel }: {
   );
 }
 
+function SidebarContent({ sidebarCollapsed, setSidebarCollapsed, tab, setTab, setShowForm, setEditingVehicle, BROKER_NAME, BROKER_TITLE }: {
+  sidebarCollapsed: boolean; setSidebarCollapsed: (v: boolean) => void;
+  tab: Tab; setTab: (t: Tab) => void;
+  setShowForm: (v: boolean) => void; setEditingVehicle: (v: any) => void;
+  BROKER_NAME: string; BROKER_TITLE: string;
+}) {
+  const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
+    { id: "listings", label: "Listings", icon: <Car size={16} /> },
+    { id: "leads", label: "Leads", icon: <Users size={16} /> },
+    { id: "earnings", label: "Earnings", icon: <DollarSign size={16} /> },
+  ];
+  return (
+    <aside className={`${sidebarCollapsed ? "w-16" : "w-56"} shrink-0 bg-white border-r border-slate-100 flex flex-col py-6 ${sidebarCollapsed ? "px-2" : "px-3"} shadow-sm transition-all duration-300 relative h-full`}>
+      <button
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        className="absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-sm z-10 cursor-pointer"
+      >
+        {sidebarCollapsed ? <Menu size={12} /> : <ChevronLeft size={12} />}
+      </button>
+
+      <div className={`${sidebarCollapsed ? "text-center" : "px-2"} mb-6`}>
+        {sidebarCollapsed ? (
+          <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-xl bg-blue-900 text-white text-sm font-black">AB</div>
+        ) : (
+          <>
+            <p className="text-base font-black text-slate-900 leading-none">Arif Car</p>
+            <p className="text-[10px] font-black tracking-widest text-orange-500 uppercase">SELL</p>
+          </>
+        )}
+      </div>
+
+      <div className={`${sidebarCollapsed ? "justify-center" : "mx-2"} mb-6 rounded-xl bg-gradient-to-br from-blue-900 to-blue-800 text-white p-3 flex items-center ${sidebarCollapsed ? "flex-col gap-1" : "gap-3"}`}>
+        <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-sm font-black shrink-0">
+          {BROKER_NAME.split(" ").map(w => w[0]).join("")}
+        </div>
+        {!sidebarCollapsed && (
+          <div className="overflow-hidden">
+            <p className="text-[12px] font-bold truncate">{BROKER_NAME}</p>
+            <p className="text-[10px] text-blue-200 font-medium truncate">{BROKER_TITLE}</p>
+          </div>
+        )}
+      </div>
+
+      <nav className="space-y-0.5 flex-1">
+        {navItems.map(({ id, label, icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={`w-full flex items-center ${sidebarCollapsed ? "justify-center" : "gap-2.5 px-3"} py-2.5 rounded-xl text-[13px] font-semibold transition-all cursor-pointer ${
+              tab === id ? "bg-blue-900 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+            title={sidebarCollapsed ? label : undefined}
+          >
+            {icon} {!sidebarCollapsed && label}
+          </button>
+        ))}
+      </nav>
+
+      <button
+        onClick={() => { setEditingVehicle(null); setShowForm(true); }}
+        className={`${sidebarCollapsed ? "justify-center" : "mx-2"} mt-4 flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[13px] font-bold py-2.5 rounded-xl transition cursor-pointer shadow-sm`}
+        title={sidebarCollapsed ? "Add Listing" : undefined}
+      >
+        <Plus size={15} /> {!sidebarCollapsed && "Add Listing"}
+      </button>
+    </aside>
+  );
+}
+
 export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardProps) {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -446,13 +517,6 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
     label, value: i === 5 ? baseRev : Math.round(baseRev * (0.5 + Math.random() * 0.5)),
   }));
 
-  const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
-    { id: "listings", label: "Listings", icon: <Car size={16} /> },
-    { id: "leads", label: "Leads", icon: <Users size={16} /> },
-    { id: "earnings", label: "Earnings", icon: <DollarSign size={16} /> },
-  ];
-
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center bg-[#F4F6FB]">
@@ -466,65 +530,46 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
   return (
     <div className="flex h-full bg-[#F4F6FB] font-sans">
 
-      {/* Sidebar */}
-      <aside className={`${sidebarCollapsed ? "w-16" : "w-56"} shrink-0 bg-white border-r border-slate-100 flex flex-col py-6 ${sidebarCollapsed ? "px-2" : "px-3"} shadow-sm transition-all duration-300 relative`}>
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-sm z-10 cursor-pointer"
-        >
-          {sidebarCollapsed ? <Menu size={12} /> : <ChevronLeft size={12} />}
-        </button>
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-20 left-4 z-50 p-2 bg-white border border-slate-200 rounded-xl shadow-sm"
+      >
+        {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+      </button>
 
-        {/* Logo */}
-        <div className={`${sidebarCollapsed ? "text-center" : "px-2"} mb-6`}>
-          {sidebarCollapsed ? (
-            <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-xl bg-blue-900 text-white text-sm font-black">AB</div>
-          ) : (
-            <>
-              <p className="text-base font-black text-slate-900 leading-none">Arif Car</p>
-              <p className="text-[10px] font-black tracking-widest text-orange-500 uppercase">SELL</p>
-            </>
-          )}
-        </div>
+      {/* Desktop sidebar */}
+      <div className="hidden lg:flex shrink-0">
+        <SidebarContent
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+          tab={tab}
+          setTab={setTab}
+          setShowForm={setShowForm}
+          setEditingVehicle={setEditingVehicle}
+          BROKER_NAME={BROKER_NAME}
+          BROKER_TITLE={BROKER_TITLE}
+        />
+      </div>
 
-        {/* Profile card */}
-        <div className={`${sidebarCollapsed ? "justify-center" : "mx-2"} mb-6 rounded-xl bg-gradient-to-br from-blue-900 to-blue-800 text-white p-3 flex items-center ${sidebarCollapsed ? "flex-col gap-1" : "gap-3"}`}>
-          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-sm font-black shrink-0">
-            {BROKER_NAME.split(" ").map(w => w[0]).join("")}
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-40">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute left-0 top-0 h-full">
+            <SidebarContent
+              sidebarCollapsed={false}
+              setSidebarCollapsed={() => {}}
+              tab={tab}
+              setTab={(t: Tab) => { setTab(t); setSidebarOpen(false); }}
+              setShowForm={setShowForm}
+              setEditingVehicle={setEditingVehicle}
+              BROKER_NAME={BROKER_NAME}
+              BROKER_TITLE={BROKER_TITLE}
+            />
           </div>
-          {!sidebarCollapsed && (
-            <div className="overflow-hidden">
-              <p className="text-[12px] font-bold truncate">{BROKER_NAME}</p>
-              <p className="text-[10px] text-blue-200 font-medium truncate">{BROKER_TITLE}</p>
-            </div>
-          )}
         </div>
-
-        {/* Nav items */}
-        <nav className="space-y-0.5 flex-1">
-          {navItems.map(({ id, label, icon }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              className={`w-full flex items-center ${sidebarCollapsed ? "justify-center" : "gap-2.5 px-3"} py-2.5 rounded-xl text-[13px] font-semibold transition-all cursor-pointer ${
-                tab === id ? "bg-blue-900 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-              }`}
-              title={sidebarCollapsed ? label : undefined}
-            >
-              {icon} {!sidebarCollapsed && label}
-            </button>
-          ))}
-        </nav>
-
-        {/* Add button */}
-        <button
-          onClick={() => { setEditingVehicle(null); setShowForm(true); }}
-          className={`${sidebarCollapsed ? "justify-center" : "mx-2"} mt-4 flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[13px] font-bold py-2.5 rounded-xl transition cursor-pointer shadow-sm`}
-          title={sidebarCollapsed ? "Add Listing" : undefined}
-        >
-          <Plus size={15} /> {!sidebarCollapsed && "Add Listing"}
-        </button>
-      </aside>
+      )}
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">

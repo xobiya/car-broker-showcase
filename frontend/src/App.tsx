@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Shield, ShieldCheck, Home, LayoutGrid, UserCircle, LayoutDashboard, Handshake } from "lucide-react";
+import { Shield, ShieldCheck, Home, LayoutGrid, UserCircle, Info, Mail } from "lucide-react";
 import HomePage from "./components/HomePage";
 import VehicleDetail from "./components/VehicleDetail";
 import Showroom from "./components/Showroom";
 import BrokerDashboard from "./components/BrokerDashboard";
 import AdminPanel from "./components/AdminPanel";
 import AuthModal from "./components/AuthModal";
+import AboutPage from "./components/AboutPage";
+import ContactPage from "./components/ContactPage";
 import { VehicleListing, User } from "../../shared/types";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -15,7 +17,7 @@ interface ToastMsg {
   id: string;
 }
 
-type ActiveView = "home" | "browse" | "detail" | "broker-dashboard" | "admin-panel" | "profile";
+type ActiveView = "home" | "browse" | "detail" | "broker-dashboard" | "admin-panel" | "profile" | "about" | "contact";
 const FULL_SCREEN_VIEWS: ActiveView[] = ["admin-panel", "broker-dashboard"];
 type UserRole = "buyer" | "broker" | "admin";
 
@@ -216,6 +218,26 @@ export default function App() {
               Admin Panel
             </button>
           )}
+
+          {/* About */}
+          <button 
+            onClick={() => setActiveView("about")}
+            className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
+              activeView === "about" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
+            }`}
+          >
+            About
+          </button>
+
+          {/* Contact */}
+          <button 
+            onClick={() => setActiveView("contact")}
+            className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
+              activeView === "contact" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
+            }`}
+          >
+            Contact
+          </button>
         </nav>
 
         {/* Right Buttons */}
@@ -414,6 +436,14 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            {activeView === "about" && (
+              <AboutPage onNotify={addNotification} />
+            )}
+
+            {activeView === "contact" && (
+              <ContactPage onNotify={addNotification} />
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -520,51 +550,39 @@ export default function App() {
       )}
 
       {/* Mobile Bottom Navigation */}
+      {!FULL_SCREEN_VIEWS.includes(activeView) && (
       <div className="fixed sm:hidden bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 flex items-center justify-around px-1 py-1 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
         <button onClick={() => setActiveView("home")}
-          className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
-          <Home size={20} className={activeView === "home" ? "text-[#0F4C81]" : "text-slate-400"} />
-          <span className={`text-[8px] font-semibold ${activeView === "home" ? "text-[#0F4C81]" : "text-slate-400"}`}>Home</span>
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors min-w-0 ${activeView === "home" ? "text-[#0F4C81]" : "text-slate-400"}`}>
+          <Home size={22} />
+          <span className="text-[9px] font-semibold">Home</span>
         </button>
 
-        {currentRole !== "broker" && (
-          <button onClick={() => handleBrowseWithFilters()}
-            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
-            <LayoutGrid size={20} className={activeView === "browse" ? "text-[#0F4C81]" : "text-slate-400"} />
-            <span className={`text-[8px] font-semibold ${activeView === "browse" ? "text-[#0F4C81]" : "text-slate-400"}`}>Browse</span>
-          </button>
-        )}
+        <button onClick={() => handleBrowseWithFilters()}
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors min-w-0 ${activeView === "browse" ? "text-[#0F4C81]" : "text-slate-400"}`}>
+          <LayoutGrid size={22} />
+          <span className="text-[9px] font-semibold">Browse</span>
+        </button>
 
-        {currentRole === "broker" && (
-          <button onClick={() => setActiveView("broker-dashboard")}
-            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
-            <LayoutDashboard size={20} className={activeView === "broker-dashboard" ? "text-[#0F4C81]" : "text-slate-400"} />
-            <span className={`text-[8px] font-semibold ${activeView === "broker-dashboard" ? "text-[#0F4C81]" : "text-slate-400"}`}>Dashboard</span>
-          </button>
-        )}
+        <button onClick={() => setActiveView("about")}
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors min-w-0 ${activeView === "about" ? "text-[#0F4C81]" : "text-slate-400"}`}>
+          <Info size={22} />
+          <span className="text-[9px] font-semibold">About</span>
+        </button>
 
-        {(!currentUser || currentRole === "buyer") && (
-          <button onClick={() => { if (!currentUser) setShowAuthModal(true); else addNotification("Contact admin to upgrade to a Broker account.", "info"); }}
-            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
-            <Handshake size={20} className="text-slate-400" />
-            <span className="text-[8px] font-semibold text-slate-400">Broker</span>
-          </button>
-        )}
-
-        {currentRole === "admin" && (
-          <button onClick={() => setActiveView("admin-panel")}
-            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
-            <Shield size={20} className={activeView === "admin-panel" ? "text-[#0F4C81]" : "text-slate-400"} />
-            <span className={`text-[8px] font-semibold ${activeView === "admin-panel" ? "text-[#0F4C81]" : "text-slate-400"}`}>Admin</span>
-          </button>
-        )}
+        <button onClick={() => setActiveView("contact")}
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors min-w-0 ${activeView === "contact" ? "text-[#0F4C81]" : "text-slate-400"}`}>
+          <Mail size={22} />
+          <span className="text-[9px] font-semibold">Contact</span>
+        </button>
 
         <button onClick={() => { if (!currentUser) setShowAuthModal(true); else setActiveView("profile"); }}
-          className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
-          <UserCircle size={20} className={activeView === "profile" ? "text-[#0F4C81]" : "text-slate-400"} />
-          <span className={`text-[8px] font-semibold ${activeView === "profile" ? "text-[#0F4C81]" : "text-slate-400"}`}>Profile</span>
+          className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors min-w-0 ${activeView === "profile" ? "text-[#0F4C81]" : "text-slate-400"}`}>
+          <UserCircle size={22} />
+          <span className="text-[9px] font-semibold">{currentUser ? "Profile" : "Login"}</span>
         </button>
       </div>
+      )}
 
     </div>
   );
