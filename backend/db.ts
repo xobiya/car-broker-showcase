@@ -33,6 +33,19 @@ export interface DBVehicle {
   fuel_type: string;
   transmission: string;
   location: string;
+  condition?: string;
+  body_type?: string;
+  drive_type?: string;
+  color?: string;
+  doors?: number;
+  seats?: number;
+  engine_size?: string;
+  engine_type?: string;
+  horsepower?: number;
+  chassis_number?: string;
+  gallery?: string[];
+  commission_rate?: number;
+  commission_type?: string;
 }
 
 export interface DBLead {
@@ -76,7 +89,20 @@ function mapVehicle(v: DBVehicle): VehicleListing {
     description: v.description,
     fuelType: v.fuel_type,
     transmission: v.transmission,
-    location: v.location
+    location: v.location,
+    condition: v.condition,
+    bodyType: v.body_type,
+    driveType: v.drive_type,
+    color: v.color,
+    doors: v.doors,
+    seats: v.seats,
+    engineSize: v.engine_size,
+    engineType: v.engine_type,
+    horsepower: v.horsepower,
+    chassisNumber: v.chassis_number,
+    gallery: v.gallery,
+    commissionRate: v.commission_rate,
+    commissionType: v.commission_type,
   };
 }
 
@@ -135,7 +161,19 @@ class InMemoryDB {
       description: 'Brand new Land Cruiser 300 VXR, imported from Dubai. Fully optioned, zero km driven locally.',
       fuel_type: 'Diesel',
       transmission: 'Automatic',
-      location: 'Addis Ababa'
+      location: 'Addis Ababa',
+      condition: 'New',
+      body_type: 'SUV',
+      drive_type: '4WD',
+      color: 'Gold',
+      doors: 5,
+      seats: 7,
+      engine_size: '3.5L',
+      engine_type: 'V6',
+      horsepower: 409,
+      chassis_number: 'VJA300-2024-8888',
+      commission_rate: 1.0,
+      commission_type: 'percentage',
     },
     {
       id: 'veh-2',
@@ -151,7 +189,19 @@ class InMemoryDB {
       description: 'Modern luxury Chinese SUV, full electric version. Premium interior layout, active driver assists.',
       fuel_type: 'Electric',
       transmission: 'Automatic',
-      location: 'Addis Ababa'
+      location: 'Addis Ababa',
+      condition: 'New',
+      body_type: 'SUV',
+      drive_type: 'FWD',
+      color: 'Silver',
+      doors: 5,
+      seats: 5,
+      engine_size: 'Electric',
+      engine_type: 'Electric',
+      horsepower: 215,
+      chassis_number: 'CH-UNIK-2024-002',
+      commission_rate: 1.0,
+      commission_type: 'percentage',
     },
     {
       id: 'veh-3',
@@ -167,7 +217,19 @@ class InMemoryDB {
       description: 'Local dealership purchased. Single owner, regular maintenance. Super clean interior and paint.',
       fuel_type: 'Benzine',
       transmission: 'Automatic',
-      location: 'Addis Ababa'
+      location: 'Addis Ababa',
+      condition: 'Used',
+      body_type: 'SUV',
+      drive_type: 'AWD',
+      color: 'Black',
+      doors: 5,
+      seats: 5,
+      engine_size: '2.0L',
+      engine_type: 'V4',
+      horsepower: 156,
+      chassis_number: 'TLE-HYUN-2023-001',
+      commission_rate: 1.25,
+      commission_type: 'percentage',
     },
     {
       id: 'veh-4',
@@ -183,7 +245,19 @@ class InMemoryDB {
       description: 'Highly economical city sedan. Low fuel consumption, manual transmission. Ideal for taxi service.',
       fuel_type: 'Benzine',
       transmission: 'Manual',
-      location: 'Adama'
+      location: 'Adama',
+      condition: 'Used',
+      body_type: 'Sedan',
+      drive_type: 'FWD',
+      color: 'White',
+      doors: 4,
+      seats: 5,
+      engine_size: '1.2L',
+      engine_type: 'V4',
+      horsepower: 83,
+      chassis_number: 'DZIRE-2022-004',
+      commission_rate: 1.25,
+      commission_type: 'percentage',
     }
   ];
 
@@ -280,8 +354,8 @@ export const db = {
 
     if (useMySQL) {
       await pool.query(
-        `INSERT INTO vehicles (id, broker_id, brand, model, year, mileage, price, original_price, status, image_url, description, fuel_type, transmission, location)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO vehicles (id, broker_id, brand, model, year, mileage, price, original_price, status, image_url, description, fuel_type, transmission, location, condition, body_type, drive_type, color, doors, seats, engine_size, engine_type, horsepower, chassis_number, commission_rate, commission_type)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           v.broker_id,
@@ -296,7 +370,19 @@ export const db = {
           v.description,
           v.fuel_type,
           v.transmission,
-          v.location
+          v.location,
+          v.condition || null,
+          v.body_type || null,
+          v.drive_type || null,
+          v.color || null,
+          v.doors || null,
+          v.seats || null,
+          v.engine_size || null,
+          v.engine_type || null,
+          v.horsepower || null,
+          v.chassis_number || null,
+          v.commission_rate || null,
+          v.commission_type || null,
         ]
       );
     } else {

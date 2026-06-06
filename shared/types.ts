@@ -30,6 +30,22 @@ export interface VehicleListing {
   fuelType: string;
   transmission: string;
   location: string;
+  condition?: string;
+  bodyType?: string;
+  driveType?: string;
+  color?: string;
+  doors?: number;
+  seats?: number;
+  engineSize?: string;
+  engineType?: string;
+  horsepower?: number;
+  chassisNumber?: string;
+  gallery?: string[];
+  brokerName?: string;
+  brokerPhone?: string;
+  brokerLicense?: string;
+  commissionRate?: number;
+  commissionType?: string;
 }
 
 export interface Lead {

@@ -8,7 +8,10 @@ import { db } from "./db";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+
+// Serve assets folder for local images
+app.use("/assets", express.static(path.join(process.cwd(), "assets")));
 
 // Increase request size limit for image uploads
 app.use(express.json({ limit: "20mb" }));
@@ -136,7 +139,19 @@ app.post("/api/chat", async (req, res) => {
 app.get("/api/vehicles", async (req, res) => {
   try {
     const vehicles = await db.getVehicles();
-    res.json(vehicles);
+    const brokers = await db.getBrokers();
+    const users = await db.getUsers();
+    const enriched = vehicles.map(v => {
+      const broker = brokers.find(b => b.id === v.brokerId);
+      const user = broker ? users.find(u => u.id === broker.user_id) : null;
+      return {
+        ...v,
+        brokerName: user?.name || "Unknown Broker",
+        brokerPhone: user?.phone || "",
+        brokerLicense: broker?.license_number || "",
+      };
+    });
+    res.json(enriched);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -298,7 +313,29 @@ app.post("/api/sales", async (req, res) => {
   }
 });
 
-// 6. Dashboard Stats Endpoint
+// 6. Brokers Endpoint (enriched with user info)
+app.get("/api/brokers", async (req, res) => {
+  try {
+    const brokers = await db.getBrokers();
+    const users = await db.getUsers();
+    const enriched = brokers.map(b => {
+      const user = users.find(u => u.id === b.user_id);
+      return {
+        id: b.id,
+        name: user?.name || "Unknown",
+        email: user?.email || "",
+        phone: user?.phone || "",
+        licenseNumber: b.license_number,
+        commissionRate: b.commission_rate,
+      };
+    });
+    res.json(enriched);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 7. Dashboard Stats Endpoint
 app.get("/api/stats", async (req, res) => {
   try {
     const vehicles = await db.getVehicles();

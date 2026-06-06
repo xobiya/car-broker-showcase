@@ -149,11 +149,11 @@ export default function App() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-base font-black text-slate-900 uppercase tracking-tight font-sans leading-none">
-                AutoBroker <span className="text-orange-500">Ethiopia</span>
+                Arif Car Sell
               </span>
             </div>
             <p className="text-[10px] text-slate-400 mt-1 font-bold leading-none flex items-center gap-1">
-              <MapPin size={10} /> Addis Ababa's Premier Sourcing Network
+              <MapPin size={10} /> Addis Ababa's Premier Car Marketplace
             </p>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function App() {
                 activeView === "browse" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
               }`}
             >
-              Browse Cars
+              Arif Car Sell
             </button>
           )}
 
@@ -328,7 +328,7 @@ export default function App() {
               <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900 text-white shadow-sm">
                 <Shield size={16} />
               </div>
-              <span className="text-base font-black tracking-tight uppercase">AutoBroker <span className="text-orange-500">Ethiopia</span></span>
+              <span className="text-base font-black tracking-tight uppercase">Arif Car Sell</span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed font-semibold">
               The leading digital marketplace for high-quality verified vehicles in Ethiopia. Building trust in every transaction.
@@ -392,7 +392,7 @@ export default function App() {
         {/* Bottom Bar */}
         <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-200/60 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest">
-            © {new Date().getFullYear()} AutoBroker Ethiopia. All rights reserved.
+            © {new Date().getFullYear()} Arif Car Sell. All rights reserved.
           </p>
           <div className="flex items-center space-x-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-emerald-500" /> Secured Platform</span>

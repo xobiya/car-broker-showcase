@@ -480,8 +480,8 @@ export default function BrokerDashboard({ onNotify }: BrokerDashboardProps) {
             <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-xl bg-blue-900 text-white text-sm font-black">AB</div>
           ) : (
             <>
-              <p className="text-base font-black text-slate-900 leading-none">AutoBroker</p>
-              <p className="text-[10px] font-black tracking-widest text-orange-500 uppercase">ETHIOPIA</p>
+              <p className="text-base font-black text-slate-900 leading-none">Arif Car</p>
+              <p className="text-[10px] font-black tracking-widest text-orange-500 uppercase">SELL</p>
             </>
           )}
         </div>

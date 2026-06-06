@@ -155,7 +155,7 @@ export default function HomePage({ onViewDetails, onBrowse, onBecomeBroker }: Ho
               onClick={() => onBrowse()}
               className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
             >
-              Browse Cars
+              Arif Car Sell
             </button>
             <button 
               onClick={onBecomeBroker}
@@ -239,7 +239,7 @@ export default function HomePage({ onViewDetails, onBrowse, onBecomeBroker }: Ho
       <section className="bg-slate-100/80 py-16 border-y border-slate-200/50">
         <div className="max-w-7xl mx-auto w-full px-6 space-y-12 text-center">
           <div className="space-y-2 max-w-2xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Why Choose AutoBroker Ethiopia</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Why Choose Arif Car Sell</h2>
             <p className="text-slate-500 text-xs md:text-sm">We provide the most secure and efficient way to buy or sell vehicles in Ethiopia.</p>
           </div>
 

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ShieldCheck, Phone, MapPin, Star, Compass, Zap } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ShieldCheck, Phone, MapPin, Star, Compass, Zap, Gauge, Cpu, Users, Car } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
 
 interface VehicleDetailProps {
@@ -9,22 +9,75 @@ interface VehicleDetailProps {
   onViewDetails: (vehicle: VehicleListing) => void;
 }
 
-export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails }: VehicleDetailProps) {
-  // Mock image gallery based on main image
-  const images = [
-    vehicle.imageUrl,
-    "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80", // Exterior
-    "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80", // Interior
-    "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", // Rear
-    "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80"  // Detail/Engine
-  ];
+const CAR_PHOTOS = [
+  "1533473359331-0135ef1b58bf",
+  "1549399542-7e3f8b79c341",
+  "1617814076367-b759c7d7e738",
+  "1541899481282-d53bffe3c35d",
+  "1503376780353-7e6692767b70",
+  "1563720223185-11003d516935",
+  "1486006920555-c77dce18193b",
+  "1511919884226-fd3cad34687c",
+  "1520050206274-a1ae446cb3cc",
+  "1609521263047-f8f205293f24",
+  "1555215695-3004980ad54e",
+  "1618843479313-40f8afb4b4d8",
+  "1563720223185-11003d516935",
+  "1544631006-bc5e1e0b1b3e",
+  "1494977581635-2a630beafae4",
+  "1544631006-bc5e1e0b1b3e",
+  "155251112-5b1b8b7b2f9e",
+  "1558618666-8f3b5a8b9c0d",
+];
 
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function getVehicleGallery(vehicle: VehicleListing): string[] {
+  const seed = hashCode(vehicle.id);
+  const count = 5;
+  const images: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const idx = (seed + i * 7) % CAR_PHOTOS.length;
+    images.push(`https://images.unsplash.com/photo-${CAR_PHOTOS[idx]}?auto=format&fit=crop&w=800&q=80`);
+  }
+  images[0] = vehicle.imageUrl;
+  return images;
+}
+
+export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails }: VehicleDetailProps) {
+  const images = getVehicleGallery(vehicle);
   const [activeImage, setActiveImage] = useState(images[0]);
   const [buyerName, setBuyerName] = useState("");
+  const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
   const [inquiryMsg, setInquiryMsg] = useState(
     `I am interested in this ${vehicle.brand} ${vehicle.model}. Please let me know when I can inspect it.`
   );
+  const [similarVehicles, setSimilarVehicles] = useState<VehicleListing[]>([]);
+
+  useEffect(() => {
+    setActiveImage(vehicle.imageUrl);
+    const fetchSimilar = async () => {
+      try {
+        const res = await fetch("/api/vehicles");
+        if (res.ok) {
+          const all: VehicleListing[] = await res.json();
+          const sameBrand = all.filter(
+            v => v.brand === vehicle.brand && v.id !== vehicle.id && v.status === "approved"
+          );
+          setSimilarVehicles(sameBrand.slice(0, 4));
+        }
+      } catch { /* ignore */ }
+    };
+    fetchSimilar();
+  }, [vehicle]);
 
   const handleSubmitInquiry = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,90 +88,59 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
         body: JSON.stringify({
           vehicle_id: vehicle.id,
           buyer_name: buyerName,
-          buyer_email: `${buyerName.toLowerCase().replace(/\s+/g, '')}@example.com`,
+          buyer_email: buyerEmail || `${buyerName.toLowerCase().replace(/\s+/g, '')}@example.com`,
           buyer_phone: buyerPhone,
           message: inquiryMsg
         })
       });
-
       if (res.ok) {
         onNotify("Inquiry sent successfully! The broker will contact you shortly.", "success");
-        setBuyerName("");
-        setBuyerPhone("");
+        setBuyerName(""); setBuyerEmail(""); setBuyerPhone("");
       } else {
         onNotify("Failed to submit inquiry.", "error");
       }
-    } catch (err) {
+    } catch {
       onNotify("Error submitting inquiry.", "error");
     }
   };
 
-  // Mock similar vehicles (4 items matching the designs)
-  const similarVehicles: Partial<VehicleListing>[] = [
-    {
-      id: "sim-1",
-      brand: "Lexus",
-      model: "LX 600",
-      year: 2022,
-      price: 18200000,
-      mileage: 5000,
-      transmission: "Auto",
-      imageUrl: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: "sim-2",
-      brand: "Mercedes",
-      model: "G63 AMG",
-      year: 2021,
-      price: 22000000,
-      mileage: 12000,
-      transmission: "Auto",
-      imageUrl: "https://images.unsplash.com/photo-1520050206274-a1ae446cb3cc?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: "sim-3",
-      brand: "Defender",
-      model: "110",
-      year: 2023,
-      price: 16500000,
-      mileage: 0,
-      transmission: "Auto",
-      imageUrl: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: "sim-4",
-      brand: "BMW",
-      model: "X7 M60i",
-      year: 2023,
-      price: 19800000,
-      mileage: 800,
-      transmission: "Auto",
-      imageUrl: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80"
-    }
+  const specItems: { label: string; value: string | number | undefined; icon: React.ReactNode }[] = [
+    { label: "Year", value: vehicle.year, icon: <Star size={14} /> },
+    { label: "Mileage", value: vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km` : "0 km", icon: <Compass size={14} /> },
+    { label: "Transmission", value: vehicle.transmission, icon: <Zap size={14} /> },
+    { label: "Fuel Type", value: vehicle.fuelType, icon: <Zap size={14} /> },
+    { label: "Engine", value: vehicle.engineSize || vehicle.engineType, icon: <Cpu size={14} /> },
+    { label: "Horsepower", value: vehicle.horsepower ? `${vehicle.horsepower} HP` : undefined, icon: <Gauge size={14} /> },
+    { label: "Drive Type", value: vehicle.driveType, icon: <Car size={14} /> },
+    { label: "Color", value: vehicle.color, icon: <Star size={14} /> },
+    { label: "Body Type", value: vehicle.bodyType, icon: <Car size={14} /> },
+    { label: "Condition", value: vehicle.condition, icon: <ShieldCheck size={14} /> },
+    { label: "Seats", value: vehicle.seats, icon: <Users size={14} /> },
+    { label: "Location", value: vehicle.location, icon: <MapPin size={14} /> },
   ];
+
+  const visibleSpecs = specItems.filter(s => s.value);
 
   return (
     <div className="max-w-7xl mx-auto w-full px-6 py-8 space-y-6 bg-slate-50 text-slate-800">
-      
-      {/* Breadcrumbs */}
+
       <nav className="text-xs font-semibold text-slate-400 flex items-center space-x-2">
         <button onClick={onBack} className="hover:text-slate-600 transition-colors">Home</button>
         <span>&rsaquo;</span>
-        <button onClick={onBack} className="hover:text-slate-600 transition-colors">Browse Cars</button>
+        <button onClick={onBack} className="hover:text-slate-600 transition-colors">Arif Car Sell</button>
         <span>&rsaquo;</span>
         <span className="text-slate-600">{vehicle.brand} {vehicle.model}</span>
       </nav>
 
-      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Left Column (Images, Specs, Description) */}
+
+        {/* Left Column */}
         <div className="lg:col-span-8 space-y-6">
-          
-          {/* Main Image View */}
+
+          {/* Main Image */}
           <div className="relative h-[480px] bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
-            <img 
-              src={activeImage} 
+            <img
+              src={activeImage}
               alt={`${vehicle.brand} ${vehicle.model}`}
               className="w-full h-full object-cover transition-transform duration-500"
             />
@@ -127,31 +149,30 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
                 <ShieldCheck size={11} />
                 <span>Verified</span>
               </span>
-              <span className="bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded shadow-sm">
-                Featured
-              </span>
+              {vehicle.condition === "New" && (
+                <span className="bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded shadow-sm">
+                  New
+                </span>
+              )}
             </div>
           </div>
 
           {/* Gallery Thumbnails */}
-          <div className="grid grid-cols-6 gap-3">
+          <div className="flex gap-3 overflow-x-auto pb-1">
             {images.map((img, idx) => (
-              <button 
+              <button
                 key={idx}
                 onClick={() => setActiveImage(img)}
-                className={`h-20 rounded-xl overflow-hidden border-2 transition-all ${
+                className={`h-20 w-28 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
                   activeImage === img ? "border-orange-500 shadow-sm" : "border-slate-200 hover:border-slate-300"
                 }`}
               >
-                <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                <img src={img} alt={`${vehicle.brand} view ${idx + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
-            <div className="h-20 rounded-xl bg-slate-200/60 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-              +12 More
-            </div>
           </div>
 
-          {/* Vehicle Information Box */}
+          {/* Vehicle Info */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
@@ -159,8 +180,8 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
                   {vehicle.brand} {vehicle.model}
                 </h1>
                 <p className="text-slate-400 text-xs font-bold mt-1 flex items-center gap-1 uppercase tracking-wider">
-                  <MapPin size={12} className="text-slate-400" />
-                  {vehicle.location || "Bole, Addis Ababa"}
+                  <MapPin size={12} />
+                  {vehicle.location || "Addis Ababa"}
                 </p>
               </div>
               <div className="text-left md:text-right">
@@ -168,153 +189,104 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
                 <p className="text-2xl md:text-3xl font-black text-blue-950 mt-1">
                   ETB {vehicle.price.toLocaleString()}
                 </p>
+                {vehicle.originalPrice > vehicle.price && (
+                  <p className="text-[11px] text-orange-500 font-bold mt-1">
+                    Save ETB {(vehicle.originalPrice - vehicle.price).toLocaleString()}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Specifications Grid */}
+            {/* Specifications */}
             <div className="space-y-4">
               <h3 className="font-extrabold text-sm border-b border-slate-100 pb-2 text-slate-800">Specifications</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                
-                {/* Year */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Star size={14} />
+                {visibleSpecs.map(spec => (
+                  <div key={spec.label} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                      {spec.icon}
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase font-bold text-slate-400">{spec.label}</p>
+                      <p className="text-xs font-bold text-slate-700">{spec.value}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[9px] uppercase font-bold text-slate-400">Year</p>
-                    <p className="text-xs font-bold text-slate-700">{vehicle.year}</p>
-                  </div>
-                </div>
-
-                {/* Mileage */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Compass size={14} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase font-bold text-slate-400">Mileage</p>
-                    <p className="text-xs font-bold text-slate-700">{vehicle.mileage.toLocaleString()} km</p>
-                  </div>
-                </div>
-
-                {/* Transmission */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Zap size={14} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase font-bold text-slate-400">Transmission</p>
-                    <p className="text-xs font-bold text-slate-700">{vehicle.transmission}</p>
-                  </div>
-                </div>
-
-                {/* Fuel Type */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Zap size={14} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase font-bold text-slate-400">Fuel Type</p>
-                    <p className="text-xs font-bold text-slate-700">{vehicle.fuelType}</p>
-                  </div>
-                </div>
-
-                {/* Engine */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Zap size={14} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase font-bold text-slate-400">Engine</p>
-                    <p className="text-xs font-bold text-slate-700">3.3L V8 Turbo</p>
-                  </div>
-                </div>
-
-                {/* Color */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Zap size={14} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase font-bold text-slate-400">Color</p>
-                    <p className="text-xs font-bold text-slate-700">Pearl White</p>
-                  </div>
-                </div>
-
+                ))}
               </div>
             </div>
+
+            {/* Chassis Number */}
+            {vehicle.chassisNumber && (
+              <div className="text-[11px] text-slate-400 font-mono font-medium">
+                Chassis / VIN: {vehicle.chassisNumber}
+              </div>
+            )}
 
             {/* Description */}
             <div className="space-y-3 pt-2">
               <h3 className="font-extrabold text-sm border-b border-slate-100 pb-2 text-slate-800">Description</h3>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                {vehicle.description || "Full option premium vehicle available for immediate sale. Pristine condition, imported with duty fully paid. Excellent luxury and comfort, features state-of-the-art tech assists and premium sound system."}
+                {vehicle.description || "Full option premium vehicle available for immediate sale."}
               </p>
             </div>
-
           </div>
-
         </div>
 
-        {/* Right Column (Sidebar - Broker Info & Contact Form) */}
+        {/* Right Column */}
         <div className="lg:col-span-4 space-y-6">
-          
-          {/* Broker Profile Card */}
+
+          {/* Broker Card */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
-            
-            {/* Broker Avatar & Title */}
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200 border border-slate-300">
-                <img 
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80" 
-                  alt="Broker Avatar" 
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200 border border-slate-300 flex items-center justify-center text-blue-900 font-black text-lg">
+                {(vehicle.brokerName || "B").charAt(0)}
               </div>
               <div>
-                <h3 className="font-bold text-sm text-slate-800">Dawit Mekonnen</h3>
+                <h3 className="font-bold text-sm text-slate-800">{vehicle.brokerName || "Arif Car Sell Broker"}</h3>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className="flex text-amber-400">
                     {[...Array(5)].map((_, i) => <Star key={i} size={11} fill="currentColor" />)}
                   </div>
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase">(42 Reviews)</span>
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase">Verified</span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Authorized Broker since 2018</p>
+                {vehicle.brokerLicense && (
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">License: {vehicle.brokerLicense}</p>
+                )}
               </div>
             </div>
 
-            {/* Actions */}
             <div className="space-y-2 pt-2">
-              <a 
-                href="tel:+251911234567"
-                className="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <Phone size={14} />
-                <span>+251 91 123 4567</span>
-              </a>
-              <a 
-                href="https://wa.me/251911234567" 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-slate-800 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <span>Contact via WhatsApp</span>
-              </a>
+              {vehicle.brokerPhone && (
+                <a
+                  href={`tel:${vehicle.brokerPhone}`}
+                  className="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Phone size={14} />
+                  <span>{vehicle.brokerPhone}</span>
+                </a>
+              )}
+              {vehicle.brokerPhone && (
+                <a
+                  href={`https://wa.me/${vehicle.brokerPhone.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <span>Contact via WhatsApp</span>
+                </a>
+              )}
             </div>
-
           </div>
 
-          {/* Send Inquiry Form */}
+          {/* Inquiry Form */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
             <h3 className="font-extrabold text-sm text-slate-800 border-b border-slate-100 pb-2">Send Inquiry</h3>
             <form onSubmit={handleSubmitInquiry} className="space-y-4">
-              
+
               <div className="space-y-1">
-                <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Full Name</label>
-                <input 
-                  type="text" 
-                  required
+                <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Full Name *</label>
+                <input
+                  type="text" required
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
                   placeholder="Your name"
@@ -323,106 +295,93 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Phone Number</label>
-                <input 
-                  type="tel" 
-                  required
+                <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Email</label>
+                <input
+                  type="email"
+                  value={buyerEmail}
+                  onChange={(e) => setBuyerEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Phone Number *</label>
+                <input
+                  type="tel" required
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
-                  placeholder="Your phone number"
+                  placeholder="+251 91 234 5678"
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Message</label>
-                <textarea 
-                  required
-                  rows={4}
+                <textarea
+                  required rows={4}
                   value={inquiryMsg}
                   onChange={(e) => setInquiryMsg(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none resize-none"
                 />
               </div>
 
-              <button 
+              <button
                 type="submit"
                 className="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-3 rounded-lg text-xs tracking-wider transition-colors cursor-pointer shadow-sm uppercase"
               >
                 Send Inquiry
               </button>
-
             </form>
           </div>
 
         </div>
-
       </div>
 
-      {/* Similar Vehicles Section */}
-      <section className="space-y-6 pt-10 border-t border-slate-200/60">
-        <div className="flex justify-between items-end">
-          <div className="space-y-1">
-            <h2 className="text-xl md:text-2xl font-extrabold tracking-tight">Similar Vehicles</h2>
-            <p className="text-slate-400 text-xs font-semibold">Hand-picked alternatives for you</p>
+      {/* Similar Vehicles */}
+      {similarVehicles.length > 0 && (
+        <section className="space-y-6 pt-10 border-t border-slate-200/60">
+          <div className="flex justify-between items-end">
+            <div className="space-y-1">
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight">Similar {vehicle.brand} Vehicles</h2>
+              <p className="text-slate-400 text-xs font-semibold">More {vehicle.brand} models available</p>
+            </div>
+            <button onClick={onBack} className="text-orange-500 hover:text-orange-600 font-bold text-xs md:text-sm flex items-center gap-1 transition-colors">
+              <span>View All</span>
+              <span>&rsaquo;</span>
+            </button>
           </div>
-          <button 
-            onClick={onBack}
-            className="text-orange-500 hover:text-orange-600 font-bold text-xs md:text-sm flex items-center gap-1 transition-colors"
-          >
-            <span>View All</span>
-            <span>&rsaquo;</span>
-          </button>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {similarVehicles.map((car) => (
-            <div 
-              key={car.id} 
-              onClick={() => {
-                // If it's a real vehicle, we can view its details. Otherwise trigger callback with simulated listings
-                const mockVehicle: VehicleListing = {
-                  id: car.id!,
-                  brokerId: "brk-1",
-                  brand: car.brand!,
-                  model: car.model!,
-                  year: car.year!,
-                  price: car.price!,
-                  mileage: car.mileage!,
-                  transmission: car.transmission!,
-                  fuelType: "Benzine",
-                  originalPrice: car.price! * 1.1,
-                  status: "approved",
-                  imageUrl: car.imageUrl!,
-                  description: "Alternative premium choice.",
-                  location: "Addis Ababa"
-                };
-                onViewDetails(mockVehicle);
-              }}
-              className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden cursor-pointer group"
-            >
-              <div className="h-40 relative bg-slate-100 overflow-hidden">
-                <img 
-                  src={car.imageUrl} 
-                  alt={`${car.brand} ${car.model}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
-                />
-              </div>
-              <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
-                <div className="space-y-1">
-                  <h3 className="font-extrabold text-xs text-slate-800">{car.year} {car.brand} {car.model}</h3>
-                  <p className="font-black text-xs text-orange-500">
-                    ETB {car.price?.toLocaleString()}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {similarVehicles.map(car => (
+              <div
+                key={car.id}
+                onClick={() => onViewDetails(car)}
+                className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden cursor-pointer group"
+              >
+                <div className="h-40 relative bg-slate-100 overflow-hidden">
+                  <img
+                    src={car.imageUrl}
+                    alt={`${car.brand} ${car.model}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                  />
+                </div>
+                <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
+                  <div className="space-y-1">
+                    <h3 className="font-extrabold text-xs text-slate-800">{car.year} {car.brand} {car.model}</h3>
+                    <p className="font-black text-xs text-orange-500">
+                      ETB {car.price.toLocaleString()}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    {car.mileage?.toLocaleString()} km &bull; {car.transmission}
                   </p>
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium">
-                  {car.mileage?.toLocaleString()} km &bull; {car.transmission}
-                </p>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
     </div>
   );

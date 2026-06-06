@@ -69,7 +69,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify }: AuthModalPro
         <div className="flex justify-between items-center border-b border-slate-100 pb-3">
           <h3 className="font-extrabold text-sm text-blue-900 flex items-center gap-2">
             <Shield size={16} />
-            <span>{isRegistering ? "Register AutoBroker Account" : "Login to AutoBroker"}</span>
+            <span>{isRegistering ? "Register — Arif Car Sell" : "Login to Arif Car Sell"}</span>
           </h3>
           <button 
             onClick={onClose} 
