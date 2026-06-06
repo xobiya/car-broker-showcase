@@ -10,8 +10,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-// Serve assets folder for local images
-app.use("/assets", express.static(path.join(process.cwd(), "assets")));
+// Serve assets folder for local images (only in non-Vercel env)
+if (!process.env.VERCEL) {
+  app.use("/assets", express.static(path.join(process.cwd(), "assets")));
+}
 
 // Increase request size limit for image uploads
 app.use(express.json({ limit: "20mb" }));
@@ -366,7 +368,7 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
-// Express + Vite Integration
+// Express + Vite Integration (local dev only)
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -388,4 +390,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// Start locally; on Vercel the serverless runtime handles invocation
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
