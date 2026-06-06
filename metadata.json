@@ -1,0 +1,6 @@
+{
+  "name": "Car Broker Showcase",
+  "description": "An elite vehicle procurement concierge platform. Browse premium curated model allocations, evaluate lease and financing saving, configure custom procurement request, and consult with the AI Procurement Assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
