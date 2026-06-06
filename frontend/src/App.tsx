@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Shield, ShieldCheck, Menu, X } from "lucide-react";
+import { Shield, ShieldCheck, Home, LayoutGrid, UserCircle, LayoutDashboard, Handshake } from "lucide-react";
 import HomePage from "./components/HomePage";
 import VehicleDetail from "./components/VehicleDetail";
 import Showroom from "./components/Showroom";
@@ -50,7 +50,6 @@ export default function App() {
   
   // Status check variables
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [dbStatusText, setDbStatusText] = useState<string>("Verifying database...");
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -221,13 +220,6 @@ export default function App() {
 
         {/* Right Buttons */}
         <div className="flex items-center space-x-3 shrink-0">
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden text-slate-600 hover:text-slate-900 p-1 cursor-pointer"
-          >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
           {currentUser ? (
             <div className="relative">
               <button
@@ -245,7 +237,7 @@ export default function App() {
                       <p className="text-[9px] font-black uppercase tracking-wider text-orange-500">{currentUser.role}</p>
                     </div>
                     <button
-                      onClick={() => { setActiveView("profile"); setProfileDropdownOpen(false); setMobileMenuOpen(false); }}
+                      onClick={() => { setActiveView("profile"); setProfileDropdownOpen(false); }}
                       className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
                     >
                       Profile
@@ -288,7 +280,7 @@ export default function App() {
             <>
               <button 
                 onClick={() => setShowAuthModal(true)}
-                className="hidden sm:inline text-slate-600 hover:text-slate-900 text-xs font-extrabold cursor-pointer"
+                className="text-slate-600 hover:text-slate-900 text-xs font-extrabold cursor-pointer"
               >
                 Login
               </button>
@@ -302,50 +294,10 @@ export default function App() {
           )}
         </div>
 
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <>
-            <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
-            <div className="fixed top-20 left-0 right-0 z-30 bg-white border-b border-slate-200 shadow-xl md:hidden p-4 space-y-1">
-              {currentRole !== "broker" && (
-                <button onClick={() => { setActiveView("home"); setMobileMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "home" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
-                >Home</button>
-              )}
-              {currentRole !== "broker" && (
-                <button onClick={() => { handleBrowseWithFilters(); setMobileMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "browse" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
-                >Browse</button>
-              )}
-              {currentRole === "broker" && (
-                <button onClick={() => { setActiveView("broker-dashboard"); setMobileMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "broker-dashboard" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
-                >My Dashboard</button>
-              )}
-              {currentRole === "admin" && (
-                <button onClick={() => { setActiveView("admin-panel"); setMobileMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "admin-panel" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
-                >Admin Panel</button>
-              )}
-              {(!currentUser || currentRole === "buyer") && (
-                <button onClick={() => { setShowAuthModal(true); setMobileMenuOpen(false); }}
-                  className="w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition cursor-pointer"
-                >Become a Broker</button>
-              )}
-              {!currentUser && (
-                <div className="border-t border-slate-100 pt-2 mt-2 space-y-1">
-                  <button onClick={() => { setShowAuthModal(true); setMobileMenuOpen(false); }}
-                    className="w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition cursor-pointer"
-                  >Login</button>
-                </div>
-              )}
-            </div>
-          </>
-        )}
       </header>
       )}
       
-      <main className={`${FULL_SCREEN_VIEWS.includes(activeView) ? "h-screen" : "flex-grow min-h-0"} flex flex-col`}>
+      <main className={`${FULL_SCREEN_VIEWS.includes(activeView) ? "h-screen" : "flex-grow min-h-0"} flex flex-col pb-16 sm:pb-0`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeView}
@@ -566,6 +518,53 @@ export default function App() {
           onNotify={addNotification}
         />
       )}
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed sm:hidden bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 flex items-center justify-around px-1 py-1 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+        <button onClick={() => setActiveView("home")}
+          className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
+          <Home size={20} className={activeView === "home" ? "text-[#0F4C81]" : "text-slate-400"} />
+          <span className={`text-[8px] font-semibold ${activeView === "home" ? "text-[#0F4C81]" : "text-slate-400"}`}>Home</span>
+        </button>
+
+        {currentRole !== "broker" && (
+          <button onClick={() => handleBrowseWithFilters()}
+            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
+            <LayoutGrid size={20} className={activeView === "browse" ? "text-[#0F4C81]" : "text-slate-400"} />
+            <span className={`text-[8px] font-semibold ${activeView === "browse" ? "text-[#0F4C81]" : "text-slate-400"}`}>Browse</span>
+          </button>
+        )}
+
+        {currentRole === "broker" && (
+          <button onClick={() => setActiveView("broker-dashboard")}
+            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
+            <LayoutDashboard size={20} className={activeView === "broker-dashboard" ? "text-[#0F4C81]" : "text-slate-400"} />
+            <span className={`text-[8px] font-semibold ${activeView === "broker-dashboard" ? "text-[#0F4C81]" : "text-slate-400"}`}>Dashboard</span>
+          </button>
+        )}
+
+        {(!currentUser || currentRole === "buyer") && (
+          <button onClick={() => { if (!currentUser) setShowAuthModal(true); else addNotification("Contact admin to upgrade to a Broker account.", "info"); }}
+            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
+            <Handshake size={20} className="text-slate-400" />
+            <span className="text-[8px] font-semibold text-slate-400">Broker</span>
+          </button>
+        )}
+
+        {currentRole === "admin" && (
+          <button onClick={() => setActiveView("admin-panel")}
+            className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
+            <Shield size={20} className={activeView === "admin-panel" ? "text-[#0F4C81]" : "text-slate-400"} />
+            <span className={`text-[8px] font-semibold ${activeView === "admin-panel" ? "text-[#0F4C81]" : "text-slate-400"}`}>Admin</span>
+          </button>
+        )}
+
+        <button onClick={() => { if (!currentUser) setShowAuthModal(true); else setActiveView("profile"); }}
+          className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer min-w-0">
+          <UserCircle size={20} className={activeView === "profile" ? "text-[#0F4C81]" : "text-slate-400"} />
+          <span className={`text-[8px] font-semibold ${activeView === "profile" ? "text-[#0F4C81]" : "text-slate-400"}`}>Profile</span>
+        </button>
+      </div>
 
     </div>
   );

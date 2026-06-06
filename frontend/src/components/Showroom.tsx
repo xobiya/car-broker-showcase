@@ -294,42 +294,42 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
 
   const renderToolbarButton = (active: boolean, onClick: () => void, icon: React.ReactNode, label: string, count?: number, isOpen?: boolean) => (
     <button onClick={onClick}
-      className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg border cursor-pointer transition-colors w-full sm:w-auto justify-center ${
+      className={`flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-3 sm:px-3 py-2.5 sm:py-1.5 rounded-lg border cursor-pointer transition-colors w-full sm:w-auto justify-center ${
         active ? "border-[#0F4C81] bg-blue-50 text-[#0F4C81]" : "border-[#E5E7EB] hover:bg-slate-50 text-slate-600"
       }`}
     >
       {icon}
       <span className="truncate">{label}</span>
       {count !== undefined && count > 0 && <span className="bg-[#0F4C81] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-0.5">{count}</span>}
-      <ChevronDown size={12} className={`text-slate-400 shrink-0 transition ${isOpen ? "rotate-180" : ""}`} />
+      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition ${isOpen ? "rotate-180" : ""}`} />
     </button>
   );
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen text-[#111827] font-sans">
-      <div className="w-full px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8">
+      <div className="w-full px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 pb-4 sm:pb-8">
 
         {/* Odoo-style search bar */}
         <div className="w-full sm:max-w-3xl sm:mx-auto mb-6" ref={searchRef}>
           <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-sm">
             {/* Search input row */}
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3">
-              <Search size={16} className="text-slate-400 shrink-0" />
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 sm:py-3">
+              <Search size={18} className="text-slate-400 shrink-0 sm:size-4" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
                 onFocus={() => setSearchFocused(true)}
                 placeholder="Search vehicles, brokers, customers..."
-                className="flex-1 text-sm text-[#111827] placeholder:text-slate-400 bg-transparent focus:outline-none min-w-0"
+                className="flex-1 text-[15px] sm:text-sm text-[#111827] placeholder:text-slate-400 bg-transparent focus:outline-none min-w-0 py-1"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 shrink-0"><X size={15} /></button>
+                <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 cursor-pointer p-1.5 shrink-0"><X size={16} /></button>
               )}
-              <span className="text-[10px] sm:text-xs text-slate-400 font-semibold whitespace-nowrap shrink-0">{sorted.length} results</span>
-              <div className="h-5 w-px bg-[#E5E7EB] shrink-0" />
+              <span className="text-[11px] sm:text-xs text-slate-400 font-semibold whitespace-nowrap shrink-0">{sorted.length}</span>
+              <div className="h-6 w-px bg-[#E5E7EB] shrink-0" />
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="text-[10px] sm:text-xs font-semibold text-slate-500 bg-transparent focus:outline-none appearance-none cursor-pointer py-1 shrink-0 max-w-[80px] sm:max-w-none"
+                className="text-[11px] sm:text-xs font-semibold text-slate-500 bg-transparent focus:outline-none appearance-none cursor-pointer py-1.5 shrink-0 max-w-[90px] sm:max-w-none"
               >
                 <option>Newest</option>
                 <option>Price: Low to High</option>
@@ -337,36 +337,36 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               </select>
             </div>
 
-            {/* Toolbar: vertical on mobile, horizontal on desktop */}
+            {/* Toolbar */}
             {(searchFocused || allFiltersCount > 0) && (
-              <div className="border-t border-[#E5E7EB] px-3 sm:px-4 py-2 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-1.5 sm:gap-2">
+              <div className="flex border-t border-[#E5E7EB] px-2 sm:px-4 py-2 flex-row flex-wrap items-center gap-1.5 sm:gap-2">
                 {/* Filters */}
-                <div className="relative sm:static">
+                <div className="relative flex-1 sm:flex-none">
                   {renderToolbarButton(
                     quickFilters.length > 0,
                     () => setOpenDropdown(openDropdown === "filters" ? null : "filters"),
-                    <Filter size={13} />, "Filters", quickFilters.length,
+                    <Filter size={15} />, "Filters", quickFilters.length,
                     openDropdown === "filters"
                   )}
                   {openDropdown === "filters" && (
-                    <div className="sm:absolute sm:top-full sm:left-0 sm:mt-1 sm:w-56 bg-white sm:border sm:border-slate-200 sm:rounded-xl sm:shadow-xl z-20 sm:p-2 sm:max-h-80 sm:overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 sm:right-auto mt-1 min-w-full sm:w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-80 overflow-y-auto">
                       {QUICK_FILTERS.map(qf => renderCheckItem(qf.label, quickFilters.includes(qf.id), () => toggleQuickFilter(qf.id)))}
                     </div>
                   )}
                 </div>
 
                 {/* Group By */}
-                <div className="relative sm:static">
+                <div className="relative flex-1 sm:flex-none">
                   {renderToolbarButton(
                     !!groupBy,
                     () => setOpenDropdown(openDropdown === "groupby" ? null : "groupby"),
-                    <SlidersHorizontal size={13} />,
+                    <SlidersHorizontal size={15} />,
                     groupBy ? GROUP_OPTIONS.find(g => g.id === groupBy)?.label || "Group By" : "Group By",
                     undefined,
                     openDropdown === "groupby"
                   )}
                   {openDropdown === "groupby" && (
-                    <div className="sm:absolute sm:top-full sm:left-0 sm:mt-1 sm:w-56 bg-white sm:border sm:border-slate-200 sm:rounded-xl sm:shadow-xl z-20 sm:p-2 sm:max-h-80 sm:overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 sm:right-auto mt-1 min-w-full sm:w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-80 overflow-y-auto">
                       {GROUP_OPTIONS.map(opt => (
                         <div key={opt.id}
                           className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
@@ -383,16 +383,16 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 </div>
 
                 {/* Favorites */}
-                <div className="relative sm:static">
+                <div className="relative flex-1 sm:flex-none">
                   {renderToolbarButton(
                     false,
                     () => setOpenDropdown(openDropdown === "favorites" ? null : "favorites"),
-                    <Star size={13} />, "Favorites",
+                    <Star size={15} />, "Favorites",
                     undefined,
                     openDropdown === "favorites"
                   )}
                   {openDropdown === "favorites" && (
-                    <div className="sm:absolute sm:top-full sm:left-0 sm:mt-1 sm:w-56 bg-white sm:border sm:border-slate-200 sm:rounded-xl sm:shadow-xl z-20 sm:p-2 sm:max-h-80 sm:overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 sm:right-auto mt-1 min-w-full sm:w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-80 overflow-y-auto">
                       <button onClick={saveCurrentSearch}
                         className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-[#0F4C81] hover:bg-blue-50 cursor-pointer transition"
                       >+ Save Current Search</button>
@@ -418,20 +418,22 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 </div>
 
                 {/* Advanced */}
+                <div className="flex-1 sm:flex-none">
                 {renderToolbarButton(
                   showAdvancedSearch,
                   () => setShowAdvancedSearch(!showAdvancedSearch),
-                  <Filter size={13} />, "Advanced",
+                  <Filter size={15} />, "Advanced",
                   undefined,
                   showAdvancedSearch
                 )}
+                </div>
               </div>
             )}
 
             {/* Advanced Search panel */}
             {showAdvancedSearch && (
-              <div className="border-t border-[#E5E7EB] px-4 py-4 bg-slate-50/50">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="border-t border-[#E5E7EB] px-3 sm:px-4 py-3 sm:py-4 bg-slate-50/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                   {["brand", "fuel", "transmission", "location", "year", "price"].map(key => {
                     const options = facetOptions[key] || [];
                     const selected = facets[key] || [];
@@ -441,13 +443,13 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                         <div className="relative">
                           <button
                             onClick={() => setOpenDropdown(openDropdown === `adv-${key}` ? null : `adv-${key}`)}
-                            className="w-full flex items-center justify-between gap-1 text-xs font-semibold px-3 py-2 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 cursor-pointer text-slate-700"
+                            className="w-full flex items-center justify-between gap-1 text-[11px] sm:text-xs font-semibold px-3 py-2.5 sm:py-2 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 cursor-pointer text-slate-700"
                           >
                             <span className="truncate">{selected.length > 0 ? selected.join(", ") : `All ${FACET_LABELS[key].toLowerCase()}`}</span>
-                            <ChevronDown size={12} className={`text-slate-400 shrink-0 transition ${openDropdown === `adv-${key}` ? "rotate-180" : ""}`} />
+                            <ChevronDown size={14} className={`text-slate-400 shrink-0 transition ${openDropdown === `adv-${key}` ? "rotate-180" : ""}`} />
                           </button>
                           {openDropdown === `adv-${key}` && (
-                            <div className="absolute top-full left-0 mt-1 w-full min-w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-48 overflow-y-auto">
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-48 overflow-y-auto">
                               {options.length === 0 && <p className="text-xs text-slate-400 px-3 py-2">No options</p>}
                               {options.map(opt => renderCheckItem(
                                 opt.value, selected.includes(opt.value), () => toggleFacet(key, opt.value), opt.count
@@ -461,10 +463,10 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 </div>
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E5E7EB]">
                   <button onClick={() => setShowAdvancedSearch(false)}
-                    className="text-xs font-bold bg-[#0F4C81] hover:bg-blue-950 text-white px-4 py-2 rounded-lg cursor-pointer transition"
+                    className="text-[11px] sm:text-xs font-bold bg-[#0F4C81] hover:bg-blue-950 text-white px-5 sm:px-4 py-2.5 sm:py-2 rounded-lg cursor-pointer transition flex-1 sm:flex-none"
                   >Apply Filters</button>
                   <button onClick={() => { Object.keys(facets).forEach(k => setActiveFacets(prev => ({ ...prev, [k]: [] }))); }}
-                    className="text-xs font-semibold text-slate-500 hover:text-rose-600 px-3 py-2 cursor-pointer transition"
+                    className="text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 sm:px-3 py-2.5 sm:py-2 cursor-pointer transition flex-1 sm:flex-none"
                   >Clear</button>
                 </div>
               </div>
@@ -478,27 +480,27 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 const qf = QUICK_FILTERS.find(f => f.id === qfId);
                 if (!qf) return null;
                 return (
-                  <span key={qf.id} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[10px] sm:text-xs font-medium px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-sm">
+                  <span key={qf.id} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] sm:text-xs font-medium px-2.5 sm:px-2.5 py-1 sm:py-1 rounded-full shadow-sm">
                     {qf.label}
-                    <button onClick={() => toggleQuickFilter(qf.id)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={11} /></button>
+                    <button onClick={() => toggleQuickFilter(qf.id)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={13} /></button>
                   </span>
                 );
               })}
               {(Object.entries(facets) as [string, string[]][]).map(([key, values]) =>
                 values.map(v => (
-                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[10px] sm:text-xs font-medium px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-sm">
+                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] sm:text-xs font-medium px-2.5 sm:px-2.5 py-1 sm:py-1 rounded-full shadow-sm">
                     {v}
-                    <button onClick={() => removeFacet(key, v)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={11} /></button>
+                    <button onClick={() => removeFacet(key, v)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={13} /></button>
                   </span>
                 ))
               )}
               {searchQuery && (
-                <span className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[10px] sm:text-xs font-medium px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-sm">
-                  "{searchQuery}"
-                  <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={11} /></button>
+                <span className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] sm:text-xs font-medium px-2.5 sm:px-2.5 py-1 sm:py-1 rounded-full shadow-sm">
+                  &ldquo;{searchQuery}&rdquo;
+                  <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={13} /></button>
                 </span>
               )}
-              <button onClick={clearAll} className="text-[10px] sm:text-xs font-medium text-slate-400 hover:text-rose-500 px-2 py-1 transition cursor-pointer">Clear all</button>
+              <button onClick={clearAll} className="text-[11px] sm:text-xs font-medium text-slate-400 hover:text-rose-500 px-2.5 py-1 transition cursor-pointer">Clear all</button>
             </div>
           )}
         </div>
