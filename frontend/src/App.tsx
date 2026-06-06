@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Shield, ShieldCheck } from "lucide-react";
+import { Shield, ShieldCheck, Menu, X } from "lucide-react";
 import HomePage from "./components/HomePage";
 import VehicleDetail from "./components/VehicleDetail";
 import Showroom from "./components/Showroom";
@@ -50,6 +50,7 @@ export default function App() {
   
   // Status check variables
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [dbStatusText, setDbStatusText] = useState<string>("Verifying database...");
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -144,11 +145,11 @@ export default function App() {
           onClick={() => setActiveView("home")} 
           className="flex items-center space-x-3 cursor-pointer shrink-0"
         >
-          <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-900 text-white shadow-md">
-            <Shield size={20} />
+          <div className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-blue-900 text-white shadow-md">
+            <Shield size={18} />
           </div>
           <div>
-            <span className="text-base font-black text-slate-900 uppercase tracking-tight font-sans leading-none">
+            <span className="text-sm md:text-base font-black text-slate-900 uppercase tracking-tight font-sans leading-none">
               Arif Car Sell
             </span>
           </div>
@@ -219,7 +220,14 @@ export default function App() {
         </nav>
 
         {/* Right Buttons */}
-        <div className="flex items-center space-x-4 shrink-0">
+        <div className="flex items-center space-x-3 shrink-0">
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-slate-600 hover:text-slate-900 p-1 cursor-pointer"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
           {currentUser ? (
             <div className="relative">
               <button
@@ -237,7 +245,7 @@ export default function App() {
                       <p className="text-[9px] font-black uppercase tracking-wider text-orange-500">{currentUser.role}</p>
                     </div>
                     <button
-                      onClick={() => { setActiveView("profile"); setProfileDropdownOpen(false); }}
+                      onClick={() => { setActiveView("profile"); setProfileDropdownOpen(false); setMobileMenuOpen(false); }}
                       className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
                     >
                       Profile
@@ -280,19 +288,60 @@ export default function App() {
             <>
               <button 
                 onClick={() => setShowAuthModal(true)}
-                className="text-slate-600 hover:text-slate-900 text-xs font-extrabold cursor-pointer"
+                className="hidden sm:inline text-slate-600 hover:text-slate-900 text-xs font-extrabold cursor-pointer"
               >
                 Login
               </button>
               <button 
                 onClick={() => setShowAuthModal(true)}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg text-xs font-extrabold hover:shadow-sm transition-all cursor-pointer"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-extrabold hover:shadow-sm transition-all cursor-pointer"
               >
                 Register
               </button>
             </>
           )}
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <>
+            <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+            <div className="fixed top-20 left-0 right-0 z-30 bg-white border-b border-slate-200 shadow-xl md:hidden p-4 space-y-1">
+              {currentRole !== "broker" && (
+                <button onClick={() => { setActiveView("home"); setMobileMenuOpen(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "home" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
+                >Home</button>
+              )}
+              {currentRole !== "broker" && (
+                <button onClick={() => { handleBrowseWithFilters(); setMobileMenuOpen(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "browse" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
+                >Browse</button>
+              )}
+              {currentRole === "broker" && (
+                <button onClick={() => { setActiveView("broker-dashboard"); setMobileMenuOpen(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "broker-dashboard" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
+                >My Dashboard</button>
+              )}
+              {currentRole === "admin" && (
+                <button onClick={() => { setActiveView("admin-panel"); setMobileMenuOpen(false); }}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition cursor-pointer ${activeView === "admin-panel" ? "bg-orange-50 text-orange-600" : "text-slate-600 hover:bg-slate-50"}`}
+                >Admin Panel</button>
+              )}
+              {(!currentUser || currentRole === "buyer") && (
+                <button onClick={() => { setShowAuthModal(true); setMobileMenuOpen(false); }}
+                  className="w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                >Become a Broker</button>
+              )}
+              {!currentUser && (
+                <div className="border-t border-slate-100 pt-2 mt-2 space-y-1">
+                  <button onClick={() => { setShowAuthModal(true); setMobileMenuOpen(false); }}
+                    className="w-full text-left px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                  >Login</button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </header>
       )}
       

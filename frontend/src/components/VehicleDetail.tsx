@@ -138,7 +138,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
         <div className="lg:col-span-8 space-y-6">
 
           {/* Main Image */}
-          <div className="relative h-[480px] bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+          <div className="relative h-64 md:h-[480px] bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
             <img
               src={activeImage}
               alt={`${vehicle.brand} ${vehicle.model}`}
@@ -359,7 +359,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
                 onClick={() => onViewDetails(car)}
                 className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden cursor-pointer group"
               >
-                <div className="h-40 relative bg-slate-100 overflow-hidden">
+                <div className="h-32 md:h-40 relative bg-slate-100 overflow-hidden">
                   <img
                     src={car.imageUrl}
                     alt={`${car.brand} ${car.model}`}
