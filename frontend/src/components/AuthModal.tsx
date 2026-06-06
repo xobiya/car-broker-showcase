@@ -113,9 +113,21 @@ export default function AuthModal({ onClose, onSuccess, onNotify }: AuthModalPro
             {!isRegistering && (
               <div className="mt-2 p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Demo Accounts</p>
-                <p className="text-[10px] text-slate-500"><span className="font-bold text-blue-900">Admin:</span> abebe.k@autobroker.et</p>
-                <p className="text-[10px] text-slate-500"><span className="font-bold text-indigo-600">Broker:</span> yonas.h@autobroker.et</p>
-                <p className="text-[10px] text-slate-500"><span className="font-bold text-emerald-600">Buyer:</span> dawit.l@gmail.com</p>
+                {[
+                  { label: "Admin", email: "abebe.k@autobroker.et", color: "text-blue-900" },
+                  { label: "Broker", email: "yonas.h@autobroker.et", color: "text-indigo-600" },
+                  { label: "Buyer", email: "dawit.l@gmail.com", color: "text-emerald-600" },
+                ].map(({ label, email, color }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => { setEmail(email); }}
+                    className="w-full flex items-center gap-2 text-[10px] text-left group cursor-pointer"
+                  >
+                    <span className={`font-bold ${color} shrink-0 w-12`}>{label}:</span>
+                    <span className="text-slate-500 group-hover:text-slate-800 transition-colors">{email}</span>
+                  </button>
+                ))}
               </div>
             )}
           </div>

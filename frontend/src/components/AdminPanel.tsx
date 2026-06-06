@@ -2,12 +2,55 @@ import React, { useState, useEffect } from "react";
 import {
   Shield, Check, Users, DollarSign, Award, Star,
   Edit3, Trash2, Plus, Landmark, TrendingUp,
-  Car, ClipboardList, UserCheck, Menu, X
+  Car, ClipboardList, UserCheck, Menu, X, Save
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale } from "../../../shared/types";
 
+const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
+const COLORS = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Gold", "Brown", "Beige", "Orange", "Burgundy", "Navy"];
+const LOCATIONS = ["Addis Ababa", "Adama", "Bahir Dar", "Dire Dawa", "Hawassa", "Jimma", "Mekelle", "Gondar", "Debre Zeit", "Shashemene", "Harar", "Dessie"];
+
+function Combobox({ value, onChange, options, placeholder }: {
+  value: string; onChange: (v: string) => void; options: string[]; placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState(value);
+  const filtered = options.filter(o => o.toLowerCase().includes(input.toLowerCase()));
+
+  useEffect(() => { setInput(value); }, [value]);
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={input}
+        onChange={e => { setInput(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        placeholder={placeholder}
+        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+          {filtered.map(o => (
+            <button
+              key={o}
+              type="button"
+              onMouseDown={() => { setInput(o); onChange(o); setOpen(false); }}
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 transition cursor-pointer ${o === input ? "bg-blue-50 font-semibold text-blue-900" : "text-slate-700"}`}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface AdminPanelProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
+  onLogout?: () => void;
 }
 
 // ─── Monthly Revenue Chart ─────────────────────────────────────────────────
@@ -106,7 +149,11 @@ function StatCard({ label, value, accent, icon: Icon, sub }: {
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────
-export default function AdminPanel({ onNotify }: AdminPanelProps) {
+export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
+  const adminUser = React.useMemo(() => {
+    const saved = localStorage.getItem("autobroker_user");
+    return saved ? JSON.parse(saved) : null;
+  }, []);
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
   const [brokers, setBrokers] = useState<any[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -233,6 +280,12 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
     setImageUrl(v.imageUrl); setDescription(v.description);
     setFuelType(v.fuelType); setTransmission(v.transmission);
     setLocation(v.location); setStatus(v.status);
+    setCondition(v.condition || "Used"); setBodyType(v.bodyType || "SUV");
+    setDriveType(v.driveType || "4WD"); setColor(v.color || "");
+    setDoors(v.doors || 4); setSeats(v.seats || 5);
+    setEngineSize(v.engineSize || ""); setEngineType(v.engineType || "V6");
+    setHorsepower(v.horsepower || 0); setChassisNumber(v.chassisNumber || "");
+    setCommissionRate(v.commissionRate || 1.0); setCommissionType(v.commissionType || "percentage");
     setShowFormModal(true);
   };
 
@@ -340,7 +393,20 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
         ))}
       </nav>
 
-      <div className={`p-4 border-t border-slate-100 ${sidebarCollapsed ? "px-2" : ""}`}>
+      <div className={`border-t border-slate-100 p-4 space-y-2 ${sidebarCollapsed ? "px-2" : ""}`}>
+        {/* Profile */}
+        {!sidebarCollapsed && adminUser && (
+          <div className="flex items-center gap-2.5 px-1 mb-2">
+            <div className="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+              {adminUser.name?.charAt(0).toUpperCase() || "A"}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-xs font-bold text-slate-800 truncate">{adminUser.name || "Admin"}</p>
+              <p className="text-[9px] text-orange-500 font-black uppercase tracking-wider truncate">admin</p>
+            </div>
+          </div>
+        )}
+        {/* Add Car Button */}
         <button
           onClick={handleOpenCreate}
           className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm`}
@@ -348,6 +414,14 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
         >
           <Plus size={14} />
           {!sidebarCollapsed && "Add Car Listing"}
+        </button>
+        {/* Logout */}
+        <button
+          onClick={onLogout}
+          className={`w-full text-slate-400 hover:text-rose-500 font-bold text-xs flex items-center justify-center gap-1.5 py-2 rounded-xl transition-colors cursor-pointer`}
+          title={sidebarCollapsed ? "Logout" : undefined}
+        >
+          {!sidebarCollapsed && "Logout"}
         </button>
       </div>
     </aside>
@@ -757,191 +831,212 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
 
       {/* ── FORM MODAL ───────────────────────────────────────────────────────── */}
       {showFormModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-3xl border border-slate-200 shadow-2xl rounded-2xl p-6 space-y-5 text-slate-800 max-h-[92vh] overflow-y-auto my-8">
-
-            {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-sm text-blue-900 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                 <Landmark size={16} />
-                {editingVehicle ? "Edit Car Listing" : "Add New Car Listing"}
+                {editingVehicle ? "Edit Listing" : "Add New Listing"}
               </h3>
-              <button onClick={() => setShowFormModal(false)} className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer">✕ Close</button>
+              <button onClick={() => setShowFormModal(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
             </div>
-
-            <form onSubmit={handleSaveListing} className="space-y-5">
-
-              {/* ── Basic Information ─────────────────────────────────────── */}
+            <form onSubmit={handleSaveListing} className="p-6 space-y-5 overflow-y-auto">
+              {/* ── Basic Info ── */}
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Basic Information</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Brand *" value={brand} onChange={setBrand} placeholder="e.g. Toyota" required />
-                  <Field label="Model *" value={model} onChange={setModel} placeholder="e.g. Land Cruiser" required />
-                </div>
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  <FieldNum label="Manufacturing Year *" value={year} onChange={setYear} />
-                  <FieldNum label="Registration Year" value={regYear} onChange={setRegYear} />
-                  <FieldSelect label="Condition" value={condition} onChange={setCondition} options={["New", "Used", "Certified Pre-Owned"]} />
-                </div>
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  <FieldSelect label="Body Type" value={bodyType} onChange={setBodyType} options={["SUV", "Sedan", "Coupe", "Hatchback", "Pickup", "Minivan", "Wagon", "Convertible"]} />
-                  <FieldSelect label="Drive Type" value={driveType} onChange={setDriveType} options={["4WD", "AWD", "FWD", "RWD"]} />
-                  <Field label="Color" value={color} onChange={setColor} placeholder="e.g. Pearl White" />
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <FieldNum label="Number of Doors" value={doors} onChange={setDoors} min={2} max={6} />
-                  <FieldNum label="Seating Capacity" value={seats} onChange={setSeats} min={2} max={12} />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Brand *</label>
+                    <Combobox value={brand} onChange={setBrand} options={BRANDS} placeholder="Select or type brand..." />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Model *</label>
+                    <Combobox value={model} onChange={setModel} options={["Yaris", "Vitz", "Passo", "Corolla", "Premio", "Allion", "Fielder", "Harrier", "Land Cruiser", "Prado", "Rush", "Hilux", "Hiace", "Camry", "RAV4", "Atto 3", "Seagull", "Dolphin", "Han", "Tucson", "Elantra", "Santa Fe", "Accent", "Grand i10", "Creta", "Swift", "Dzire", "Alto", "Ertiga", "Vitara", "Jimny", "Sportage", "Sorento", "Picanto", "Rio", "Cerato", "Fit", "Civic", "CR-V", "Vezel", "Grace", "Freed", "Note", "X-Trail", "Patrol", "Sunny", "Juke", "C-Class", "E-Class", "Golf", "Passat", "Polo", "Tiguan", "Ranger", "L200", "D-Max"]} placeholder="Select or type model..." />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Year</label>
+                    <input type="number" value={year} onChange={e => setYear(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Condition</label>
+                    <select value={condition} onChange={e => setCondition(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {["New", "Used", "Imported", "Damaged"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Body Type</label>
+                    <select value={bodyType} onChange={e => setBodyType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {["SUV", "Sedan", "Hatchback", "Pickup", "Truck", "Van", "Coupe", "Convertible"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Chassis Number</label>
+                    <input type="text" value={chassisNumber} onChange={e => setChassisNumber(e.target.value)} placeholder="VIN / Chassis #" className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
                 </div>
               </div>
 
-              {/* ── Performance & Specs ───────────────────────────────────── */}
+              {/* ── Specs ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Performance & Specs</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <FieldNum label="Mileage (km) *" value={mileage} onChange={setMileage} />
-                  <FieldSelect label="Fuel Type" value={fuelType} onChange={setFuelType} options={["Benzine", "Diesel", "Electric", "Hybrid", "LPG"]} />
-                </div>
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  <FieldSelect label="Transmission" value={transmission} onChange={setTransmission} options={["Automatic", "Manual", "CVT"]} />
-                  <Field label="Engine Size" value={engineSize} onChange={setEngineSize} placeholder="e.g. 3.5L" />
-                  <FieldSelect label="Engine Type" value={engineType} onChange={setEngineType} options={["V4", "V6", "V8", "I4", "I6", "Electric", "Hybrid"]} />
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <FieldNum label="Horsepower (hp)" value={horsepower} onChange={setHorsepower} />
-                  <Field label="Chassis Number" value={chassisNumber} onChange={setChassisNumber} placeholder="VIN / Chassis No." />
+                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Specifications</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Mileage (km)</label>
+                    <input type="number" value={mileage} onChange={e => setMileage(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Fuel Type</label>
+                    <select value={fuelType} onChange={e => setFuelType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {["Benzine", "Diesel", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Transmission</label>
+                    <select value={transmission} onChange={e => setTransmission(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {["Automatic", "Manual"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Drive Type</label>
+                    <select value={driveType} onChange={e => setDriveType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {["4WD", "AWD", "FWD", "RWD"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Color</label>
+                    <Combobox value={color} onChange={setColor} options={COLORS} placeholder="Select or type color..." />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Doors</label>
+                    <select value={doors} onChange={e => setDoors(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {[2, 3, 4, 5].map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Seats</label>
+                    <select value={seats} onChange={e => setSeats(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {[2, 4, 5, 6, 7, 8].map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Engine</label>
+                    <input type="text" value={engineSize} onChange={e => setEngineSize(e.target.value)} placeholder="e.g. 3.5L" className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Engine Type</label>
+                    <select value={engineType} onChange={e => setEngineType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {["V4", "V6", "V8", "V12", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Horsepower (HP)</label>
+                    <input type="number" value={horsepower} onChange={e => setHorsepower(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Reg. Year</label>
+                    <input type="number" value={regYear} onChange={e => setRegYear(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Location *</label>
+                    <Combobox value={location} onChange={setLocation} options={LOCATIONS} placeholder="Select or type location..." />
+                  </div>
                 </div>
               </div>
 
-              {/* ── Pricing & Commission ──────────────────────────────────── */}
+              {/* ── Pricing & Commission ── */}
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Pricing & Commission</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <FieldNum label="Asking Price (ETB) *" value={price} onChange={setPrice} />
-                  <FieldNum label="Original / MSRP Price (ETB)" value={originalPrice} onChange={setOriginalPrice} />
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <FieldSelect label="Commission Type" value={commissionType} onChange={setCommissionType} options={["percentage", "fixed"]} />
-                  <FieldNum label={commissionType === "percentage" ? "Commission Rate (%)" : "Commission Amount (ETB)"} value={commissionRate} onChange={setCommissionRate} />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Price (ETB) *</label>
+                    <input type="number" required value={price} onChange={e => setPrice(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">MSRP (ETB)</label>
+                    <input type="number" value={originalPrice} onChange={e => setOriginalPrice(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Commission Type</label>
+                    <select value={commissionType} onChange={e => setCommissionType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      {["percentage", "fixed"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{commissionType === "percentage" ? "Rate (%)" : "Amount (ETB)"}</label>
+                    <input type="number" value={commissionRate} onChange={e => setCommissionRate(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
                 </div>
               </div>
 
-              {/* ── Location & Media ──────────────────────────────────────── */}
+              {/* ── Images ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Location & Media</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Location *" value={location} onChange={setLocation} placeholder="e.g. Addis Ababa, Bole" required />
-                  <Field label="Image URL (optional)" value={imageUrl} onChange={setImageUrl} placeholder="https://..." />
-                </div>
-
-                {/* Multi-image upload */}
-                <div className="mt-3 space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Upload Images</label>
+                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Photos</p>
+                <div className="space-y-2">
                   <div className="flex flex-wrap gap-3">
                     {uploadedImages.map((img, i) => (
-                      <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-200 group">
+                      <div key={i} className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border border-slate-200 group">
                         <img src={img} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))}
-                          className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold cursor-pointer"
-                        >
-                          ×
-                        </button>
-                        {i === 0 && (
-                          <span className="absolute bottom-1 left-1 bg-blue-900/80 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
-                            Main
-                          </span>
-                        )}
+                        <button type="button" onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold cursor-pointer">×</button>
+                        {i === 0 && <span className="absolute bottom-1 left-1 bg-blue-900/80 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Main</span>}
                       </div>
                     ))}
-                    <label className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 bg-slate-50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors">
+                    <label className="w-20 h-20 md:w-24 md:h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 bg-slate-50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors">
                       <Plus size={20} className="text-slate-400" />
-                      <span className="text-[8px] font-bold text-slate-400 uppercase">Add Photos</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={(e) => {
-                          const files = e.target.files;
-                          if (!files) return;
-                          Array.from({ length: files.length }, (_, i) => files[i]).forEach((file: File) => {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              if (ev.target?.result) {
-                                setUploadedImages(prev => [...prev, ev.target.result as string]);
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          });
-                          e.target.value = "";
-                        }}
-                        className="hidden"
-                      />
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">Add</span>
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                        const files = e.target.files;
+                        if (!files) return;
+                        Array.from({ length: files.length }, (_, i) => files[i]).forEach((file: File) => {
+                          const reader = new FileReader();
+                          reader.onload = (ev) => { if (ev.target?.result) setUploadedImages(prev => [...prev, ev.target.result as string]); };
+                          reader.readAsDataURL(file);
+                        });
+                        e.target.value = "";
+                      }} />
                     </label>
                   </div>
-                  <p className="text-[9px] text-slate-400 font-medium">Supports multiple images. First image is the primary listing photo.</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-[11px] text-slate-400">Upload images or enter a URL:</p>
+                    <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className="flex-1 text-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                  </div>
                 </div>
               </div>
 
-              {/* ── Status & Flags ────────────────────────────────────────── */}
+              {/* ── Status & Flags ── */}
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Status & Flags</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <FieldSelect
-                    label="Listing Status"
-                    value={status}
-                    onChange={(v) => setStatus(v as any)}
-                    options={["pending", "approved", "sold"]}
-                  />
-                  <div className="flex items-end pb-2">
-                    <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                      <input
-                        type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)}
-                        className="rounded border-slate-300 text-orange-500"
-                      />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Listing Status</label>
+                    <select value={status} onChange={e => setStatus(e.target.value as any)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="sold">Sold</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1 flex items-end pb-1">
+                    <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                      <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="rounded border-slate-300 text-orange-500" />
                       <Star size={13} className="text-orange-400" />
-                      Mark as Featured Listing
+                      Featured Listing
                     </label>
                   </div>
                 </div>
               </div>
 
-              {/* ── Description & Notes ───────────────────────────────────── */}
+              {/* ── Description & Notes ── */}
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Description & Notes</p>
                 <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Vehicle Description</label>
-                    <textarea
-                      value={description} onChange={e => setDescription(e.target.value)}
-                      rows={3} placeholder="Full description of the vehicle condition, history, features..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Admin Notes (internal)</label>
-                    <textarea
-                      value={adminNotes} onChange={e => setAdminNotes(e.target.value)}
-                      rows={2} placeholder="Internal notes visible only to admins..."
-                      className="w-full bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400 resize-none"
-                    />
-                  </div>
+                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Vehicle history, condition, imported features, tax status..." className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 resize-none" />
+                  <textarea value={adminNotes} onChange={e => setAdminNotes(e.target.value)} rows={2} placeholder="Internal admin notes..." className="w-full text-sm px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 focus:outline-none focus:border-amber-400 resize-none" />
                 </div>
               </div>
 
-              {/* ── Submit ────────────────────────────────────────────────── */}
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button" onClick={() => setShowFormModal(false)}
-                  className="text-xs text-slate-500 hover:text-slate-700 px-4 py-2 font-bold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer shadow-sm transition-colors"
-                >
-                  {editingVehicle ? "Save Changes" : "Create Listing"}
+              <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                <button type="button" onClick={() => setShowFormModal(false)} className="text-sm text-slate-500 hover:text-slate-800 px-4 py-2 cursor-pointer">Cancel</button>
+                <button type="submit" className="flex items-center gap-1.5 text-sm bg-blue-900 hover:bg-blue-800 text-white font-semibold px-5 py-2 rounded-lg transition cursor-pointer">
+                  <Save size={14} /> {editingVehicle ? "Save Changes" : "Create Listing"}
                 </button>
               </div>
             </form>
@@ -949,53 +1044,6 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
         </div>
       )}
     </main>
-    </div>
-  );
-}
-
-// ─── Reusable mini form components ────────────────────────────────────────
-function Field({ label, value, onChange, placeholder, required }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">{label}</label>
-      <input
-        type="text" value={value} onChange={e => onChange(e.target.value)}
-        placeholder={placeholder} required={required}
-        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none"
-      />
-    </div>
-  );
-}
-
-function FieldNum({ label, value, onChange, min, max }: {
-  label: string; value: number; onChange: (v: number) => void; min?: number; max?: number;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">{label}</label>
-      <input
-        type="number" value={value} onChange={e => onChange(parseFloat(e.target.value) || 0)}
-        min={min} max={max}
-        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none"
-      />
-    </div>
-  );
-}
-
-function FieldSelect({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[];
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">{label}</label>
-      <select
-        value={value} onChange={e => onChange(e.target.value)}
-        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none cursor-pointer"
-      >
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
     </div>
   );
 }

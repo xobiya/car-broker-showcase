@@ -1,17 +1,64 @@
 import React, { useState, useEffect } from "react";
-import { Search, Shield, ShieldCheck, Users, Lock, ArrowRight } from "lucide-react";
-import { VehicleListing } from "../../../shared/types";
+import { Search, Shield, ShieldCheck, Users, Lock, ArrowRight, Car, LogIn, UserPlus } from "lucide-react";
+import { VehicleListing, User } from "../../../shared/types";
 
 interface HomePageProps {
+  currentUser?: User | null;
   onViewDetails: (vehicle: VehicleListing) => void;
   onBrowse: (filters?: { brand?: string; model?: string; year?: string; priceRange?: string }) => void;
   onBecomeBroker: () => void;
 }
 
-export default function HomePage({ onViewDetails, onBrowse, onBecomeBroker }: HomePageProps) {
-  const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
+const FALLBACK_VEHICLES: VehicleListing[] = [
+  {
+    id: "fb-1", brokerId: "brk-1", brand: "Toyota", model: "RAV4", year: 2022,
+    mileage: 12000, price: 7450000, originalPrice: 8000000, status: "approved",
+    imageUrl: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80",
+    description: "Limited Edition 2022", fuelType: "Electric", transmission: "Automatic", location: "Addis Ababa",
+    color: "Silver", engineSize: "Electric", engineType: "Electric", horsepower: 201,
+  },
+  {
+    id: "fb-2", brokerId: "brk-2", brand: "Hyundai", model: "Tucson", year: 2023,
+    mileage: 0, price: 6200000, originalPrice: 6500000, status: "approved",
+    imageUrl: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&q=80",
+    description: "SmartStream 2023", fuelType: "Hybrid", transmission: "Automatic", location: "Addis Ababa",
+    color: "Black", engineSize: "2.0L", engineType: "V4", horsepower: 156,
+  },
+  {
+    id: "fb-3", brokerId: "brk-1", brand: "Suzuki", model: "Dzire", year: 2021,
+    mileage: 24000, price: 2850000, originalPrice: 3100000, status: "approved",
+    imageUrl: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=600&q=80",
+    description: "VXI Plus 2021", fuelType: "Benzine", transmission: "Automatic", location: "Adama",
+    color: "White", engineSize: "1.2L", engineType: "V4", horsepower: 83,
+  },
+  {
+    id: "fb-4", brokerId: "brk-2", brand: "Mercedes-Benz", model: "C200", year: 2020,
+    mileage: 45000, price: 12500000, originalPrice: 13000000, status: "approved",
+    imageUrl: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=600&q=80",
+    description: "Avantgarde 2020", fuelType: "Benzine", transmission: "Automatic", location: "Addis Ababa",
+    color: "Black", engineSize: "2.0L", engineType: "V4", horsepower: 181,
+  },
+  {
+    id: "fb-5", brokerId: "brk-1", brand: "Volkswagen", model: "ID.4", year: 2023,
+    mileage: 0, price: 8900000, originalPrice: 9500000, status: "approved",
+    imageUrl: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=600&q=80",
+    description: "Pro Performance 2023", fuelType: "Electric", transmission: "Automatic", location: "Addis Ababa",
+    color: "White", engineSize: "Electric", engineType: "Electric", horsepower: 201,
+  },
+  {
+    id: "fb-6", brokerId: "brk-2", brand: "Toyota", model: "Hilux", year: 2021,
+    mileage: 32000, price: 9800000, originalPrice: 10500000, status: "approved",
+    imageUrl: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80",
+    description: "Double Cabin 2021", fuelType: "Diesel", transmission: "Manual", location: "Bishoftu",
+    color: "Gold", engineSize: "3.0L", engineType: "V4", horsepower: 201,
+  },
+];
+
+export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecomeBroker }: HomePageProps) {
+  const [vehicles, setVehicles] = useState<VehicleListing[]>(FALLBACK_VEHICLES);
   const [brands, setBrands] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
+  const [loaded, setLoaded] = useState(false);
   
   // Search state
   const [selectedBrand, setSelectedBrand] = useState("Any Brand");
@@ -26,18 +73,21 @@ export default function HomePage({ onViewDetails, onBrowse, onBecomeBroker }: Ho
         if (res.ok) {
           const data: VehicleListing[] = await res.json();
           const approved = data.filter(v => v.status === "approved");
-          setVehicles(approved);
-          
-          // Extract unique brands
-          const uniqueBrands = Array.from(new Set(approved.map(v => v.brand)));
-          setBrands(uniqueBrands);
+          if (approved.length > 0) setVehicles(approved);
         }
       } catch (err) {
         console.error("Failed to load vehicles for homepage", err);
+      } finally {
+        setLoaded(true);
       }
     };
     fetchVehicles();
   }, []);
+
+  useEffect(() => {
+    const uniqueBrands = Array.from(new Set(vehicles.map(v => v.brand)));
+    setBrands(uniqueBrands);
+  }, [vehicles]);
 
   // Update models list when brand changes
   useEffect(() => {
@@ -73,11 +123,71 @@ export default function HomePage({ onViewDetails, onBrowse, onBecomeBroker }: Ho
         }}
       >
         <div className="max-w-4xl w-full text-center text-white space-y-8 z-10">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight drop-shadow-md">
-            Find Your Next Car
-          </h1>
-          
-          {/* Quick Search Card */}
+
+          {currentUser ? (
+            <>
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full text-xs font-semibold mb-2">
+                <ShieldCheck size={12} />
+                Welcome back, {currentUser.name}
+              </div>
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight drop-shadow-md">
+                {currentUser.role === "broker" ? "Manage Your Listings" :
+                 currentUser.role === "admin" ? "Control Center" :
+                 "Find Your Next Car"}
+              </h1>
+              <p className="text-sm md:text-base text-blue-100/80 max-w-xl mx-auto font-medium">
+                {currentUser.role === "broker" ? "Track leads, manage inventory, and close more deals." :
+                 currentUser.role === "admin" ? "Oversee platform activity, brokers, and revenue." :
+                 "Browse thousands of verified vehicles from trusted brokers across Ethiopia."}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {currentUser.role === "buyer" && (
+                  <button onClick={() => onBrowse()}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                  >
+                    Browse Vehicles
+                  </button>
+                )}
+                {currentUser.role === "broker" && (
+                  <button onClick={onBecomeBroker}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                  >
+                    Go to Dashboard
+                  </button>
+                )}
+                {currentUser.role === "admin" && (
+                  <button onClick={onBecomeBroker}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                  >
+                    Admin Panel
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight drop-shadow-md">
+                Find Your Next Car
+              </h1>
+              <p className="text-sm md:text-base text-blue-100/80 max-w-xl mx-auto font-medium">
+                Browse thousands of verified vehicles from trusted brokers across Ethiopia.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+                <button onClick={() => onBrowse()}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                >
+                  Browse Vehicles
+                </button>
+                <button onClick={onBecomeBroker}
+                  className="bg-slate-900/50 hover:bg-slate-900/80 text-white font-semibold px-6 py-3 rounded-lg text-xs border border-white/40 backdrop-blur-sm transition-colors cursor-pointer"
+                >
+                  Become a Broker
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Quick Search Card - always shown */}
           <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 md:p-6 shadow-xl text-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end max-w-4xl mx-auto border border-slate-200">
             
             {/* Brand Select */}
@@ -149,21 +259,22 @@ export default function HomePage({ onViewDetails, onBrowse, onBecomeBroker }: Ho
 
           </div>
 
-          {/* Quick CTAs below search */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <button 
-              onClick={() => onBrowse()}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
-            >
-              Arif Car Sell
-            </button>
-            <button 
-              onClick={onBecomeBroker}
-              className="bg-slate-900/50 hover:bg-slate-900/80 text-white font-semibold px-6 py-3 rounded-lg text-xs border border-white/40 backdrop-blur-sm transition-colors cursor-pointer"
-            >
-              Become a Broker
-            </button>
-          </div>
+          {!currentUser && (
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <button 
+                onClick={() => onBrowse()}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+              >
+                Arif Car Sell
+              </button>
+              <button 
+                onClick={onBecomeBroker}
+                className="bg-slate-900/50 hover:bg-slate-900/80 text-white font-semibold px-6 py-3 rounded-lg text-xs border border-white/40 backdrop-blur-sm transition-colors cursor-pointer"
+              >
+                Become a Broker
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -284,16 +395,43 @@ export default function HomePage({ onViewDetails, onBrowse, onBecomeBroker }: Ho
       <section className="bg-blue-950 text-white py-16 px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-slate-900 opacity-90" />
         <div className="max-w-3xl mx-auto space-y-6 relative z-10">
-          <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">Want to scale your brokerage business?</h2>
-          <p className="text-blue-200/80 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-            Join Ethiopia's largest network of verified brokers and gain access to thousands of daily leads.
-          </p>
-          <button 
-            onClick={onBecomeBroker}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg text-xs tracking-wider transition-all cursor-pointer shadow-md inline-block"
-          >
-            Register as a Broker
-          </button>
+          {currentUser?.role === "broker" ? (
+            <>
+              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">Your brokerage dashboard awaits</h2>
+              <p className="text-blue-200/80 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
+                Manage your listings, respond to leads, and track your earnings all in one place.
+              </p>
+              <button onClick={onBecomeBroker}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg text-xs tracking-wider transition-all cursor-pointer shadow-md inline-block"
+              >
+                Go to Dashboard
+              </button>
+            </>
+          ) : currentUser?.role === "admin" ? (
+            <>
+              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">Platform administration</h2>
+              <p className="text-blue-200/80 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
+                Monitor listings, manage brokers, and review platform revenue.
+              </p>
+              <button onClick={onBecomeBroker}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg text-xs tracking-wider transition-all cursor-pointer shadow-md inline-block"
+              >
+                Open Admin Panel
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">Want to scale your brokerage business?</h2>
+              <p className="text-blue-200/80 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
+                Join Ethiopia's largest network of verified brokers and gain access to thousands of daily leads.
+              </p>
+              <button onClick={onBecomeBroker}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg text-xs tracking-wider transition-all cursor-pointer shadow-md inline-block"
+              >
+                Register as a Broker
+              </button>
+            </>
+          )}
         </div>
       </section>
 

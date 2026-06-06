@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Shield, MapPin, ShieldCheck } from "lucide-react";
+import { Shield, ShieldCheck } from "lucide-react";
 import HomePage from "./components/HomePage";
 import VehicleDetail from "./components/VehicleDetail";
 import Showroom from "./components/Showroom";
@@ -15,7 +15,7 @@ interface ToastMsg {
   id: string;
 }
 
-type ActiveView = "home" | "browse" | "detail" | "broker-dashboard" | "admin-panel";
+type ActiveView = "home" | "browse" | "detail" | "broker-dashboard" | "admin-panel" | "profile";
 const FULL_SCREEN_VIEWS: ActiveView[] = ["admin-panel", "broker-dashboard"];
 type UserRole = "buyer" | "broker" | "admin";
 
@@ -49,6 +49,7 @@ export default function App() {
   }, [currentUser]);
   
   // Status check variables
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [dbStatusText, setDbStatusText] = useState<string>("Verifying database...");
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -147,14 +148,9 @@ export default function App() {
             <Shield size={20} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-base font-black text-slate-900 uppercase tracking-tight font-sans leading-none">
-                Arif Car Sell
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold leading-none flex items-center gap-1">
-              <MapPin size={10} /> Addis Ababa's Premier Car Marketplace
-            </p>
+            <span className="text-base font-black text-slate-900 uppercase tracking-tight font-sans leading-none">
+              Arif Car Sell
+            </span>
           </div>
         </div>
 
@@ -177,7 +173,7 @@ export default function App() {
                 activeView === "browse" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
               }`}
             >
-              Arif Car Sell
+              Browse
             </button>
           )}
 
@@ -225,22 +221,60 @@ export default function App() {
         {/* Right Buttons */}
         <div className="flex items-center space-x-4 shrink-0">
           {currentUser ? (
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-xs font-bold text-slate-800">{currentUser.name}</p>
-                <p className="text-[9px] font-black uppercase tracking-wider text-orange-500">{currentUser.role}</p>
-              </div>
-              <button 
-                onClick={() => {
-                  localStorage.removeItem("autobroker_user");
-                  setCurrentUser(null);
-                  setActiveView("home");
-                  addNotification("Logged out successfully.", "success");
-                }}
-                className="border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer"
+            <div className="relative">
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="w-9 h-9 rounded-full bg-blue-900 text-white flex items-center justify-center shadow-sm hover:bg-blue-800 transition cursor-pointer"
               >
-                Logout
+                <span className="text-sm font-black">{currentUser.name.charAt(0).toUpperCase()}</span>
               </button>
+              {profileDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-2 space-y-0.5">
+                    <div className="px-4 py-2 border-b border-slate-100 mb-1">
+                      <p className="text-xs font-bold text-slate-800 truncate">{currentUser.name}</p>
+                      <p className="text-[9px] font-black uppercase tracking-wider text-orange-500">{currentUser.role}</p>
+                    </div>
+                    <button
+                      onClick={() => { setActiveView("profile"); setProfileDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
+                    >
+                      Profile
+                    </button>
+                    {(currentRole === "broker" && activeView !== "broker-dashboard") && (
+                      <button
+                        onClick={() => { setActiveView("broker-dashboard"); setProfileDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
+                      >
+                        My Dashboard
+                      </button>
+                    )}
+                    {(currentRole === "admin" && activeView !== "admin-panel") && (
+                      <button
+                        onClick={() => { setActiveView("admin-panel"); setProfileDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
+                      >
+                        Admin Panel
+                      </button>
+                    )}
+                    <div className="border-t border-slate-100 mt-1 pt-1">
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem("autobroker_user");
+                          setCurrentUser(null);
+                          setProfileDropdownOpen(false);
+                          setActiveView("home");
+                          addNotification("Logged out successfully.", "success");
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <>
@@ -274,15 +308,18 @@ export default function App() {
           >
             {activeView === "home" && (
               <HomePage 
+                currentUser={currentUser}
                 onViewDetails={handleViewDetails}
                 onBrowse={handleBrowseWithFilters}
                 onBecomeBroker={() => {
                   if (!currentUser) {
                     setShowAuthModal(true);
-                  } else if (currentUser.role !== "broker") {
-                    addNotification("Please sign in as a Broker to access dashboard.", "info");
-                  } else {
+                  } else if (currentUser.role === "broker") {
                     setActiveView("broker-dashboard");
+                  } else if (currentUser.role === "admin") {
+                    setActiveView("admin-panel");
+                  } else {
+                    addNotification("Contact admin to upgrade to a Broker account.", "info");
                   }
                 }}
               />
@@ -307,11 +344,74 @@ export default function App() {
             )}
 
             {activeView === "broker-dashboard" && (
-              <BrokerDashboard onNotify={addNotification} />
+              <BrokerDashboard
+                onNotify={addNotification}
+                onLogout={() => {
+                  localStorage.removeItem("autobroker_user");
+                  setCurrentUser(null);
+                  setActiveView("home");
+                }}
+              />
             )}
 
             {activeView === "admin-panel" && (
-              <AdminPanel onNotify={addNotification} />
+              <AdminPanel
+                onNotify={addNotification}
+                onLogout={() => {
+                  localStorage.removeItem("autobroker_user");
+                  setCurrentUser(null);
+                  setActiveView("home");
+                }}
+              />
+            )}
+
+            {activeView === "profile" && currentUser && (
+              <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow">
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-900 to-blue-800 p-6 md:p-8 text-white">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-black">
+                        {currentUser.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h1 className="text-xl font-bold">{currentUser.name}</h1>
+                        <p className="text-sm text-blue-200 font-black uppercase tracking-wider mt-0.5">{currentUser.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-6 md:p-8 space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Email</p>
+                        <p className="text-sm font-semibold text-slate-800 mt-1">{currentUser.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Member Since</p>
+                        <p className="text-sm font-semibold text-slate-800 mt-1">{new Date().toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 pt-4 border-t border-slate-100">
+                      <button
+                        onClick={() => setActiveView("home")}
+                        className="text-sm font-bold text-slate-500 hover:text-slate-800 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        Back to Home
+                      </button>
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem("autobroker_user");
+                          setCurrentUser(null);
+                          setActiveView("home");
+                          addNotification("Logged out successfully.", "success");
+                        }}
+                        className="text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 px-4 py-2 rounded-lg transition cursor-pointer"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </motion.div>
         </AnimatePresence>

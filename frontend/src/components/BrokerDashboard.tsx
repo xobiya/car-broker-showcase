@@ -8,6 +8,7 @@ import { VehicleListing, Lead, Sale } from "../../../shared/types";
 
 interface BrokerDashboardProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
+  onLogout?: () => void;
 }
 
 type Tab = "dashboard" | "listings" | "leads" | "earnings";
@@ -335,7 +336,7 @@ function VehicleFormModal({ editing, onSave, onCancel }: {
   );
 }
 
-export default function BrokerDashboard({ onNotify }: BrokerDashboardProps) {
+export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardProps) {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
@@ -543,6 +544,12 @@ export default function BrokerDashboard({ onNotify }: BrokerDashboardProps) {
             <button className="relative text-slate-400 hover:text-slate-700 transition cursor-pointer">
               <Bell size={18} />
               <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500" />
+            </button>
+            <button
+              onClick={onLogout}
+              className="text-xs font-extrabold text-slate-400 hover:text-rose-500 uppercase tracking-wider transition cursor-pointer"
+            >
+              Logout
             </button>
             <div className="h-5 w-px bg-slate-200" />
             <div className="flex items-center gap-2">
