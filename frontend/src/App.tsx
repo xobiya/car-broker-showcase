@@ -16,10 +16,19 @@ interface ToastMsg {
 }
 
 type ActiveView = "home" | "browse" | "detail" | "broker-dashboard" | "admin-panel";
+const FULL_SCREEN_VIEWS: ActiveView[] = ["admin-panel", "broker-dashboard"];
 type UserRole = "buyer" | "broker" | "admin";
 
 export default function App() {
-  const [activeView, setActiveView] = useState<ActiveView>("home");
+  const [activeView, setActiveView] = useState<ActiveView>(() => {
+    const saved = localStorage.getItem("autobroker_user");
+    if (saved) {
+      const user: User = JSON.parse(saved);
+      if (user.role === "broker") return "broker-dashboard";
+      if (user.role === "admin") return "admin-panel";
+    }
+    return "home";
+  });
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleListing | null>(null);
   const [currentRole, setCurrentRole] = useState<UserRole>("buyer");
   
@@ -126,6 +135,7 @@ export default function App() {
 
 
       {/* Main Header */}
+      {!FULL_SCREEN_VIEWS.includes(activeView) && (
       <header className="shrink-0 bg-white/95 border-b border-slate-200 h-20 px-6 flex items-center justify-between backdrop-blur-xl sticky top-0 z-35 shadow-sm">
         
         {/* Logo */}
@@ -148,50 +158,58 @@ export default function App() {
           </div>
         </div>
 
-        {/* Navigation center links */}
+        {/* Navigation center links - role-based */}
         <nav className="hidden md:flex items-center space-x-8">
-          <button 
-            onClick={() => setActiveView("home")}
-            className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
-              activeView === "home" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
-            }`}
-          >
-            Home
-          </button>
-          <button 
-            onClick={() => handleBrowseWithFilters()}
-            className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
-              activeView === "browse" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
-            }`}
-          >
-            Browse Cars
-          </button>
-          <button 
-            onClick={() => {
-              if (!currentUser) {
-                addNotification("Please sign in to list vehicles.", "info");
-                setShowAuthModal(true);
-              } else if (currentUser.role !== "broker") {
-                addNotification("Access Denied: You must be signed in as a Broker.", "error");
-              } else {
-                setActiveView("broker-dashboard");
-              }
-            }}
-            className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
-              activeView === "broker-dashboard" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
-            }`}
-          >
-            Sell Car
-          </button>
-          <button 
-            onClick={() => setShowAuthModal(true)}
-            className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
-              activeView === "broker-dashboard" && currentRole === "broker" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
-            }`}
-          >
-            Become a Broker
-          </button>
+          {currentRole !== "broker" && (
+            <button 
+              onClick={() => setActiveView("home")}
+              className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
+                activeView === "home" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
+              }`}
+            >
+              Home
+            </button>
+          )}
+          {currentRole !== "broker" && (
+            <button 
+              onClick={() => handleBrowseWithFilters()}
+              className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
+                activeView === "browse" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
+              }`}
+            >
+              Browse Cars
+            </button>
+          )}
 
+          {/* Broker-only: Dashboard */}
+          {currentRole === "broker" && (
+            <button 
+              onClick={() => setActiveView("broker-dashboard")}
+              className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${
+                activeView === "broker-dashboard" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"
+              }`}
+            >
+              My Dashboard
+            </button>
+          )}
+
+          {/* Non-broker, non-admin: Become a Broker */}
+          {(!currentUser || currentRole === "buyer") && (
+            <button 
+              onClick={() => {
+                if (!currentUser) {
+                  setShowAuthModal(true);
+                } else {
+                  addNotification("Contact admin to upgrade to a Broker account.", "info");
+                }
+              }}
+              className="text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors text-slate-600"
+            >
+              Become a Broker
+            </button>
+          )}
+
+          {/* Admin-only: Admin Panel */}
           {currentRole === "admin" && (
             <button 
               onClick={() => setActiveView("admin-panel")}
@@ -242,9 +260,9 @@ export default function App() {
           )}
         </div>
       </header>
-
-      {/* Main Workspace View Switcher */}
-      <main className="flex-grow min-h-0 flex flex-col">
+      )}
+      
+      <main className={`${FULL_SCREEN_VIEWS.includes(activeView) ? "h-screen" : "flex-grow min-h-0"} flex flex-col`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeView}
@@ -252,7 +270,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="w-full flex-grow flex flex-col"
+            className={`w-full ${FULL_SCREEN_VIEWS.includes(activeView) ? "h-full flex-1" : "flex-grow"} flex flex-col`}
           >
             {activeView === "home" && (
               <HomePage 
@@ -289,21 +307,18 @@ export default function App() {
             )}
 
             {activeView === "broker-dashboard" && (
-              <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow">
-                <BrokerDashboard onNotify={addNotification} />
-              </div>
+              <BrokerDashboard onNotify={addNotification} />
             )}
 
             {activeView === "admin-panel" && (
-              <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow">
-                <AdminPanel onNotify={addNotification} />
-              </div>
+              <AdminPanel onNotify={addNotification} />
             )}
           </motion.div>
         </AnimatePresence>
       </main>
 
       {/* Full Premium Footer */}
+      {!FULL_SCREEN_VIEWS.includes(activeView) && (
       <footer className="shrink-0 bg-slate-100 border-t border-slate-200 pt-16 pb-10 px-6 md:px-12 mt-auto">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-16">
           
@@ -384,6 +399,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      )}
 
       {showAuthModal && (
         <AuthModal 
@@ -392,6 +408,11 @@ export default function App() {
             setCurrentUser(user);
             setCurrentRole(user.role);
             localStorage.setItem("autobroker_user", JSON.stringify(user));
+            if (user.role === "admin") {
+              setActiveView("admin-panel");
+            } else if (user.role === "broker") {
+              setActiveView("broker-dashboard");
+            }
           }}
           onNotify={addNotification}
         />

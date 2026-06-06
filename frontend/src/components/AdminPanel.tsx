@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Shield, Check, Users, DollarSign, Award, Star,
   Edit3, Trash2, Plus, Landmark, TrendingUp,
-  Car, ClipboardList, UserCheck
+  Car, ClipboardList, UserCheck, Menu, X
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale } from "../../../shared/types";
 
@@ -10,11 +10,10 @@ interface AdminPanelProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
 }
 
-// ─── Monthly Revenue Chart (pure CSS/SVG, no lib needed) ───────────────────
+// ─── Monthly Revenue Chart ─────────────────────────────────────────────────
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function RevenueChart({ sales }: { sales: Sale[] }) {
-  // Aggregate by month
   const monthlyData = MONTHS.map((_, i) => {
     const monthSales = sales.filter(s => {
       const d = new Date(s.saleDate);
@@ -28,7 +27,6 @@ function RevenueChart({ sales }: { sales: Sale[] }) {
     };
   });
 
-  // Pad with mock data for visual demo if empty
   const demoRevenues = [1200000, 980000, 1450000, 1100000, 1850000, 2100000, 1750000, 2300000, 1950000, 2500000, 2200000, 2800000];
   const hasRealData = sales.length > 0;
   const displayData = monthlyData.map((d, i) => ({
@@ -58,7 +56,6 @@ function RevenueChart({ sales }: { sales: Sale[] }) {
         </div>
       </div>
 
-      {/* Bar Chart */}
       <div className="flex items-end gap-1.5 h-40 w-full">
         {displayData.map((d, i) => {
           const revenueHeight = Math.round((d.revenue / maxRevenue) * 100);
@@ -66,19 +63,16 @@ function RevenueChart({ sales }: { sales: Sale[] }) {
           const isCurrentMonth = i === currentMonth;
           return (
             <div key={d.label} className="flex-1 flex flex-col items-center gap-1 group relative">
-              {/* Tooltip */}
               <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold rounded-lg px-2 py-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
                 <div>{d.label}</div>
                 <div className="text-orange-300">{d.revenue.toLocaleString()} ETB</div>
                 <div className="text-emerald-300">Comm: {d.commission.toLocaleString()} ETB</div>
               </div>
               <div className="w-full flex items-end gap-0.5 h-32">
-                {/* Revenue bar */}
                 <div
                   className={`flex-1 rounded-t-md transition-all duration-500 ${isCurrentMonth ? "bg-blue-900" : "bg-blue-900/40 group-hover:bg-blue-900/70"}`}
                   style={{ height: `${revenueHeight}%`, minHeight: 4 }}
                 />
-                {/* Commission bar */}
                 <div
                   className={`flex-1 rounded-t-md transition-all duration-500 ${isCurrentMonth ? "bg-orange-400" : "bg-orange-300/60 group-hover:bg-orange-400/80"}`}
                   style={{ height: `${commHeight}%`, minHeight: 2 }}
@@ -118,15 +112,15 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
   const [sales, setSales] = useState<Sale[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers";
   const [adminTab, setAdminTab] = useState<AdminTab>("overview");
 
-  // Modal
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<VehicleListing | null>(null);
 
-  // ─── Form state ───────────────────────────────────────────────────────────
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState(2024);
@@ -141,7 +135,6 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
   const [location, setLocation] = useState("Addis Ababa");
   const [isFeatured, setIsFeatured] = useState(false);
   const [status, setStatus] = useState<"pending" | "approved" | "sold">("pending");
-  // Extended fields
   const [condition, setCondition] = useState("Used");
   const [bodyType, setBodyType] = useState("SUV");
   const [driveType, setDriveType] = useState("4WD");
@@ -155,6 +148,9 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
   const [commissionRate, setCommissionRate] = useState(1.0);
   const [commissionType, setCommissionType] = useState("percentage");
   const [adminNotes, setAdminNotes] = useState("");
+
+  // Image upload state
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const fetchData = async () => {
     try {
@@ -182,7 +178,6 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
 
   useEffect(() => { fetchData(); }, []);
 
-  // ─── Actions ───────────────────────────────────────────────────────────────
   const handleApprove = async (id: string) => {
     try {
       const res = await fetch(`/api/vehicles/${id}/approve`, { method: "PUT" });
@@ -228,6 +223,7 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
     setBodyType("SUV"); setDriveType("4WD"); setColor(""); setDoors(4); setSeats(5);
     setEngineSize(""); setEngineType("V6"); setHorsepower(0); setChassisNumber("");
     setCommissionRate(1.0); setCommissionType("percentage"); setAdminNotes("");
+    setUploadedImages([]);
   };
 
   const handleOpenEdit = (v: VehicleListing) => {
@@ -249,9 +245,11 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
   const handleSaveListing = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const primaryImage = uploadedImages.length > 0 ? uploadedImages[0] : imageUrl;
       const payload = {
         brand, model, year, registration_year: regYear, mileage, price,
-        original_price: originalPrice || price, image_url: imageUrl, description,
+        original_price: originalPrice || price, image_url: primaryImage, description,
+        gallery_images: uploadedImages.length > 0 ? JSON.stringify(uploadedImages) : undefined,
         fuel_type: fuelType, transmission, location, status,
         is_featured: isFeatured, condition, body_type: bodyType, drive_type: driveType,
         color, doors, seats, engine_size: engineSize, engine_type: engineType,
@@ -273,7 +271,6 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
     } catch { onNotify("Connection error.", "error"); }
   };
 
-  // ─── Stats ────────────────────────────────────────────────────────────────
   const totalCars = vehicles.length;
   const activeCars = vehicles.filter(v => v.status === "approved").length;
   const pendingCars = vehicles.filter(v => v.status === "pending").length;
@@ -294,7 +291,7 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
     );
   }
 
-  const tabs: { key: AdminTab; label: string; icon: any }[] = [
+  const navItems: { key: AdminTab; label: string; icon: any }[] = [
     { key: "overview", label: "Overview", icon: TrendingUp },
     { key: "listings", label: "Listings", icon: Car },
     { key: "brokers", label: "Brokers", icon: UserCheck },
@@ -302,63 +299,145 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
     { key: "commissions", label: "Commissions", icon: DollarSign },
   ];
 
-  return (
-    <div className="space-y-6 font-sans text-slate-800 min-h-screen pb-16">
+  const sidebar = (
+    <aside className={`${sidebarCollapsed ? "w-16" : "w-64"} shrink-0 bg-white border-r border-slate-200 h-full flex flex-col transition-all duration-300 relative`}>
+      <button
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        className="absolute -right-3 top-6 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-sm z-10 cursor-pointer"
+      >
+        {sidebarCollapsed ? <Menu size={12} /> : <X size={12} />}
+      </button>
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-200">
-        <div>
-          <h2 className="text-xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
-            <Shield className="text-blue-900" size={20} />
-            Admin Control Center
-          </h2>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
-            Manage listings · brokers · buyers · commissions
-          </p>
-        </div>
-        <button
-          onClick={handleOpenCreate}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm shrink-0"
-        >
-          <Plus size={14} /> Add Car Listing
-        </button>
-      </div>
-
-      {/* Stat Cards Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <StatCard label="Total Cars" value={totalCars} icon={Car} accent="text-slate-700" />
-        <StatCard label="Active" value={activeCars} icon={Check} accent="text-emerald-600" />
-        <StatCard label="Pending" value={pendingCars} icon={ClipboardList} accent="text-amber-500" />
-        <StatCard label="Sold" value={soldCars} icon={Award} accent="text-blue-900" />
-        <StatCard label="Brokers" value={totalBrokers} icon={UserCheck} accent="text-indigo-600" />
-        <StatCard label="Buyers" value={totalBuyers} icon={Users} accent="text-teal-600" />
-        <div className="col-span-2 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-2xl shadow-sm flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Commission Earned</span>
-            <DollarSign size={14} className="opacity-60" />
+      <div className={`p-5 border-b border-slate-100 ${sidebarCollapsed ? "px-3" : ""}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "gap-2.5"}`}>
+          <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-900 text-white shadow-sm shrink-0">
+            <Shield size={18} />
           </div>
-          <span className="text-lg font-black">{(totalCommission || 485000).toLocaleString()} ETB</span>
-          <span className="text-[9px] font-bold uppercase opacity-70">Total Revenue: {(totalRevenue || 48500000).toLocaleString()} ETB</span>
+          {!sidebarCollapsed && (
+            <div>
+              <p className="text-sm font-black text-slate-900 uppercase tracking-tight leading-none">Admin</p>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Control Center</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Tab Nav */}
-      <div className="flex border-b border-slate-200 gap-0 overflow-x-auto">
-        {tabs.map(tab => (
+      <nav className="flex-1 p-3 space-y-1">
+        {navItems.map(item => (
           <button
-            key={tab.key}
-            onClick={() => setAdminTab(tab.key)}
-            className={`flex items-center gap-1.5 pb-3 px-4 text-xs font-black uppercase tracking-wider cursor-pointer transition-all whitespace-nowrap shrink-0 ${
-              adminTab === tab.key
-                ? "border-b-2 border-orange-500 text-orange-500"
-                : "text-slate-400 hover:text-slate-600"
+            key={item.key}
+            onClick={() => { setAdminTab(item.key); setSidebarOpen(false); }}
+            className={`w-full flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3 px-4"} py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              adminTab === item.key
+                ? "bg-blue-900 text-white shadow-sm"
+                : "text-slate-400 hover:text-slate-700 hover:bg-slate-50"
             }`}
+            title={sidebarCollapsed ? item.label : undefined}
           >
-            <tab.icon size={12} />
-            {tab.label}
+            <item.icon size={15} />
+            {!sidebarCollapsed && item.label}
           </button>
         ))}
+      </nav>
+
+      <div className={`p-4 border-t border-slate-100 ${sidebarCollapsed ? "px-2" : ""}`}>
+        <button
+          onClick={handleOpenCreate}
+          className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm`}
+          title={sidebarCollapsed ? "Add Car" : undefined}
+        >
+          <Plus size={14} />
+          {!sidebarCollapsed && "Add Car Listing"}
+        </button>
       </div>
+    </aside>
+  );
+
+  return (
+    <div className="flex font-sans text-slate-800 h-full relative">
+
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white border border-slate-200 rounded-xl shadow-sm"
+      >
+        {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+      </button>
+
+      {/* Desktop sidebar */}
+      <div className="hidden lg:flex sticky top-0 h-screen">
+        {sidebar}
+      </div>
+
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-40">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute left-0 top-0 h-full">
+            {sidebar}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 p-4 md:p-8 h-full overflow-y-auto overflow-x-hidden">
+        {/* Mobile header */}
+        <div className="lg:hidden flex items-center justify-between mb-6 ml-10">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900 text-white shadow-sm">
+              <Shield size={14} />
+            </div>
+            <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Admin Panel</p>
+          </div>
+        </div>
+
+        {/* Page header row */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight capitalize">
+              {adminTab === "overview" && "Dashboard Overview"}
+              {adminTab === "listings" && "Vehicle Listings"}
+              {adminTab === "brokers" && "Broker Management"}
+              {adminTab === "buyers" && "Buyer Inquiries"}
+              {adminTab === "commissions" && "Commission & Revenue"}
+            </h2>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+              {adminTab === "overview" && "System analytics and recent activity"}
+              {adminTab === "listings" && "Approve, edit, and manage all vehicles"}
+              {adminTab === "brokers" && "Verify and monitor broker performance"}
+              {adminTab === "buyers" && "Track buyer inquiries and lead status"}
+              {adminTab === "commissions" && "Revenue reports and commission tracking"}
+            </p>
+          </div>
+          {adminTab === "listings" && (
+            <button
+              onClick={handleOpenCreate}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm shrink-0"
+            >
+              <Plus size={14} /> Add Car Listing
+            </button>
+          )}
+        </div>
+
+        {/* Stat Cards Row (visible on overview and listings) */}
+        {(adminTab === "overview" || adminTab === "listings") && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3 mb-6">
+            <StatCard label="Total Cars" value={totalCars} icon={Car} accent="text-slate-700" />
+            <StatCard label="Active" value={activeCars} icon={Check} accent="text-emerald-600" />
+            <StatCard label="Pending" value={pendingCars} icon={ClipboardList} accent="text-amber-500" />
+            <StatCard label="Sold" value={soldCars} icon={Award} accent="text-blue-900" />
+            <StatCard label="Brokers" value={totalBrokers} icon={UserCheck} accent="text-indigo-600" />
+            <StatCard label="Buyers" value={totalBuyers} icon={Users} accent="text-teal-600" />
+            <div className="col-span-2 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-2xl shadow-sm flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Commission Earned</span>
+                <DollarSign size={14} className="opacity-60" />
+              </div>
+              <span className="text-lg font-black">{(totalCommission || 485000).toLocaleString()} ETB</span>
+              <span className="text-[9px] font-bold uppercase opacity-70">Total Revenue: {(totalRevenue || 48500000).toLocaleString()} ETB</span>
+            </div>
+          </div>
+        )}
 
       {/* ── OVERVIEW TAB ─────────────────────────────────────────────────────── */}
       {adminTab === "overview" && (
@@ -751,7 +830,56 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
                 <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Location & Media</p>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Location *" value={location} onChange={setLocation} placeholder="e.g. Addis Ababa, Bole" required />
-                  <Field label="Image URL *" value={imageUrl} onChange={setImageUrl} placeholder="https://..." required />
+                  <Field label="Image URL (optional)" value={imageUrl} onChange={setImageUrl} placeholder="https://..." />
+                </div>
+
+                {/* Multi-image upload */}
+                <div className="mt-3 space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Upload Images</label>
+                  <div className="flex flex-wrap gap-3">
+                    {uploadedImages.map((img, i) => (
+                      <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-200 group">
+                        <img src={img} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))}
+                          className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold cursor-pointer"
+                        >
+                          ×
+                        </button>
+                        {i === 0 && (
+                          <span className="absolute bottom-1 left-1 bg-blue-900/80 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
+                            Main
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                    <label className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 bg-slate-50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors">
+                      <Plus size={20} className="text-slate-400" />
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">Add Photos</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (!files) return;
+                          Array.from({ length: files.length }, (_, i) => files[i]).forEach((file: File) => {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              if (ev.target?.result) {
+                                setUploadedImages(prev => [...prev, ev.target.result as string]);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          });
+                          e.target.value = "";
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-medium">Supports multiple images. First image is the primary listing photo.</p>
                 </div>
               </div>
 
@@ -820,6 +948,7 @@ export default function AdminPanel({ onNotify }: AdminPanelProps) {
           </div>
         </div>
       )}
+    </main>
     </div>
   );
 }
