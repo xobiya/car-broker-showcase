@@ -3,7 +3,7 @@ import {
   Shield, Check, Users, DollarSign, Award, Star,
   Edit3, Trash2, Plus, Landmark, TrendingUp,
   Car, ClipboardList, UserCheck, Menu, X, Save,
-  Bell, LogOut
+  Bell, LogOut, ChevronRight, Search, RefreshCw
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
 
@@ -176,7 +176,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
     { id: "n5", text: "New buyer inquiry for Hyundai Tucson 2023", time: "5 hours ago", unread: false },
   ];
 
-  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers" | "reports";
+  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers" | "reports" | "users";
   const [adminTab, setAdminTab] = useState<AdminTab>("overview");
   const [listingSearch, setListingSearch] = useState("");
   const [listingStatusFilter, setListingStatusFilter] = useState("all");
@@ -415,13 +415,14 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
     );
   }
 
-  const navItems: { key: AdminTab; label: string; icon: any }[] = [
+  const navItems: { key: AdminTab; label: string; icon: any; badge?: number }[] = [
     { key: "overview", label: "Overview", icon: TrendingUp },
-    { key: "listings", label: "Listings", icon: Car },
+    { key: "listings", label: "Listings", icon: Car, badge: pendingCars || undefined },
     { key: "brokers", label: "Brokers", icon: UserCheck },
-    { key: "buyers", label: "Buyers", icon: Users },
+    { key: "buyers", label: "Buyers", icon: Users, badge: leads.length || undefined },
     { key: "commissions", label: "Commissions", icon: DollarSign },
-    { key: "reports", label: "Reports", icon: Shield },
+    { key: "reports", label: "Reports", icon: Shield, badge: reports.filter(r => r.status === "pending").length || undefined },
+    { key: "users", label: "Members", icon: Users },
   ];
 
   const sidebar = (
@@ -473,13 +474,19 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               {isActive && (
                 <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-r-md" />
               )}
-              <item.icon size={16} className={`transition-transform duration-200 group-hover:scale-110 ${isActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`} />
-              {!sidebarCollapsed && <span>{item.label}</span>}
-              
+              <item.icon size={16} className={`transition-transform duration-200 group-hover:scale-110 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`} />
+              {!sidebarCollapsed && (
+                <span className="flex-1 text-left">{item.label}</span>
+              )}
+              {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
+                  isActive ? "bg-white/20 text-white" : "bg-orange-500 text-white"
+                }`}>{item.badge}</span>
+              )}
               {/* Tooltip for collapsed view */}
               {sidebarCollapsed && (
                 <div className="absolute left-full ml-4 px-3 py-2 bg-slate-950 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg border border-slate-800 pointer-events-none z-50">
-                  {item.label}
+                  {item.label} {item.badge ? `(${item.badge})` : ""}
                 </div>
               )}
             </button>
@@ -550,14 +557,6 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   return (
     <div className="flex font-sans text-slate-800 h-screen w-screen overflow-hidden bg-slate-50 relative">
 
-      {/* Mobile sidebar toggle */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white border border-slate-200 rounded-xl shadow-sm"
-      >
-        {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-      </button>
-
       {/* Desktop sidebar */}
       <div className="hidden lg:block h-full shrink-0">
         {sidebar}
@@ -574,58 +573,122 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       )}
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 h-full overflow-y-auto overflow-x-hidden">
-        {/* Mobile header */}
-        <div className="lg:hidden flex items-center justify-between mb-6 ml-10">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900 text-white shadow-sm">
-              <Shield size={14} />
-            </div>
-            <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Admin Panel</p>
-          </div>
-        </div>
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
 
-        {/* Top navbar */}
-        <div className="hidden lg:flex items-center justify-between mb-6">
-          <div />
-          <div className="flex items-center gap-3">
+        {/* ── Unified Top Header Bar ─────────────────────────────────────────── */}
+        <div className="shrink-0 bg-white border-b border-slate-200 px-6 py-0 flex items-center justify-between h-16 shadow-sm">
+          {/* Left: Mobile toggle + Breadcrumb + Page Title */}
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Mobile sidebar toggle */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer shrink-0"
+            >
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+
+            {/* Breadcrumb */}
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 shrink-0">
+              <Shield size={11} className="text-slate-300" />
+              <span>Admin</span>
+              <ChevronRight size={10} />
+              <span className="text-slate-600">
+                {adminTab === "overview" && "Overview"}
+                {adminTab === "listings" && "Listings"}
+                {adminTab === "brokers" && "Brokers"}
+                {adminTab === "buyers" && "Buyers"}
+                {adminTab === "commissions" && "Commissions"}
+                {adminTab === "reports" && "Reports"}
+                {adminTab === "users" && "Members"}
+              </span>
+            </div>
+
+            <div className="hidden sm:block w-px h-5 bg-slate-200" />
+
+            {/* Page title */}
+            <div className="min-w-0">
+              <h2 className="text-sm font-black text-slate-900 tracking-tight truncate">
+                {adminTab === "overview" && "Dashboard Overview"}
+                {adminTab === "listings" && "Vehicle Listings"}
+                {adminTab === "brokers" && "Broker Management"}
+                {adminTab === "buyers" && "Buyer Inquiries"}
+                {adminTab === "commissions" && "Commission & Revenue"}
+                {adminTab === "reports" && "Trust & Safety Reports"}
+                {adminTab === "users" && "Member Management"}
+              </h2>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest hidden sm:block">
+                {adminTab === "overview" && "Analytics and recent activity"}
+                {adminTab === "listings" && "Approve, edit, and manage all vehicles"}
+                {adminTab === "brokers" && "Verify and monitor broker performance"}
+                {adminTab === "buyers" && "Track buyer inquiries and lead status"}
+                {adminTab === "commissions" && "Revenue reports and commission tracking"}
+                {adminTab === "reports" && "Review and moderate user reports"}
+                {adminTab === "users" && "All registered platform members"}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Refresh + Quick Action + Notification Bell + Profile */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Quick Add button for Listings */}
+            {adminTab === "listings" && (
+              <button
+                onClick={handleOpenCreate}
+                className="hidden sm:flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
+              >
+                <Plus size={13} /> Add Listing
+              </button>
+            )}
+
+            {/* Refresh */}
+            <button
+              onClick={fetchData}
+              className="p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer text-slate-400 hover:text-slate-600"
+              title="Refresh data"
+            >
+              <RefreshCw size={15} />
+            </button>
+
             {/* Notification Bell */}
             <div className="relative">
               <button
-                onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                onClick={() => { setShowNotifDropdown(!showNotifDropdown); setShowProfileDropdown(false); }}
                 className="relative p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
               >
-                <Bell size={18} className="text-slate-500" />
+                <Bell size={17} className="text-slate-500" />
                 {notifications.some(n => n.unread) && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
                 )}
               </button>
               {showNotifDropdown && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowNotifDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-40 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100">
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl z-40 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                       <p className="text-xs font-black uppercase text-slate-700">Notifications</p>
+                      <span className="text-[9px] font-black bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full uppercase">
+                        {notifications.filter(n => n.unread).length} New
+                      </span>
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-50">
                       {notifications.map(n => (
-                        <div key={n.id} className={`px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition cursor-pointer ${n.unread ? "bg-blue-50/50" : ""}`}>
-                          <div className="flex items-start gap-2">
-                            <div className={`w-2 h-2 rounded-full mt-1 shrink-0 ${n.unread ? "bg-blue-900" : "bg-transparent"}`} />
-                            <div>
-                              <p className="text-xs text-slate-700 font-medium">{n.text}</p>
-                              <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{n.time}</p>
+                        <div key={n.id} className={`px-4 py-3 hover:bg-slate-50 transition cursor-pointer ${n.unread ? "bg-blue-50/40" : ""}`}>
+                          <div className="flex items-start gap-2.5">
+                            <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-blue-600" : "bg-slate-200"}`} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-slate-700 font-medium leading-snug">{n.text}</p>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{n.time}</p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="border-t border-slate-100 p-3 text-center">
+                    <div className="border-t border-slate-100 p-3 text-center bg-slate-50">
                       <button
                         onClick={() => { setShowNotifDropdown(false); onNavigate?.("notifications"); }}
                         className="text-xs font-bold text-blue-900 hover:text-blue-700 transition cursor-pointer"
                       >
-                        View All Notifications
+                        View All Notifications →
                       </button>
                     </div>
                   </div>
@@ -633,34 +696,45 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               )}
             </div>
 
+            {/* Divider */}
+            <div className="w-px h-6 bg-slate-200" />
+
             {/* Profile Avatar */}
             <div className="relative">
               <button
-                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                className="w-9 h-9 rounded-full bg-blue-900 text-white flex items-center justify-center shadow-sm hover:bg-blue-800 transition cursor-pointer"
+                onClick={() => { setShowProfileDropdown(!showProfileDropdown); setShowNotifDropdown(false); }}
+                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 transition cursor-pointer group"
               >
-                <span className="text-sm font-black">{adminUser?.name?.charAt(0).toUpperCase() || "A"}</span>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-700 to-indigo-600 text-white flex items-center justify-center shadow-sm font-black text-xs">
+                  {adminUser?.name?.charAt(0).toUpperCase() || "A"}
+                </div>
+                <div className="hidden md:block text-left">
+                  <p className="text-xs font-bold text-slate-800 leading-none">{adminUser?.name || "Admin"}</p>
+                  <p className="text-[9px] font-black uppercase text-orange-500 tracking-wider">Administrator</p>
+                </div>
               </button>
               {showProfileDropdown && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowProfileDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-40 py-2">
-                    <div className="px-4 py-2 border-b border-slate-100 mb-1">
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-2xl z-40 py-2 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 mb-1 bg-gradient-to-r from-slate-50 to-blue-50/30">
                       <p className="text-xs font-bold text-slate-800 truncate">{adminUser?.name || "Admin"}</p>
-                      <p className="text-[9px] font-black uppercase tracking-wider text-orange-500">admin</p>
+                      <p className="text-[9px] font-black uppercase tracking-wider text-orange-500 mt-0.5">{adminUser?.email || "admin@platform"}</p>
                     </div>
                     <button
                       onClick={() => { setShowProfileDropdown(false); onNavigate?.("admin-profile"); }}
-                      className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer flex items-center gap-2"
                     >
-                      Profile
+                      <UserCheck size={12} className="text-slate-400" /> My Profile
                     </button>
-                    <button
-                      onClick={onLogout}
-                      className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition cursor-pointer flex items-center gap-2"
-                    >
-                      <LogOut size={12} /> Logout
-                    </button>
+                    <div className="border-t border-slate-100 mt-1">
+                      <button
+                        onClick={onLogout}
+                        className="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition cursor-pointer flex items-center gap-2"
+                      >
+                        <LogOut size={12} /> Sign Out
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
@@ -668,45 +742,18 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           </div>
         </div>
 
-        {/* Page header row */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight capitalize">
-              {adminTab === "overview" && "Dashboard Overview"}
-              {adminTab === "listings" && "Vehicle Listings"}
-              {adminTab === "brokers" && "Broker Management"}
-              {adminTab === "buyers" && "Buyer Inquiries"}
-              {adminTab === "commissions" && "Commission & Revenue"}
-              {adminTab === "reports" && "Trust & Safety Reports"}
-            </h2>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
-              {adminTab === "overview" && "System analytics and recent activity"}
-              {adminTab === "listings" && "Approve, edit, and manage all vehicles"}
-              {adminTab === "brokers" && "Verify and monitor broker performance"}
-              {adminTab === "buyers" && "Track buyer inquiries and lead status"}
-              {adminTab === "commissions" && "Revenue reports and commission tracking"}
-              {adminTab === "reports" && "Review and moderate user reports"}
-            </p>
-          </div>
-          {adminTab === "listings" && (
-            <button
-              onClick={handleOpenCreate}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm shrink-0"
-            >
-              <Plus size={14} /> Add Car Listing
-            </button>
-          )}
-        </div>
+        {/* ── Scrollable page content ────────────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 md:p-8">
 
         {/* Stat Cards Row (visible on overview and listings) */}
         {(adminTab === "overview" || adminTab === "listings") && (
           <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3 mb-6">
             <StatCard label="Total Cars" value={totalCars} icon={Car} accent="text-slate-700" />
             <StatCard label="Active" value={activeCars} icon={Check} accent="text-emerald-600" />
-            <StatCard label="Pending" value={pendingCars} icon={ClipboardList} accent="text-amber-500" />
+            <StatCard label="Pending" value={pendingCars} icon={ClipboardList} accent="text-amber-500" sub={pendingCars > 0 ? "Needs review" : undefined} />
             <StatCard label="Sold" value={soldCars} icon={Award} accent="text-blue-900" />
             <StatCard label="Brokers" value={totalBrokers} icon={UserCheck} accent="text-indigo-600" />
-            <StatCard label="Buyers" value={totalBuyers} icon={Users} accent="text-teal-600" />
+            <StatCard label="Members" value={users.length || totalBuyers} icon={Users} accent="text-teal-600" />
             <div className="col-span-2 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-2xl shadow-sm flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Commission Earned</span>
@@ -1185,6 +1232,76 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
         </div>
       )}
 
+      {/* ── USERS TAB ────────────────────────────────────────────────────────── */}
+      {adminTab === "users" && (
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
+              {users.length} Registered Member{users.length !== 1 ? "s" : ""}
+            </p>
+            <button
+              onClick={fetchData}
+              className="text-xs font-bold text-blue-900 hover:text-blue-700 flex items-center gap-1 cursor-pointer transition"
+            >
+              <RefreshCw size={11} /> Refresh
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                  <th className="p-4">Member</th>
+                  <th className="p-4">Contact</th>
+                  <th className="p-4">Role</th>
+                  <th className="p-4">Joined</th>
+                  <th className="p-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {users.map((u: any, idx: number) => (
+                  <tr key={u.id || idx} className="hover:bg-slate-50/50">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-black shrink-0 text-white ${
+                          u.role === "admin" ? "bg-gradient-to-br from-indigo-600 to-blue-700"
+                          : u.role === "broker" ? "bg-gradient-to-br from-orange-500 to-orange-600"
+                          : "bg-gradient-to-br from-slate-600 to-slate-700"
+                        }`}>
+                          {(u.name || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-bold text-slate-800">{u.name}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <p className="text-slate-600">{u.email}</p>
+                      {u.phone && <p className="text-[10px] text-slate-400 font-mono mt-0.5">{u.phone}</p>}
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border ${
+                        u.role === "admin" ? "bg-indigo-50 text-indigo-700 border-indigo-100"
+                        : u.role === "broker" ? "bg-orange-50 text-orange-600 border-orange-100"
+                        : "bg-slate-100 text-slate-500 border-slate-200"
+                      }`}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="p-4 font-mono text-slate-400">
+                      {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
+                    </td>
+                    <td className="p-4">
+                      <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
+                    </td>
+                  </tr>
+                ))}
+                {users.length === 0 && (
+                  <tr><td colSpan={5} className="p-10 text-center text-slate-400 font-bold">No members found. Users will appear here after registering.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* ── FORM MODAL ───────────────────────────────────────────────────────── */}
       {showFormModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1399,6 +1516,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           </div>
         </div>
       )}
+      </div>{/* end scrollable content */}
     </main>
     </div>
   );
