@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   Shield, Check, Users, DollarSign, Award, Star,
   Edit3, Trash2, Plus, Landmark, TrendingUp,
-  Car, ClipboardList, UserCheck, Menu, X, Save
+  Car, ClipboardList, UserCheck, Menu, X, Save,
+  Bell, LogOut
 } from "lucide-react";
-import { VehicleListing, User, Broker, Lead, Sale } from "../../../shared/types";
+import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
 
 const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
 const COLORS = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Gold", "Brown", "Beige", "Orange", "Burgundy", "Navy"];
@@ -51,6 +52,7 @@ function Combobox({ value, onChange, options, placeholder }: {
 interface AdminPanelProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
   onLogout?: () => void;
+  onNavigate?: (view: string) => void;
 }
 
 // ─── Monthly Revenue Chart ─────────────────────────────────────────────────
@@ -149,7 +151,7 @@ function StatCard({ label, value, accent, icon: Icon, sub }: {
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────
-export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
+export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPanelProps) {
   const adminUser = React.useMemo(() => {
     const saved = localStorage.getItem("autobroker_user");
     return saved ? JSON.parse(saved) : null;
@@ -158,11 +160,22 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
   const [brokers, setBrokers] = useState<any[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
-  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers";
+  const notifications = [
+    { id: "n1", text: "New listing pending approval: Toyota Corolla 2024", time: "5 min ago", unread: true },
+    { id: "n2", text: "Report received: Suspicious activity on listing #V-003", time: "12 min ago", unread: true },
+    { id: "n3", text: "Broker Dawit Mekonnen listed 3 new vehicles", time: "1 hour ago", unread: false },
+    { id: "n4", text: "Commission payout processed: 280,000 ETB", time: "3 hours ago", unread: false },
+    { id: "n5", text: "New buyer inquiry for Hyundai Tucson 2023", time: "5 hours ago", unread: false },
+  ];
+
+  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers" | "reports";
   const [adminTab, setAdminTab] = useState<AdminTab>("overview");
 
   const [showFormModal, setShowFormModal] = useState(false);
@@ -199,28 +212,32 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
   // Image upload state
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
-  const fetchData = async () => {
+  const safeFetch = async (url: string) => {
     try {
-      setLoading(true);
-      const [vehRes, salesRes, leadsRes] = await Promise.all([
-        fetch("/api/vehicles"),
-        fetch("/api/sales"),
-        fetch("/api/leads"),
-      ]);
-      if (vehRes.ok) setVehicles(await vehRes.json());
-      if (salesRes.ok) setSales(await salesRes.json());
-      if (leadsRes.ok) setLeads(await leadsRes.json());
+      const res = await fetch(url);
+      return res.ok ? await res.json() : null;
+    } catch { return null; }
+  };
 
-      setBrokers([
-        { id: "brk-1", name: "Dawit Mekonnen", email: "dawit@autobroker.et", phone: "+251 91 123 4567", listings: 8, sales: 14, commission: 280000, verified: true, joinedAt: "2024-01-15" },
-        { id: "brk-2", name: "Yonas Hailu", email: "yonas@autobroker.et", phone: "+251 91 234 5678", listings: 4, sales: 6, commission: 120000, verified: true, joinedAt: "2024-03-22" },
-        { id: "brk-3", name: "Tigist Assefa", email: "tigist@autobroker.et", phone: "+251 91 345 6789", listings: 3, sales: 2, commission: 85000, verified: false, joinedAt: "2024-06-01" },
-      ]);
-    } catch (err) {
-      onNotify("Failed to load admin data.", "error");
-    } finally {
-      setLoading(false);
-    }
+  const fetchData = async () => {
+    setLoading(true);
+    const [vehiclesData, salesData, leadsData, reportsData] = await Promise.all([
+      safeFetch("/api/vehicles"),
+      safeFetch("/api/sales"),
+      safeFetch("/api/leads"),
+      safeFetch("/api/reports"),
+    ]);
+    if (vehiclesData) setVehicles(vehiclesData);
+    if (salesData) setSales(salesData);
+    if (leadsData) setLeads(leadsData);
+    if (reportsData) setReports(reportsData);
+
+    setBrokers([
+      { id: "brk-1", name: "Dawit Mekonnen", email: "dawit@autobroker.et", phone: "+251 91 123 4567", listings: 8, sales: 14, commission: 280000, verified: true, joinedAt: "2024-01-15" },
+      { id: "brk-2", name: "Yonas Hailu", email: "yonas@autobroker.et", phone: "+251 91 234 5678", listings: 4, sales: 6, commission: 120000, verified: true, joinedAt: "2024-03-22" },
+      { id: "brk-3", name: "Tigist Assefa", email: "tigist@autobroker.et", phone: "+251 91 345 6789", listings: 3, sales: 2, commission: 85000, verified: false, joinedAt: "2024-06-01" },
+    ]);
+    setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -350,29 +367,28 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
     { key: "brokers", label: "Brokers", icon: UserCheck },
     { key: "buyers", label: "Buyers", icon: Users },
     { key: "commissions", label: "Commissions", icon: DollarSign },
+    { key: "reports", label: "Reports", icon: Shield },
   ];
 
   const sidebar = (
     <aside className={`${sidebarCollapsed ? "w-16" : "w-64"} shrink-0 bg-white border-r border-slate-200 h-full flex flex-col transition-all duration-300 relative`}>
-      <button
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="absolute -right-3 top-6 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-sm z-10 cursor-pointer"
-      >
-        {sidebarCollapsed ? <Menu size={12} /> : <X size={12} />}
-      </button>
-
-      <div className={`p-5 border-b border-slate-100 ${sidebarCollapsed ? "px-3" : ""}`}>
-        <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "gap-2.5"}`}>
-          <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-900 text-white shadow-sm shrink-0">
-            <Shield size={18} />
-          </div>
-          {!sidebarCollapsed && (
-            <div>
-              <p className="text-sm font-black text-slate-900 uppercase tracking-tight leading-none">Admin</p>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Control Center</p>
-            </div>
-          )}
-        </div>
+      <div className={`p-5 border-b border-slate-100 flex items-center ${sidebarCollapsed ? "px-3 justify-center" : "justify-end"}`}>
+        {!sidebarCollapsed && (
+          <button
+            onClick={() => setSidebarCollapsed(true)}
+            className="w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-sm cursor-pointer"
+          >
+            <X size={12} />
+          </button>
+        )}
+        {sidebarCollapsed && (
+          <button
+            onClick={() => setSidebarCollapsed(false)}
+            className="w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-sm cursor-pointer"
+          >
+            <Menu size={12} />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 p-3 space-y-1">
@@ -393,20 +409,7 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
         ))}
       </nav>
 
-      <div className={`border-t border-slate-100 p-4 space-y-2 ${sidebarCollapsed ? "px-2" : ""}`}>
-        {/* Profile */}
-        {!sidebarCollapsed && adminUser && (
-          <div className="flex items-center gap-2.5 px-1 mb-2">
-            <div className="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center text-[10px] font-black shrink-0">
-              {adminUser.name?.charAt(0).toUpperCase() || "A"}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-xs font-bold text-slate-800 truncate">{adminUser.name || "Admin"}</p>
-              <p className="text-[9px] text-orange-500 font-black uppercase tracking-wider truncate">admin</p>
-            </div>
-          </div>
-        )}
-        {/* Add Car Button */}
+      <div className={`border-t border-slate-100 p-4 ${sidebarCollapsed ? "px-2" : ""}`}>
         <button
           onClick={handleOpenCreate}
           className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm`}
@@ -414,14 +417,6 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
         >
           <Plus size={14} />
           {!sidebarCollapsed && "Add Car Listing"}
-        </button>
-        {/* Logout */}
-        <button
-          onClick={onLogout}
-          className={`w-full text-slate-400 hover:text-rose-500 font-bold text-xs flex items-center justify-center gap-1.5 py-2 rounded-xl transition-colors cursor-pointer`}
-          title={sidebarCollapsed ? "Logout" : undefined}
-        >
-          {!sidebarCollapsed && "Logout"}
         </button>
       </div>
     </aside>
@@ -465,6 +460,89 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
           </div>
         </div>
 
+        {/* Top navbar */}
+        <div className="hidden lg:flex items-center justify-between mb-6">
+          <div />
+          <div className="flex items-center gap-3">
+            {/* Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                className="relative p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+              >
+                <Bell size={18} className="text-slate-500" />
+                {notifications.some(n => n.unread) && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full" />
+                )}
+              </button>
+              {showNotifDropdown && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowNotifDropdown(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-40 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100">
+                      <p className="text-xs font-black uppercase text-slate-700">Notifications</p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.map(n => (
+                        <div key={n.id} className={`px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition cursor-pointer ${n.unread ? "bg-blue-50/50" : ""}`}>
+                          <div className="flex items-start gap-2">
+                            <div className={`w-2 h-2 rounded-full mt-1 shrink-0 ${n.unread ? "bg-blue-900" : "bg-transparent"}`} />
+                            <div>
+                              <p className="text-xs text-slate-700 font-medium">{n.text}</p>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{n.time}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t border-slate-100 p-3 text-center">
+                      <button
+                        onClick={() => { setShowNotifDropdown(false); onNavigate?.("notifications"); }}
+                        className="text-xs font-bold text-blue-900 hover:text-blue-700 transition cursor-pointer"
+                      >
+                        View All Notifications
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Profile Avatar */}
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="w-9 h-9 rounded-full bg-blue-900 text-white flex items-center justify-center shadow-sm hover:bg-blue-800 transition cursor-pointer"
+              >
+                <span className="text-sm font-black">{adminUser?.name?.charAt(0).toUpperCase() || "A"}</span>
+              </button>
+              {showProfileDropdown && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowProfileDropdown(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-40 py-2">
+                    <div className="px-4 py-2 border-b border-slate-100 mb-1">
+                      <p className="text-xs font-bold text-slate-800 truncate">{adminUser?.name || "Admin"}</p>
+                      <p className="text-[9px] font-black uppercase tracking-wider text-orange-500">admin</p>
+                    </div>
+                    <button
+                      onClick={() => { setShowProfileDropdown(false); onNavigate?.("admin-profile"); }}
+                      className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                    >
+                      Profile
+                    </button>
+                    <button
+                      onClick={onLogout}
+                      className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition cursor-pointer flex items-center gap-2"
+                    >
+                      <LogOut size={12} /> Logout
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Page header row */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
@@ -474,6 +552,7 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
               {adminTab === "brokers" && "Broker Management"}
               {adminTab === "buyers" && "Buyer Inquiries"}
               {adminTab === "commissions" && "Commission & Revenue"}
+              {adminTab === "reports" && "Trust & Safety Reports"}
             </h2>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
               {adminTab === "overview" && "System analytics and recent activity"}
@@ -481,6 +560,7 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
               {adminTab === "brokers" && "Verify and monitor broker performance"}
               {adminTab === "buyers" && "Track buyer inquiries and lead status"}
               {adminTab === "commissions" && "Revenue reports and commission tracking"}
+              {adminTab === "reports" && "Review and moderate user reports"}
             </p>
           </div>
           {adminTab === "listings" && (
@@ -825,6 +905,105 @@ export default function AdminPanel({ onNotify, onLogout }: AdminPanelProps) {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── REPORTS TAB ──────────────────────────────────────────────────────── */}
+      {adminTab === "reports" && (
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
+              {reports.length} Report{reports.length !== 1 ? "s" : ""} Submitted
+            </p>
+            <span className="text-[10px] text-slate-400 font-bold">
+              {reports.filter(r => r.status === "pending").length} pending
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs min-w-[800px]">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                  <th className="p-4">Reporter</th>
+                  <th className="p-4">Target</th>
+                  <th className="p-4">Reason</th>
+                  <th className="p-4">Description</th>
+                  <th className="p-4">Date</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {reports.map((r, idx) => (
+                  <tr key={r.id || idx} className="hover:bg-slate-50/50">
+                    <td className="p-4 font-bold text-slate-800">{r.reporterName}</td>
+                    <td className="p-4">
+                      <span className="text-[10px] font-semibold uppercase text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded mr-1">{r.targetType}</span>
+                      <span className="text-slate-600">{r.targetId}</span>
+                    </td>
+                    <td className="p-4 font-semibold">{r.reason}</td>
+                    <td className="p-4 max-w-[200px] truncate text-slate-500">{r.description || "—"}</td>
+                    <td className="p-4 font-mono text-slate-400">{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td className="p-4">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                        r.status === "resolved" ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : r.status === "dismissed" ? "bg-slate-100 text-slate-400 border border-slate-200"
+                        : r.status === "reviewed" ? "bg-blue-50 text-blue-800 border border-blue-100"
+                        : "bg-amber-50 text-amber-600 border border-amber-100"
+                      }`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1.5 justify-end">
+                        {r.status === "pending" && (
+                          <button
+                            onClick={async () => {
+                              await fetch(`/api/reports/${r.id}/status`, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ status: "reviewed" }),
+                              });
+                              fetchData();
+                            }}
+                            className="bg-blue-900 hover:bg-blue-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"
+                          >Mark Reviewed</button>
+                        )}
+                        {r.status === "reviewed" && (
+                          <>
+                            <button
+                              onClick={async () => {
+                                await fetch(`/api/reports/${r.id}/status`, {
+                                  method: "PUT",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ status: "resolved" }),
+                                });
+                                fetchData();
+                              }}
+                              className="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"
+                            >Resolve</button>
+                            <button
+                              onClick={async () => {
+                                await fetch(`/api/reports/${r.id}/status`, {
+                                  method: "PUT",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ status: "dismissed" }),
+                                });
+                                fetchData();
+                              }}
+                              className="border border-slate-200 hover:bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"
+                            >Dismiss</button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {reports.length === 0 && (
+                  <tr><td colSpan={7} className="p-10 text-center text-slate-400 font-bold">No reports submitted.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

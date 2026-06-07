@@ -279,11 +279,11 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
         </div>
 
         {/* Listings Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto justify-items-center">
           {vehicles.slice(0, 4).map(car => (
             <div 
               key={car.id} 
-              className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden group"
+              className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden group w-full max-w-xs"
             >
               {/* Image Container */}
               <div className="h-44 relative bg-slate-100 overflow-hidden">
