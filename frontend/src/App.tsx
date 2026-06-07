@@ -412,6 +412,7 @@ export default function App() {
             localStorage.setItem("autobroker_user", JSON.stringify(user));
             if (user.role === "admin") setActiveView("admin-panel");
             else if (user.role === "broker") setActiveView("broker-dashboard");
+            else setActiveView("home");
           }}
           onNotify={addNotification}
         />

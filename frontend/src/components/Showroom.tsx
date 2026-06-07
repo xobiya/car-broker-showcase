@@ -7,14 +7,6 @@ interface ShowroomProps {
   onInquireCar: (car: VehicleListing) => void;
 }
 
-const screenshotVehicles: VehicleListing[] = [
-  { id: "scr-1", brokerId: "brk-1", brand: "Toyota", model: "RAV4", year: 2022, mileage: 12000, price: 7450000, originalPrice: 8000000, status: "approved", imageUrl: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80", description: "Limited Edition 2022", fuelType: "Electric", transmission: "Automatic", location: "Addis Ababa" },
-  { id: "scr-2", brokerId: "brk-1", brand: "Hyundai", model: "Tucson", year: 2023, mileage: 0, price: 6200000, originalPrice: 6500000, status: "approved", imageUrl: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&q=80", description: "SmartStream 2023", fuelType: "Hybrid", transmission: "Automatic", location: "Addis Ababa" },
-  { id: "scr-3", brokerId: "brk-2", brand: "Suzuki", model: "Dzire", year: 2021, mileage: 24000, price: 2850000, originalPrice: 3100000, status: "approved", imageUrl: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=600&q=80", description: "VXI Plus 2021", fuelType: "Petrol", transmission: "Automatic", location: "Adama" },
-  { id: "scr-4", brokerId: "brk-2", brand: "Mercedes-Benz", model: "C200", year: 2020, mileage: 45000, price: 12500000, originalPrice: 13000000, status: "approved", imageUrl: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=600&q=80", description: "Avantgarde 2020", fuelType: "Petrol", transmission: "Automatic", location: "Addis Ababa" },
-  { id: "scr-5", brokerId: "brk-1", brand: "Volkswagen", model: "ID.4", year: 2023, mileage: 0, price: 8900000, originalPrice: 9500000, status: "approved", imageUrl: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=600&q=80", description: "Pro Performance 2023", fuelType: "Electric", transmission: "Automatic", location: "Addis Ababa" },
-  { id: "scr-6", brokerId: "brk-2", brand: "Toyota", model: "Hilux", year: 2021, mileage: 32000, price: 9800000, originalPrice: 10500000, status: "approved", imageUrl: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80", description: "Double Cabin 2021", fuelType: "Diesel", transmission: "Manual", location: "Bishoftu" },
-];
 
 const QUICK_FILTERS = [
   { id: "available", label: "Available Cars" },
@@ -89,13 +81,9 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         apiData = await res.json();
         apiData = apiData.filter(v => v.status === "approved");
       }
-      const merged = [...screenshotVehicles];
-      apiData.forEach(apiCar => {
-        if (!merged.some(m => m.brand === apiCar.brand && m.model === apiCar.model)) merged.push(apiCar);
-      });
-      setVehicles(merged);
+      setVehicles(apiData);
     } catch {
-      setVehicles(screenshotVehicles);
+      setVehicles([]);
     } finally {
       setLoading(false);
     }
