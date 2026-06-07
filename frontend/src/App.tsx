@@ -20,6 +20,7 @@ import BuyerDashboard from "./components/BuyerDashboard";
 import VehicleComparison from "./components/VehicleComparison";
 import { VehicleListing, User } from "../../shared/types";
 import { motion, AnimatePresence } from "motion/react";
+import { Analytics } from "@vercel/analytics/react";
 
 interface ToastMsg {
   text: string;
@@ -435,6 +436,7 @@ export default function App() {
           </button>
         </div>
       )}
+      <Analytics />
     </div>
   );
 }
