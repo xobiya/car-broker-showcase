@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255),
     phone VARCHAR(50),
     role VARCHAR(50) NOT NULL DEFAULT 'buyer',
     verified BOOLEAN DEFAULT FALSE,
@@ -178,11 +179,11 @@ CREATE TABLE IF NOT EXISTS inspections (
 
 -- SEED DATA
 
-INSERT IGNORE INTO users (id, name, email, phone, role, verified, verification_status, bio) VALUES
-('usr-admin-1', 'Abebe Kebede', 'abebe.k@autobroker.et', '+251911223344', 'admin', TRUE, 'verified', 'Platform administrator'),
-('usr-broker-1', 'Yonas Hailu', 'yonas.h@autobroker.et', '+251912345678', 'broker', TRUE, 'verified', 'Senior automotive broker with 8+ years of experience.'),
-('usr-broker-2', 'Tigist Assefa', 'tigist.a@autobroker.et', '+251913456789', 'broker', TRUE, 'verified', 'Specializing in luxury and electric vehicles.'),
-('usr-buyer-1', 'Dawit Lemma', 'dawit.l@gmail.com', '+251914567890', 'buyer', FALSE, 'unverified', NULL);
+INSERT IGNORE INTO users (id, name, email, password_hash, phone, role, verified, verification_status, bio) VALUES
+('usr-admin-1', 'Abebe Kebede', 'abebe.k@autobroker.et', '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', '+251911223344', 'admin', TRUE, 'verified', 'Platform administrator'),
+('usr-broker-1', 'Yonas Hailu', 'yonas.h@autobroker.et', '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', '+251912345678', 'broker', TRUE, 'verified', 'Senior automotive broker with 8+ years of experience.'),
+('usr-broker-2', 'Tigist Assefa', 'tigist.a@autobroker.et', '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', '+251913456789', 'broker', TRUE, 'verified', 'Specializing in luxury and electric vehicles.'),
+('usr-buyer-1', 'Dawit Lemma', 'dawit.l@gmail.com', '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', '+251914567890', 'buyer', FALSE, 'unverified', NULL);
 
 INSERT IGNORE INTO brokers (id, user_id, license_number, commission_rate, verified, bio) VALUES
 ('brk-1', 'usr-broker-1', 'ET-BRK-99882', 1.00, TRUE, 'Senior automotive broker with 8+ years of experience.'),

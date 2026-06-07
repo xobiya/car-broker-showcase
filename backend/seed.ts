@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import mysql from "mysql2/promise";
+import "./db";
 
 dotenv.config();
 
@@ -56,6 +58,7 @@ interface SeedVehicle {
   chassis_number: string;
   commission_rate: number;
   commission_type: string;
+  inspection_status?: string;
 }
 
 const vehicles: SeedVehicle[] = [
@@ -172,12 +175,12 @@ const vehicles: SeedVehicle[] = [
 ];
 
 const users = [
-  { id: "usr-admin-1", name: "Abebe Kebede", email: "abebe.k@autobroker.et", phone: "+251911223344", role: "admin" },
-  { id: "usr-broker-1", name: "Yonas Hailu", email: "yonas.h@autobroker.et", phone: "+251912345678", role: "broker" },
-  { id: "usr-broker-2", name: "Tigist Assefa", email: "tigist.a@autobroker.et", phone: "+251913456789", role: "broker" },
-  { id: "usr-buyer-1", name: "Dawit Lemma", email: "dawit.l@gmail.com", phone: "+251914567890", role: "buyer" },
-  { id: "usr-buyer-2", name: "Marta Demeke", email: "marta.d@yahoo.com", phone: "+251918877665", role: "buyer" },
-  { id: "usr-buyer-3", name: "Solomon Girma", email: "solomon.g@gmail.com", phone: "+251915556677", role: "buyer" },
+  { id: "usr-admin-1", name: "Abebe Kebede", email: "abebe.k@autobroker.et", password_hash: "$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O", phone: "+251911223344", role: "admin" },
+  { id: "usr-broker-1", name: "Yonas Hailu", email: "yonas.h@autobroker.et", password_hash: "$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O", phone: "+251912345678", role: "broker" },
+  { id: "usr-broker-2", name: "Tigist Assefa", email: "tigist.a@autobroker.et", password_hash: "$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O", phone: "+251913456789", role: "broker" },
+  { id: "usr-buyer-1", name: "Dawit Lemma", email: "dawit.l@gmail.com", password_hash: "$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O", phone: "+251914567890", role: "buyer" },
+  { id: "usr-buyer-2", name: "Marta Demeke", email: "marta.d@yahoo.com", password_hash: "$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O", phone: "+251918877665", role: "buyer" },
+  { id: "usr-buyer-3", name: "Solomon Girma", email: "solomon.g@gmail.com", password_hash: "$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O", phone: "+251915556677", role: "buyer" },
 ];
 
 const brokers = [
@@ -196,111 +199,97 @@ const sales = [
   { id: "sl-1", vehicle_id: "veh-4", broker_id: "brk-2", buyer_id: "usr-buyer-1", sale_price: 3150000, commission: 31500 },
 ];
 
-async function seedMySQL() {
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_DATABASE || "autobroker_ethiopia",
-    multipleStatements: true,
-  });
+async function seedMongoDB() {
+  const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/autobroker_ethiopia";
+  await mongoose.connect(uri);
+  console.log("Connected to MongoDB, dropping existing data...");
 
-  // Truncate existing data
-  await connection.query("SET FOREIGN_KEY_CHECKS = 0");
-  for (const t of ["sales", "leads", "vehicles", "brokers", "users"]) {
-    await connection.query(`DELETE FROM ${t}`);
-  }
-  await connection.query("SET FOREIGN_KEY_CHECKS = 1");
-
-  // Insert users
-  for (const u of users) {
-    await connection.query("INSERT INTO users (id, name, email, phone, role) VALUES (?, ?, ?, ?, ?)", [u.id, u.name, u.email, u.phone, u.role]);
+  const db = mongoose.connection.db;
+  if (!db) throw new Error("Database not initialized");
+  const collections = await db.listCollections().toArray();
+  for (const col of collections) {
+    await db.dropCollection(col.name);
   }
 
-  // Insert brokers
-  for (const b of brokers) {
-    await connection.query("INSERT INTO brokers (id, user_id, license_number, commission_rate) VALUES (?, ?, ?, ?)", [b.id, b.user_id, b.license_number, b.commission_rate]);
-  }
+  console.log("Seeding MongoDB...");
+  await mongoose.model("User").insertMany(users);
+  await mongoose.model("Broker").insertMany(brokers);
+  await mongoose.model("Vehicle").insertMany(vehicles.map(v => ({ ...v, inspection_status: v.inspection_status || "not_inspected" })));
+  await mongoose.model("Lead").insertMany(leads.map(l => ({ ...l, inquiry_date: new Date().toISOString() })));
+  await mongoose.model("Sale").insertMany(sales.map(s => ({ ...s, sale_date: new Date().toISOString(), buyer_name: "" })));
+  await mongoose.model("AuditLog").insertMany([
+    { id: "al-1", action: "approve_listing", admin_id: "usr-admin-1", admin_name: "Abebe Kebede", target_type: "vehicle", target_id: "veh-1", details: "Approved listing Toyota Vitz", timestamp: new Date().toISOString() },
+  ]);
 
-  // Insert vehicles
-  for (const v of vehicles) {
-    await connection.query(
-      `INSERT INTO vehicles (id, broker_id, brand, model, year, mileage, price, original_price, status, image_url, description, fuel_type, transmission, location)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [v.id, v.broker_id, v.brand, v.model, v.year, v.mileage, v.price, v.original_price, v.status, v.image_url, v.description, v.fuel_type, v.transmission, v.location]
-    );
-  }
-
-  // Insert leads
-  for (const l of leads) {
-    await connection.query(
-      "INSERT INTO leads (id, vehicle_id, buyer_id, buyer_name, buyer_email, buyer_phone, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [l.id, l.vehicle_id, l.buyer_id, l.buyer_name, l.buyer_email, l.buyer_phone, l.message, l.status]
-    );
-  }
-
-  // Insert sales
-  for (const s of sales) {
-    await connection.query(
-      "INSERT INTO sales (id, vehicle_id, broker_id, buyer_id, sale_price, commission) VALUES (?, ?, ?, ?, ?, ?)",
-      [s.id, s.vehicle_id, s.broker_id, s.buyer_id, s.sale_price, s.commission]
-    );
-  }
-
-  console.log("MySQL seeded successfully!");
-  await connection.end();
+  console.log("MongoDB seeded successfully!");
+  await mongoose.disconnect();
 }
 
-function generateSeedScript(): string {
-  const lines: string[] = [];
+async function seedMySQL() {
+  const host = process.env.DB_HOST || "localhost";
+  const user = process.env.DB_USER || "root";
+  const password = process.env.DB_PASSWORD || "";
+  const database = process.env.DB_DATABASE || "autobroker_ethiopia";
 
-  // Users
-  lines.push("-- Seed Users");
+  const conn = await mysql.createConnection({ host, user, password, multipleStatements: true });
+  await conn.query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
+  await conn.query(`USE \`${database}\``);
+
+  console.log("Connected to MySQL, dropping existing data...");
+
+  const tables = ["test_drives", "reports", "saved_vehicles", "inspections", "documents", "audit_logs", "sales", "leads", "vehicles", "brokers", "users"];
+  for (const table of tables) {
+    await conn.query(`DROP TABLE IF EXISTS \`${table}\``);
+  }
+
+  // Re-create tables using schema.sql equivalent
+  await conn.query(`
+    CREATE TABLE users (id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, password_hash VARCHAR(255), phone VARCHAR(50), role VARCHAR(50) NOT NULL DEFAULT 'buyer', verified BOOLEAN DEFAULT FALSE, verification_status VARCHAR(50) DEFAULT 'unverified', id_document TEXT, bio TEXT, avatar VARCHAR(500), join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+    CREATE TABLE brokers (id VARCHAR(255) PRIMARY KEY, user_id VARCHAR(255) NOT NULL, license_number VARCHAR(100), commission_rate DECIMAL(5,2) DEFAULT 1.00, verified BOOLEAN DEFAULT FALSE, bio TEXT, avatar VARCHAR(500), FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE);
+    CREATE TABLE vehicles (id VARCHAR(255) PRIMARY KEY, broker_id VARCHAR(255) NOT NULL, brand VARCHAR(100) NOT NULL, model VARCHAR(100) NOT NULL, year INT NOT NULL, mileage INT NOT NULL DEFAULT 0, price DECIMAL(15,2) NOT NULL, original_price DECIMAL(15,2) NOT NULL, status VARCHAR(50) NOT NULL DEFAULT 'draft', image_url VARCHAR(500), description TEXT, fuel_type VARCHAR(50) NOT NULL DEFAULT 'Benzine', transmission VARCHAR(50) NOT NULL DEFAULT 'Automatic', location VARCHAR(100) NOT NULL DEFAULT 'Addis Ababa', condition VARCHAR(50), body_type VARCHAR(50), drive_type VARCHAR(50), color VARCHAR(50), doors INT, seats INT, engine_size VARCHAR(50), engine_type VARCHAR(50), horsepower INT, chassis_number VARCHAR(100), gallery JSON, commission_rate DECIMAL(5,2), commission_type VARCHAR(50) DEFAULT 'percentage', video_url VARCHAR(500), inspection_status VARCHAR(50) DEFAULT 'not_inspected', inspection_notes TEXT, inspection_date TIMESTAMP NULL, cover_photo_index INT DEFAULT 0, rejection_reason TEXT, FOREIGN KEY (broker_id) REFERENCES brokers(id) ON DELETE CASCADE);
+    CREATE TABLE leads (id VARCHAR(255) PRIMARY KEY, vehicle_id VARCHAR(255) NOT NULL, buyer_id VARCHAR(255), buyer_name VARCHAR(255) NOT NULL, buyer_email VARCHAR(255) NOT NULL, buyer_phone VARCHAR(50) NOT NULL, message TEXT, inquiry_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, status VARCHAR(50) NOT NULL DEFAULT 'new', FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE);
+    CREATE TABLE sales (id VARCHAR(255) PRIMARY KEY, vehicle_id VARCHAR(255) NOT NULL, broker_id VARCHAR(255) NOT NULL, buyer_id VARCHAR(255), buyer_name VARCHAR(255), sale_price DECIMAL(15,2) NOT NULL, commission DECIMAL(15,2) NOT NULL, sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE, FOREIGN KEY (broker_id) REFERENCES brokers(id) ON DELETE CASCADE);
+    CREATE TABLE audit_logs (id VARCHAR(255) PRIMARY KEY, action VARCHAR(100) NOT NULL, admin_id VARCHAR(255) NOT NULL, admin_name VARCHAR(255) NOT NULL, target_type VARCHAR(50) NOT NULL, target_id VARCHAR(255) NOT NULL, details TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE);
+    CREATE TABLE documents (id VARCHAR(255) PRIMARY KEY, vehicle_id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(50) NOT NULL, file_url TEXT NOT NULL, uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE);
+    CREATE TABLE saved_vehicles (id VARCHAR(255) PRIMARY KEY, user_id VARCHAR(255) NOT NULL, vehicle_id VARCHAR(255) NOT NULL, saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE, UNIQUE KEY unique_user_vehicle (user_id, vehicle_id));
+    CREATE TABLE reports (id VARCHAR(255) PRIMARY KEY, reporter_id VARCHAR(255), reporter_name VARCHAR(255) NOT NULL, target_type VARCHAR(50) NOT NULL, target_id VARCHAR(255) NOT NULL, reason VARCHAR(255) NOT NULL, description TEXT, status VARCHAR(50) NOT NULL DEFAULT 'pending', admin_notes TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, resolved_at TIMESTAMP NULL, resolved_by VARCHAR(255), FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE SET NULL);
+    CREATE TABLE test_drives (id VARCHAR(255) PRIMARY KEY, vehicle_id VARCHAR(255) NOT NULL, user_id VARCHAR(255), name VARCHAR(255) NOT NULL, email VARCHAR(255), phone VARCHAR(50) NOT NULL, preferred_date DATE NOT NULL, preferred_time VARCHAR(10) NOT NULL, message TEXT, status VARCHAR(50) NOT NULL DEFAULT 'pending', requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE);
+    CREATE TABLE inspections (id VARCHAR(255) PRIMARY KEY, vehicle_id VARCHAR(255) NOT NULL, inspector_name VARCHAR(255) NOT NULL, status VARCHAR(50) NOT NULL DEFAULT 'pending', notes TEXT, inspected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE);
+  `);
+
+  console.log("Seeding MySQL...");
   for (const u of users) {
-    lines.push(`CALL AddOrIgnoreUser('${u.id}', '${u.name}', '${u.email}', '${u.phone}', '${u.role}');`);
+    await conn.query("INSERT INTO users (id, name, email, password_hash, phone, role) VALUES (?, ?, ?, ?, ?, ?)", [u.id, u.name, u.email, u.password_hash || null, u.phone, (u as any).role || "buyer"]);
   }
-
-  lines.push("\n-- Seed Brokers");
   for (const b of brokers) {
-    lines.push(`CALL AddOrIgnoreBroker('${b.id}', '${b.user_id}', '${b.license_number}', ${b.commission_rate});`);
+    await conn.query("INSERT INTO brokers (id, user_id, license_number, commission_rate) VALUES (?, ?, ?, ?)", [b.id, b.user_id, b.license_number, b.commission_rate]);
   }
-
-  lines.push("\n-- Seed Vehicles");
   for (const v of vehicles) {
-    const desc = v.description.replace(/'/g, "''");
-    lines.push(
-      `INSERT IGNORE INTO vehicles (id, broker_id, brand, model, year, mileage, price, original_price, status, image_url, description, fuel_type, transmission, location) VALUES ('${v.id}', '${v.broker_id}', '${v.brand}', '${v.model}', ${v.year}, ${v.mileage}, ${v.price}, ${v.original_price}, '${v.status}', '${v.image_url}', '${desc}', '${v.fuel_type}', '${v.transmission}', '${v.location}');`
-    );
+    await conn.query("INSERT INTO vehicles (id, broker_id, brand, model, year, mileage, price, original_price, status, image_url, description, fuel_type, transmission, location, condition, body_type, drive_type, color, doors, seats, engine_size, engine_type, horsepower, chassis_number, commission_rate, commission_type, inspection_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [v.id, v.broker_id, v.brand, v.model, v.year, v.mileage, v.price, v.original_price, v.status, v.image_url, v.description, v.fuel_type, v.transmission, v.location, v.condition, v.body_type, v.drive_type, v.color, v.doors, v.seats, v.engine_size, v.engine_type, v.horsepower, v.chassis_number, v.commission_rate, v.commission_type, v.inspection_status || 'not_inspected']);
   }
-
-  lines.push("\n-- Seed Leads");
   for (const l of leads) {
-    const msg = l.message.replace(/'/g, "''");
-    const buyerId = l.buyer_id ? `'${l.buyer_id}'` : "NULL";
-    lines.push(`INSERT IGNORE INTO leads (id, vehicle_id, buyer_id, buyer_name, buyer_email, buyer_phone, message, status) VALUES ('${l.id}', '${l.vehicle_id}', ${buyerId}, '${l.buyer_name}', '${l.buyer_email}', '${l.buyer_phone}', '${msg}', '${l.status}');`);
+    await conn.query("INSERT INTO leads (id, vehicle_id, buyer_id, buyer_name, buyer_email, buyer_phone, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [l.id, l.vehicle_id, l.buyer_id, l.buyer_name, l.buyer_email, l.buyer_phone, l.message, l.status]);
   }
-
-  lines.push("\n-- Seed Sales");
   for (const s of sales) {
-    lines.push(`INSERT IGNORE INTO sales (id, vehicle_id, broker_id, buyer_id, sale_price, commission) VALUES ('${s.id}', '${s.vehicle_id}', '${s.broker_id}', '${s.buyer_id}', ${s.sale_price}, ${s.commission});`);
+    await conn.query("INSERT INTO sales (id, vehicle_id, broker_id, buyer_id, sale_price, commission) VALUES (?, ?, ?, ?, ?, ?)", [s.id, s.vehicle_id, s.broker_id, s.buyer_id, s.sale_price, s.commission]);
   }
+  await conn.query("INSERT INTO audit_logs (id, action, admin_id, admin_name, target_type, target_id, details) VALUES ('al-1', 'approve_listing', 'usr-admin-1', 'Abebe Kebede', 'vehicle', 'veh-1', 'Approved listing Toyota Vitz')");
 
-  return lines.join("\n");
+  console.log("MySQL seeded successfully!");
+  await conn.end();
 }
 
 async function main() {
-  const outputSql = process.argv.includes("--sql");
-  const useMySQL = process.argv.includes("--mysql");
+  const args = process.argv.slice(2);
 
-  if (outputSql) {
-    console.log("-- AutoBroker Ethiopia Seed Data");
-    console.log("-- Generated by seed.ts\n");
-    console.log(generateSeedScript());
-    console.log("\n-- End of seed data");
-    process.exit(0);
-  }
-
-  if (useMySQL) {
+  if (args.includes("--mongodb")) {
+    try {
+      await seedMongoDB();
+    } catch (err: any) {
+      console.error("MongoDB seeding failed:", err.message);
+      process.exit(1);
+    }
+  } else if (args.includes("--mysql")) {
     try {
       await seedMySQL();
     } catch (err: any) {
@@ -311,8 +300,6 @@ async function main() {
     console.log("\n===========================================");
     console.log("  AutoBroker Ethiopia - Seed Data");
     console.log("===========================================\n");
-    console.log("Run with --mysql to seed a MySQL database");
-    console.log("Run with --sql to generate SQL statements\n");
 
     console.log(`Users: ${users.length}`);
     console.log(`Brokers: ${brokers.length}`);
@@ -329,8 +316,9 @@ async function main() {
     console.log(`  ${images.length} images available in /assets/`);
     console.log("  Served via http://localhost:3000/assets/...\n");
 
-    console.log("To use in-memory mode, copy the seed data arrays into backend/db.ts.");
-    console.log("Or start the server normally - it already seeds on startup.\n");
+    console.log("To seed MongoDB, run:  npx tsx backend/seed.ts --mongodb");
+    console.log("To seed MySQL, run:    npx tsx backend/seed.ts --mysql");
+    console.log("Or just start the server - it auto-seeds on first connection.\n");
   }
 }
 
