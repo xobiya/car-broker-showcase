@@ -21,6 +21,7 @@ import VehicleComparison from "./pages/VehicleComparison";
 import { VehicleListing, User } from "../../shared/types";
 import { motion, AnimatePresence } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 interface ToastMsg {
   text: string;
@@ -464,6 +465,7 @@ export default function App() {
         </div>
       )}
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
