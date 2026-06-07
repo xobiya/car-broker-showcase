@@ -115,8 +115,28 @@ export default function App() {
     checkStatus();
   }, []);
 
-  const addNotification = (text: string, type: "success" | "error" | "info") => {
-    const newToast: ToastMsg = { text, type, id: crypto.randomUUID() };
+  const addNotification = (text: any, type: "success" | "error" | "info") => {
+    let message = "An error occurred";
+    if (typeof text === "string") {
+      message = text;
+    } else if (text && typeof text === "object") {
+      if (typeof text.message === "string") {
+        message = text.message;
+      } else if (typeof text.error === "string") {
+        message = text.error;
+      } else if (text.error && typeof text.error === "object" && typeof text.error.message === "string") {
+        message = text.error.message;
+      } else {
+        try {
+          message = JSON.stringify(text);
+        } catch {
+          message = "An error occurred";
+        }
+      }
+    } else if (text !== undefined && text !== null) {
+      message = String(text);
+    }
+    const newToast: ToastMsg = { text: message, type, id: crypto.randomUUID() };
     setToasts(prev => [...prev, newToast]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newToast.id)), 4500);
   };

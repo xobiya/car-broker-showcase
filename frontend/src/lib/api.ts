@@ -72,7 +72,21 @@ export async function apiFetch<T = unknown>(
     const contentType = res.headers.get("content-type") ?? "";
     if (contentType.includes("application/json")) {
       const err = await res.json();
-      throw new Error(err.error ?? `Request failed with status ${res.status}`);
+      let errorMsg = `Request failed with status ${res.status}`;
+      if (err) {
+        if (typeof err.error === "string") {
+          errorMsg = err.error;
+        } else if (err.error && typeof err.error === "object" && typeof err.error.message === "string") {
+          errorMsg = err.error.message;
+        } else if (typeof err.message === "string") {
+          errorMsg = err.message;
+        } else if (typeof err.error === "object") {
+          errorMsg = JSON.stringify(err.error);
+        } else {
+          errorMsg = JSON.stringify(err);
+        }
+      }
+      throw new Error(errorMsg);
     }
     throw new Error(`Request failed with status ${res.status}`);
   }

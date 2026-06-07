@@ -42,7 +42,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
   const [activeImage, setActiveImage] = useState(images[0]);
   const [buyerName, setBuyerName] = useState("");
   const [buyerEmail, setBuyerEmail] = useState("");
-  const [buyerPhone, setBuyerPhone] = useState("");
+  const [buyerPhone, setBuyerPhone] = useState("+2519");
   const [inquiryMsg, setInquiryMsg] = useState(`I am interested in this ${vehicle.brand} ${vehicle.model}. Please let me know when I can inspect it.`);
   const [similarVehicles, setSimilarVehicles] = useState<VehicleListing[]>([]);
   const [documents, setDocuments] = useState<VehicleDocument[]>([]);
@@ -51,7 +51,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
   const [showReportModal, setShowReportModal] = useState(false);
   const [tdName, setTdName] = useState("");
   const [tdEmail, setTdEmail] = useState("");
-  const [tdPhone, setTdPhone] = useState("");
+  const [tdPhone, setTdPhone] = useState("+2519");
   const [tdDate, setTdDate] = useState("");
   const [tdTime, setTdTime] = useState("");
   const [tdMessage, setTdMessage] = useState(`I would like to schedule a test drive for the ${vehicle.brand} ${vehicle.model}.`);
@@ -91,7 +91,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
       });
       if (res.ok) {
         onNotify("Inquiry sent successfully! The broker will contact you shortly.", "success");
-        setBuyerName(""); setBuyerEmail(""); setBuyerPhone("");
+        setBuyerName(""); setBuyerEmail(""); setBuyerPhone("+2519");
       } else onNotify("Failed to submit inquiry.", "error");
     } catch { onNotify("Error submitting inquiry.", "error"); }
   };
@@ -118,7 +118,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
       if (res.ok) {
         onNotify("Test drive requested! The broker will confirm your appointment.", "success");
         setShowTestDriveModal(false);
-        setTdName(""); setTdEmail(""); setTdPhone(""); setTdDate(""); setTdTime("");
+        setTdName(""); setTdEmail(""); setTdPhone("+2519"); setTdDate(""); setTdTime("");
       } else onNotify("Failed to schedule test drive.", "error");
     } catch { onNotify("Error scheduling test drive.", "error"); }
   };

@@ -22,7 +22,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify }: AuthModalPro
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+2519");
   const [role, setRole] = useState<"buyer" | "broker">("buyer");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,7 +31,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify }: AuthModalPro
     setEmail("");
     setPassword("");
     setName("");
-    setPhone("");
+    setPhone("+2519");
     setRole("buyer");
     setError("");
   };
