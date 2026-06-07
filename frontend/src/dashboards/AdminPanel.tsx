@@ -1075,7 +1075,27 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             title="Edit"
                           ><Edit3 size={13} /></button>
                           <button
-       {/* ── BROKERS TAB ───────────────────────────────────────────────────── */}
+                            onClick={() => handleDelete(v.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            title="Delete"
+                          ><Trash2 size={13} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                    ));
+                  })()}
+                  {filteredVehiclesList.length === 0 && (
+                    <tr><td colSpan={6} className="p-10 text-center text-slate-400 font-bold">No listings found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <Pagination currentPage={listingPage} totalPages={Math.ceil(filteredVehiclesList.length / ITEMS_PER_PAGE)} onPageChange={setListingPage} />
+          </div>
+        </div>
+      )}
+
+      {/* ── BROKERS TAB ───────────────────────────────────────────────────── */}
       {adminTab === "brokers" && (
         <div className="space-y-4">
           {/* Summary cards */}
@@ -1201,7 +1221,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           </div>
         </div>
       )}
-a      {/* ── BUYERS TAB ─────────────────────────────────────────────────────── */}
+      {/* ── BUYERS TAB ─────────────────────────────────────────────────────── */}
       {adminTab === "buyers" && (
         <div className="space-y-4">
           {/* Summary */}
@@ -1314,26 +1334,6 @@ a      {/* ── BUYERS TAB ─────────────────
               </table>
             </div>
             <Pagination currentPage={buyerPage} totalPages={Math.ceil(users.filter(u => u.role === "buyer").filter(b => !buyerSearch || `${(b as any).name} ${(b as any).email}`.toLowerCase().includes(buyerSearch.toLowerCase())).length / ITEMS_PER_PAGE)} onPageChange={setBuyerPage} />
-          </div>
-        </div>
-      )}
-                         <span className="text-[9px] text-slate-400 ml-1">inquiry{leadCount !== 1 ? "ies" : "y"}</span>
-                          )}
-                        </td>
-                        <td className="p-4">
-                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
-                        </td>
-                      </tr>
-                      );
-                    });
-                  })()}
-                  {users.filter(u => u.role === "buyer").length === 0 && (
-                    <tr><td colSpan={5} className="p-10 text-center text-slate-400 font-bold">No registered buyers yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <Pagination currentPage={buyerPage} totalPages={Math.ceil(users.filter(u => u.role === "buyer").filter(b => !buyerSearch || `${b.name} ${b.email} ${b.phone}`.toLowerCase().includes(buyerSearch.toLowerCase())).length / ITEMS_PER_PAGE)} onPageChange={setBuyerPage} />
           </div>
         </div>
       )}
@@ -1789,6 +1789,265 @@ a      {/* ── BUYERS TAB ─────────────────
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── BROKER DETAIL MODAL ────────────────────────────────────────────────── */}
+      {selectedBroker && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+              <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+                <UserCheck size={16} className="text-indigo-600" />
+                Broker Profile Detail
+              </h3>
+              <button onClick={() => setSelectedBroker(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-6 overflow-y-auto">
+              
+              {/* Profile Card & Info */}
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-black shrink-0 ${
+                  selectedBroker.verified ? "bg-gradient-to-br from-emerald-500 to-emerald-600" : "bg-gradient-to-br from-slate-500 to-slate-600"
+                }`}>
+                  {selectedBroker.name ? selectedBroker.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2) : "?"}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h4 className="text-lg font-black text-slate-800">{selectedBroker.name}</h4>
+                    <span className={`px-2.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                      selectedBroker.verified
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {selectedBroker.verified ? "✓ Verified" : "⏳ Pending Approval"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed max-w-xl">
+                    {selectedBroker.bio || "No profile bio provided."}
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 text-xs">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Email</p>
+                      <p className="font-semibold text-slate-700">{selectedBroker.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Phone</p>
+                      <p className="font-mono font-semibold text-slate-700">{selectedBroker.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">License Number</p>
+                      <p className="font-mono font-semibold text-slate-700">{selectedBroker.licenseNumber || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Joined</p>
+                      <p className="font-semibold text-slate-700">{selectedBroker.joinedAt || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions Bar */}
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Broker Verification Status</p>
+                  <p className="text-[10px] text-slate-400">Verifying the broker allows them to list vehicles on the marketplace.</p>
+                </div>
+                <div className="ml-auto flex gap-2">
+                  {!selectedBroker.verified ? (
+                    <button
+                      onClick={() => handleBrokerApprove(selectedBroker.id)}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black px-4 py-2 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                    >
+                      <Check size={14} /> Approve & Verify
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleBrokerReject(selectedBroker.id)}
+                      className="bg-rose-500 hover:bg-rose-600 text-white text-xs font-black px-4 py-2 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-sm uppercase tracking-wider"
+                    >
+                      <X size={14} /> Revoke Verification
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats & Detailed Listing/Sales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Listings Section */}
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+                  <div className="bg-slate-50/70 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                    <p className="text-xs font-black uppercase text-slate-700 tracking-wider">Broker Listings</p>
+                    <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                      {vehicles.filter(v => v.brokerId === selectedBroker.id).length} Active
+                    </span>
+                  </div>
+                  <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
+                    {vehicles.filter(v => v.brokerId === selectedBroker.id).map(v => (
+                      <div key={v.id} className="flex items-center gap-3 p-3 hover:bg-slate-50/50">
+                        <img src={v.imageUrl} alt="" className="w-12 h-9 object-cover rounded-lg bg-slate-100 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-800 truncate">{v.brand} {v.model} ({v.year})</p>
+                          <p className="text-[10px] text-slate-400 font-bold">{v.price.toLocaleString()} ETB · {v.location}</p>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border ${
+                          v.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                          : v.status === "sold" ? "bg-blue-50 text-blue-800 border-blue-100"
+                          : v.status === "rejected" ? "bg-rose-50 text-rose-700 border-rose-100"
+                          : "bg-amber-50 text-amber-600 border-amber-100"
+                        }`}>
+                          {v.status}
+                        </span>
+                      </div>
+                    ))}
+                    {vehicles.filter(v => v.brokerId === selectedBroker.id).length === 0 && (
+                      <div className="p-8 text-center text-xs text-slate-400 font-bold">No listings created yet.</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sales Section */}
+                <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+                  <div className="bg-slate-50/70 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                    <p className="text-xs font-black uppercase text-slate-700 tracking-wider">Sales Performance</p>
+                    <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                      {sales.filter(s => s.brokerId === selectedBroker.id).length} Sold
+                    </span>
+                  </div>
+                  <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
+                    {sales.filter(s => s.brokerId === selectedBroker.id).map(s => (
+                      <div key={s.id} className="p-3 hover:bg-slate-50/50 space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs font-bold text-slate-800">{s.vehicleBrand} {s.vehicleModel}</p>
+                          <span className="text-[10px] font-bold text-orange-500">+{s.commission.toLocaleString()} ETB</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-slate-400 font-medium">
+                          <span>Sale: {s.salePrice.toLocaleString()} ETB</span>
+                          <span>{new Date(s.saleDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {sales.filter(s => s.brokerId === selectedBroker.id).length === 0 && (
+                      <div className="p-8 text-center text-xs text-slate-400 font-bold">No sales recorded yet.</div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setSelectedBroker(null)} className="text-xs font-bold text-slate-500 hover:text-slate-800 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">Close Profile</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── BUYER DETAIL MODAL ────────────────────────────────────────────────── */}
+      {selectedBuyer && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+              <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+                <Users size={16} className="text-teal-600" />
+                Buyer Activity Detail
+              </h3>
+              <button onClick={() => setSelectedBuyer(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-6 overflow-y-auto">
+              
+              {/* Profile Card & Info */}
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 text-white flex items-center justify-center text-xl font-black shrink-0">
+                  {selectedBuyer.name ? selectedBuyer.name.charAt(0).toUpperCase() : "?"}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h4 className="text-lg font-black text-slate-800">{selectedBuyer.name}</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1 text-xs">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Email Address</p>
+                      <p className="font-semibold text-slate-700">{selectedBuyer.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Phone Number</p>
+                      <p className="font-mono font-semibold text-slate-700">{selectedBuyer.phone || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Joined Date</p>
+                      <p className="font-semibold text-slate-700">
+                        {selectedBuyer.joinDate ? new Date(selectedBuyer.joinDate).toLocaleDateString() : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Total Inquiries</p>
+                      <p className="font-semibold text-slate-700">{selectedBuyer.leads?.length || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Inquiry History */}
+              <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                <div className="bg-slate-50/70 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                  <p className="text-xs font-black uppercase text-slate-700 tracking-wider">Inquiry & Negotiation History</p>
+                  <span className="text-[10px] font-bold bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">
+                    {selectedBuyer.leads?.length || 0} Inquiries
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {(selectedBuyer.leads || []).map((l: any, idx: number) => {
+                    const vehicle = vehicles.find(v => v.id === l.vehicleId);
+                    return (
+                      <div key={l.id || idx} className="p-4 hover:bg-slate-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {vehicle ? (
+                            <img src={vehicle.imageUrl} alt="" className="w-12 h-9 object-cover rounded-lg bg-slate-100 shrink-0" />
+                          ) : (
+                            <div className="w-12 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                              <Car size={16} className="text-slate-300" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">
+                              {l.vehicleBrand} {l.vehicleModel}
+                            </p>
+                            <p className="text-[10px] text-slate-400 font-bold">
+                              Price: {l.vehiclePrice ? `${l.vehiclePrice.toLocaleString()} ETB` : "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex-1 max-w-md">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Buyer Message</p>
+                          <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg mt-0.5 border border-slate-100 italic">
+                            "{l.message || "No message provided."}"
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border ${
+                            l.status === "negotiating" ? "bg-orange-50 text-orange-700 border-orange-100"
+                            : l.status === "sold" ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                            : l.status === "cancelled" ? "bg-rose-50 text-rose-700 border-rose-100"
+                            : "bg-slate-50 text-slate-500 border-slate-200"
+                          }`}>
+                            {l.status}
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-mono">{new Date(l.inquiryDate).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {(!selectedBuyer.leads || selectedBuyer.leads.length === 0) && (
+                    <div className="p-8 text-center text-xs text-slate-400 font-bold">No inquiry history found.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setSelectedBuyer(null)} className="text-xs font-bold text-slate-500 hover:text-slate-800 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">Close Activity</button>
+              </div>
+            </div>
           </div>
         </div>
       )}
