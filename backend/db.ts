@@ -369,10 +369,12 @@ function mysqlQuery(sql: string, params?: any[]) {
 // ===================== SEED DATA =====================
 
 const seedUsers: DBUser[] = [
-  { id: 'usr-admin-1', name: 'Abebe Kebede', email: 'abebe.k@autobroker.et', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251911223344', role: 'admin', verified: true, verification_status: 'verified' },
-  { id: 'usr-broker-1', name: 'Yonas Hailu', email: 'yonas.h@autobroker.et', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251912345678', role: 'broker', verified: true, verification_status: 'verified', bio: 'Senior automotive broker with 8+ years of experience in import and local vehicle sales.' },
-  { id: 'usr-broker-2', name: 'Tigist Assefa', email: 'tigist.a@autobroker.et', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251913456789', role: 'broker', verified: true, verification_status: 'verified', bio: 'Specializing in luxury and electric vehicles. Certified import specialist.' },
-  { id: 'usr-buyer-1', name: 'Dawit Lemma', email: 'dawit.l@gmail.com', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251914567890', role: 'buyer' }
+  { id: 'usr-admin-1', name: 'Abebe Kebede', email: 'abebe.k@autobroker.et', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251911223344', role: 'admin', verified: true, verification_status: 'verified', join_date: '2024-01-15' },
+  { id: 'usr-broker-1', name: 'Yonas Hailu', email: 'yonas.h@autobroker.et', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251912345678', role: 'broker', verified: true, verification_status: 'verified', bio: 'Senior automotive broker with 8+ years of experience in import and local vehicle sales.', join_date: '2024-02-01' },
+  { id: 'usr-broker-2', name: 'Tigist Assefa', email: 'tigist.a@autobroker.et', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251913456789', role: 'broker', verified: true, verification_status: 'verified', bio: 'Specializing in luxury and electric vehicles. Certified import specialist.', join_date: '2024-03-10' },
+  { id: 'usr-buyer-1', name: 'Dawit Lemma', email: 'dawit.l@gmail.com', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251914567890', role: 'buyer', join_date: '2024-06-20' },
+  { id: 'usr-buyer-2', name: 'Marta Demeke', email: 'marta.d@yahoo.com', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251918877665', role: 'buyer', join_date: '2024-08-05' },
+  { id: 'usr-buyer-3', name: 'Solomon Girma', email: 'solomon.g@gmail.com', password_hash: '$2b$10$eBUHz99uAsHqj6Va7U00x.A9HJGpcmCXtH/gRSCzK4.f.JjaesJ8O', phone: '+251915556677', role: 'buyer', join_date: '2024-09-12' }
 ];
 
 const seedBrokers: DBBroker[] = [
@@ -432,31 +434,40 @@ const seedTestDrives: DBTestDrive[] = [
 // ===================== INIT =====================
 
 async function seedMongoDB() {
-  const count = await UserModel.countDocuments();
-  if (count > 0) {
-    // Check if the existing users have password_hash
-    const anyUserWithoutHash = await UserModel.findOne({ password_hash: { $exists: false } });
-    if (!anyUserWithoutHash) {
-      return;
-    }
-    console.log("Found users without password_hash in MongoDB. Updating seed users...");
-    for (const u of seedUsers) {
-      await UserModel.updateOne({ id: u.id }, { $set: { password_hash: u.password_hash } });
-    }
-    return;
+  console.log("Seeding MongoDB (upsert)...");
+  for (const u of seedUsers) {
+    await UserModel.updateOne({ id: u.id }, { $set: u }, { upsert: true });
   }
-  console.log("Seeding MongoDB...");
-  await UserModel.insertMany(seedUsers);
-  await BrokerModel.insertMany(seedBrokers);
-  await VehicleModel.insertMany(seedVehicles);
-  await LeadModel.insertMany(seedLeads);
-  await SaleModel.insertMany(seedSales);
-  await AuditLogModel.insertMany(seedAuditLogs);
-  await DocumentModel.insertMany(seedDocuments);
-  await InspectionModel.insertMany(seedInspections);
-  await ReportModel.insertMany(seedReports);
-  await SavedVehicleModel.insertMany(seedSavedVehicles);
-  await TestDriveModel.insertMany(seedTestDrives);
+  for (const b of seedBrokers) {
+    await BrokerModel.updateOne({ id: b.id }, { $set: b }, { upsert: true });
+  }
+  for (const v of seedVehicles) {
+    await VehicleModel.updateOne({ id: v.id }, { $set: v }, { upsert: true });
+  }
+  for (const l of seedLeads) {
+    await LeadModel.updateOne({ id: l.id }, { $set: l }, { upsert: true });
+  }
+  for (const s of seedSales) {
+    await SaleModel.updateOne({ id: s.id }, { $set: s }, { upsert: true });
+  }
+  for (const a of seedAuditLogs) {
+    await AuditLogModel.updateOne({ id: a.id }, { $set: a }, { upsert: true });
+  }
+  for (const d of seedDocuments) {
+    await DocumentModel.updateOne({ id: d.id }, { $set: d }, { upsert: true });
+  }
+  for (const i of seedInspections) {
+    await InspectionModel.updateOne({ id: i.id }, { $set: i }, { upsert: true });
+  }
+  for (const r of seedReports) {
+    await ReportModel.updateOne({ id: r.id }, { $set: r }, { upsert: true });
+  }
+  for (const sv of seedSavedVehicles) {
+    await SavedVehicleModel.updateOne({ id: sv.id }, { $set: sv }, { upsert: true });
+  }
+  for (const t of seedTestDrives) {
+    await TestDriveModel.updateOne({ id: t.id }, { $set: t }, { upsert: true });
+  }
   console.log("MongoDB seeded.");
 }
 

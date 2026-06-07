@@ -530,6 +530,44 @@ app.put("/api/brokers/:id", authenticateToken, async (req: AuthenticatedRequest,
   }
 });
 
+// Admin: Approve/Verify a broker
+app.put("/api/brokers/:id/approve", authenticateToken, requireRole(["admin"]), async (req: AuthenticatedRequest, res) => {
+  try {
+    const brokers = await db.getBrokers();
+    const broker = brokers.find(b => b.id === req.params.id);
+    if (!broker) return res.status(404).json({ error: "Broker not found." });
+
+    const success = await db.updateBroker(req.params.id, { verified: true });
+    if (success) {
+      res.json({ message: "Broker approved and verified successfully." });
+    } else {
+      res.status(500).json({ error: "Failed to approve broker." });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Reject/Suspend a broker
+app.put("/api/brokers/:id/reject", authenticateToken, requireRole(["admin"]), async (req: AuthenticatedRequest, res) => {
+  try {
+    const brokers = await db.getBrokers();
+    const broker = brokers.find(b => b.id === req.params.id);
+    if (!broker) return res.status(404).json({ error: "Broker not found." });
+
+    const success = await db.updateBroker(req.params.id, { verified: false });
+    if (success) {
+      res.json({ message: "Broker verification revoked." });
+    } else {
+      res.status(500).json({ error: "Failed to update broker status." });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 // --- Users ---
 app.get("/api/users", authenticateToken, requireRole(["admin"]), async (req, res) => {
   try {

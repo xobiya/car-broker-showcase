@@ -150,6 +150,61 @@ function StatCard({ label, value, accent, icon: Icon, sub }: {
   );
 }
 
+// ─── Pagination ────────────────────────────────────────────────────────────
+function Pagination({ currentPage, totalPages, onPageChange }: {
+  currentPage: number; totalPages: number; onPageChange: (p: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  const pages: number[] = [];
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+  for (let i = start; i <= end; i++) pages.push(i);
+
+  return (
+    <div className="flex items-center justify-center gap-1 py-4">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition cursor-pointer"
+      >
+        Prev
+      </button>
+      {start > 1 && (
+        <>
+          <button onClick={() => onPageChange(1)} className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-slate-200 hover:bg-slate-50 transition cursor-pointer">1</button>
+          {start > 2 && <span className="px-1 text-slate-300 text-[10px]">…</span>}
+        </>
+      )}
+      {pages.map(p => (
+        <button
+          key={p}
+          onClick={() => onPageChange(p)}
+          className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border transition cursor-pointer ${
+            p === currentPage
+              ? "bg-blue-900 text-white border-blue-900"
+              : "border-slate-200 hover:bg-slate-50"
+          }`}
+        >
+          {p}
+        </button>
+      ))}
+      {end < totalPages && (
+        <>
+          {end < totalPages - 1 && <span className="px-1 text-slate-300 text-[10px]">…</span>}
+          <button onClick={() => onPageChange(totalPages)} className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-slate-200 hover:bg-slate-50 transition cursor-pointer">{totalPages}</button>
+        </>
+      )}
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition cursor-pointer"
+      >
+        Next
+      </button>
+    </div>
+  );
+}
+
 // ─── Main Component ────────────────────────────────────────────────────────
 export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPanelProps) {
   const adminUser = React.useMemo(() => {
@@ -180,9 +235,20 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const [adminTab, setAdminTab] = useState<AdminTab>("overview");
   const [listingSearch, setListingSearch] = useState("");
   const [listingStatusFilter, setListingStatusFilter] = useState("all");
+  const [brokerSearch, setBrokerSearch] = useState("");
+  const [buyerSearch, setBuyerSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+
+  const ITEMS_PER_PAGE = 10;
+  const [listingPage, setListingPage] = useState(1);
+  const [brokerPage, setBrokerPage] = useState(1);
+  const [buyerPage, setBuyerPage] = useState(1);
+  const [userPage, setUserPage] = useState(1);
 
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<VehicleListing | null>(null);
+  const [selectedBroker, setSelectedBroker] = useState<any | null>(null);
+  const [selectedBuyer, setSelectedBuyer] = useState<any | null>(null);
 
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -217,7 +283,10 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
   const safeFetch = async (url: string) => {
     try {
-      const res = await fetch(url);
+      const token = localStorage.getItem("autobroker_token");
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(url, { headers });
       return res.ok ? await res.json() : null;
     } catch { return null; }
   };
@@ -259,6 +328,11 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
   useEffect(() => { fetchData(); }, []);
 
+  useEffect(() => { setListingPage(1); }, [listingSearch, listingStatusFilter]);
+  useEffect(() => { setBrokerPage(1); }, [brokerSearch]);
+  useEffect(() => { setBuyerPage(1); }, [buyerSearch]);
+  useEffect(() => { setUserPage(1); }, [userSearch]);
+
   const handleApprove = async (id: string) => {
     try {
       const res = await fetch(`/api/vehicles/${id}/approve`, { method: "PUT" });
@@ -296,6 +370,45 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       else {
         const err = await res.json().catch(() => ({}));
         onNotify(err.error || "Error updating listing.", "error");
+      }
+    } catch { onNotify("Network error.", "error"); }
+  };
+
+  const getAuthHeader = () => {
+    const token = localStorage.getItem("autobroker_token");
+    return token ? { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+  };
+
+  const handleBrokerApprove = async (brokerId: string) => {
+    try {
+      const res = await fetch(`/api/brokers/${brokerId}/approve`, {
+        method: "PUT",
+        headers: getAuthHeader(),
+      });
+      if (res.ok) {
+        onNotify("Broker approved and verified!", "success");
+        fetchData();
+        if (selectedBroker?.id === brokerId) setSelectedBroker({ ...selectedBroker, verified: true });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        onNotify(err.error || "Error approving broker.", "error");
+      }
+    } catch { onNotify("Network error.", "error"); }
+  };
+
+  const handleBrokerReject = async (brokerId: string) => {
+    try {
+      const res = await fetch(`/api/brokers/${brokerId}/reject`, {
+        method: "PUT",
+        headers: getAuthHeader(),
+      });
+      if (res.ok) {
+        onNotify("Broker verification revoked.", "info");
+        fetchData();
+        if (selectedBroker?.id === brokerId) setSelectedBroker({ ...selectedBroker, verified: false });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        onNotify(err.error || "Error revoking broker.", "error");
       }
     } catch { onNotify("Network error.", "error"); }
   };
@@ -400,6 +513,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const pendingCars = vehicles.filter(v => v.status === "pending").length;
   const soldCars = vehicles.filter(v => v.status === "sold").length;
   const totalBrokers = brokers.length;
+  const realBuyers = users.filter(u => u.role === "buyer").length;
   const totalBuyers = leads.filter((l, i, arr) => arr.findIndex(x => x.buyerEmail === l.buyerEmail) === i).length;
   const totalCommission = sales.reduce((sum, s) => sum + s.commission, 0);
   const totalRevenue = sales.reduce((sum, s) => sum + s.salePrice, 0);
@@ -753,7 +867,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             <StatCard label="Pending" value={pendingCars} icon={ClipboardList} accent="text-amber-500" sub={pendingCars > 0 ? "Needs review" : undefined} />
             <StatCard label="Sold" value={soldCars} icon={Award} accent="text-blue-900" />
             <StatCard label="Brokers" value={totalBrokers} icon={UserCheck} accent="text-indigo-600" />
-            <StatCard label="Members" value={users.length || totalBuyers} icon={Users} accent="text-teal-600" />
+            <StatCard label="Members" value={users.length} icon={Users} accent="text-teal-600" sub={`${realBuyers} buyer${realBuyers !== 1 ? "s" : ""}`} />
             <div className="col-span-2 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-2xl shadow-sm flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Commission Earned</span>
@@ -898,7 +1012,9 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {filteredVehiclesList.map(v => (
+                  {(() => {
+                    const paginatedVehicles = filteredVehiclesList.slice((listingPage - 1) * ITEMS_PER_PAGE, listingPage * ITEMS_PER_PAGE);
+                    return paginatedVehicles.map(v => (
                     <tr key={v.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
@@ -948,7 +1064,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           )}
                           {(v.status === "sold" || v.status === "rejected") && (
                             <button
-                              onClick={() => handleReject(v.id)} // reverts status to pending
+                              onClick={() => handleReject(v.id)}
                               className="border border-slate-200 hover:bg-slate-50 text-slate-500 px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition"
                               title="Revert to Pending"
                             >Revert</button>
@@ -959,125 +1075,265 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             title="Edit"
                           ><Edit3 size={13} /></button>
                           <button
-                            onClick={() => handleDelete(v.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition"
-                            title="Delete"
-                          ><Trash2 size={13} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredVehiclesList.length === 0 && (
-                    <tr><td colSpan={6} className="p-10 text-center text-slate-400 text-xs font-bold">No matching listings found.</td></tr>
+       {/* ── BROKERS TAB ───────────────────────────────────────────────────── */}
+      {adminTab === "brokers" && (
+        <div className="space-y-4">
+          {/* Summary cards */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Brokers</p>
+              <p className="text-2xl font-black text-slate-800 mt-1">{brokers.length}</p>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Verified</p>
+              <p className="text-2xl font-black text-emerald-600 mt-1">{brokers.filter(b => b.verified).length}</p>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-amber-500 tracking-wider">Pending Review</p>
+              <p className="text-2xl font-black text-amber-600 mt-1">{brokers.filter(b => !b.verified).length}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+            <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
+              {brokers.length} Broker{brokers.length !== 1 ? "s" : ""} Registered
+            </p>
+            <div className="relative md:w-72 shrink-0">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={brokerSearch}
+                onChange={e => setBrokerSearch(e.target.value)}
+                placeholder="Search by name, email, phone..."
+                className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+              />
+            </div>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs min-w-[820px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                    <th className="p-4">Broker</th>
+                    <th className="p-4">Contact</th>
+                    <th className="p-4">Listings</th>
+                    <th className="p-4">Sales</th>
+                    <th className="p-4">Commission (ETB)</th>
+                    <th className="p-4">Joined</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {(() => {
+                    const filtered = brokers.filter(b =>
+                      !brokerSearch || `${b.name} ${b.email} ${b.phone}`.toLowerCase().includes(brokerSearch.toLowerCase())
+                    );
+                    const paginated = filtered.slice((brokerPage - 1) * ITEMS_PER_PAGE, brokerPage * ITEMS_PER_PAGE);
+                    return paginated.map((b, idx) => (
+                      <tr key={b.id || idx} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => setSelectedBroker(b)}>
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 text-white ${
+                              b.verified ? "bg-gradient-to-br from-emerald-500 to-emerald-600" : "bg-gradient-to-br from-slate-500 to-slate-600"
+                            }`}>
+                              {b.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-800">{b.name}</p>
+                              {b.licenseNumber && <p className="text-[9px] text-slate-400 font-mono">LIC: {b.licenseNumber}</p>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <p className="font-mono text-slate-600">{b.phone}</p>
+                          <p className="text-[10px] text-slate-400">{b.email}</p>
+                        </td>
+                        <td className="p-4 font-mono font-bold text-center">{b.listings ?? 0}</td>
+                        <td className="p-4 font-mono font-bold text-center">{b.sales ?? 0}</td>
+                        <td className="p-4 font-bold font-mono text-orange-500">{(b.commission ?? 0).toLocaleString()}</td>
+                        <td className="p-4 font-mono text-slate-400">{b.joinedAt}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
+                            b.verified
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {b.verified ? "✓ Verified" : "⏳ Pending"}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-1.5 justify-end" onClick={e => e.stopPropagation()}>
+                            {!b.verified ? (
+                              <button
+                                onClick={() => handleBrokerApprove(b.id)}
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition flex items-center gap-1"
+                              >
+                                <Check size={10} /> Approve
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleBrokerReject(b.id)}
+                                className="border border-rose-200 text-rose-500 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition"
+                              >
+                                Revoke
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setSelectedBroker(b)}
+                              className="p-1.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                              title="View Details"
+                            >
+                              <ChevronRight size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ));
+                  })()}
+                  {brokers.length === 0 && (
+                    <tr><td colSpan={8} className="p-10 text-center text-slate-400 font-bold">No brokers found.</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
+            <Pagination currentPage={brokerPage} totalPages={Math.ceil(brokers.filter(b => !brokerSearch || `${b.name} ${b.email} ${b.phone}`.toLowerCase().includes(brokerSearch.toLowerCase())).length / ITEMS_PER_PAGE)} onPageChange={setBrokerPage} />
           </div>
         </div>
       )}
-
-      {/* ── BROKERS TAB ──────────────────────────────────────────────────────── */}
-      {adminTab === "brokers" && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs min-w-[700px]">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
-                  <th className="p-4">Broker</th>
-                  <th className="p-4">Contact</th>
-                  <th className="p-4">Listings</th>
-                  <th className="p-4">Sales</th>
-                  <th className="p-4">Commission (ETB)</th>
-                  <th className="p-4">Joined</th>
-                  <th className="p-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {brokers.map((b, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-900 text-white flex items-center justify-center text-[11px] font-black shrink-0">
-                          {b.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                        </div>
-                        <span className="font-bold text-slate-800">{b.name}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-mono text-slate-600">{b.phone}</p>
-                      <p className="text-[10px] text-slate-400">{b.email}</p>
-                    </td>
-                    <td className="p-4 font-mono font-bold">{b.listings}</td>
-                    <td className="p-4 font-mono font-bold">{b.sales}</td>
-                    <td className="p-4 font-bold font-mono text-orange-500">{b.commission.toLocaleString()}</td>
-                    <td className="p-4 font-mono text-slate-400">{b.joinedAt}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
-                        b.verified ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-slate-100 text-slate-400 border border-slate-200"
-                      }`}>
-                        {b.verified ? "✓ Verified" : "Unverified"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ── BUYERS TAB ───────────────────────────────────────────────────────── */}
+a      {/* ── BUYERS TAB ─────────────────────────────────────────────────────── */}
       {adminTab === "buyers" && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
-              {leads.length} Buyer Inquiry{leads.length !== 1 ? "ies" : "y"} Received
-            </p>
+        <div className="space-y-4">
+          {/* Summary */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Registered Buyers</p>
+              <p className="text-2xl font-black text-slate-800 mt-1">{users.filter(u => u.role === "buyer").length}</p>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Inquiries</p>
+              <p className="text-2xl font-black text-blue-900 mt-1">{leads.length}</p>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Negotiations</p>
+              <p className="text-2xl font-black text-orange-500 mt-1">{leads.filter(l => l.status === "negotiating").length}</p>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs min-w-[700px]">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
-                  <th className="p-4">Buyer</th>
-                  <th className="p-4">Contact</th>
-                  <th className="p-4">Vehicle Interested In</th>
-                  <th className="p-4">Message</th>
-                  <th className="p-4">Date</th>
-                  <th className="p-4">Lead Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {leads.map((l, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50">
-                    <td className="p-4 font-bold text-slate-800">{l.buyerName}</td>
-                    <td className="p-4">
-                      <p className="font-mono text-slate-600 text-[10px]">{l.buyerPhone}</p>
-                      <p className="text-[10px] text-slate-400">{l.buyerEmail}</p>
-                    </td>
-                    <td className="p-4 font-bold">
-                      {l.vehicleBrand} {l.vehicleModel}
-                      {l.vehiclePrice && <p className="text-[10px] text-slate-400 font-mono">{l.vehiclePrice.toLocaleString()} ETB</p>}
-                    </td>
-                    <td className="p-4 max-w-xs truncate text-slate-500">{l.message || "—"}</td>
-                    <td className="p-4 font-mono text-slate-400">{new Date(l.inquiryDate).toLocaleDateString()}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
-                        l.status === "sold" ? "bg-blue-50 text-blue-800 border border-blue-100"
-                        : l.status === "negotiating" ? "bg-orange-50 text-orange-600 border border-orange-100"
-                        : l.status === "contacted" ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                        : "bg-slate-100 text-slate-400 border border-slate-200"
-                      }`}>
-                        {l.status}
-                      </span>
-                    </td>
+
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+            <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
+              {users.filter(u => u.role === "buyer").length} Registered Buyer{users.filter(u => u.role === "buyer").length !== 1 ? "s" : ""} · {leads.length} Total Inquir{leads.length !== 1 ? "ies" : "y"}
+            </p>
+            <div className="relative md:w-72 shrink-0">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={buyerSearch}
+                onChange={e => setBuyerSearch(e.target.value)}
+                placeholder="Search by name, email, phone..."
+                className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+              />
+            </div>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                    <th className="p-4">Buyer</th>
+                    <th className="p-4">Contact</th>
+                    <th className="p-4">Joined</th>
+                    <th className="p-4">Inquiries</th>
+                    <th className="p-4">Last Active</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Details</th>
                   </tr>
-                ))}
-                {leads.length === 0 && (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-400 font-bold">No buyer inquiries yet.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {(() => {
+                    const buyers = users.filter(u => u.role === "buyer");
+                    const filtered = buyers.filter(b =>
+                      !buyerSearch || `${b.name} ${b.email} ${(b as any).phone}`.toLowerCase().includes(buyerSearch.toLowerCase())
+                    );
+                    const paginated = filtered.slice((buyerPage - 1) * ITEMS_PER_PAGE, buyerPage * ITEMS_PER_PAGE);
+                    return paginated.map((b: any, idx: number) => {
+                      const buyerLeads = leads.filter(l => l.buyerEmail?.toLowerCase() === b.email?.toLowerCase());
+                      const lastLead = buyerLeads.sort((a, b) => new Date(b.inquiryDate).getTime() - new Date(a.inquiryDate).getTime())[0];
+                      return (
+                      <tr key={b.id || idx} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => setSelectedBuyer({ ...b, leads: buyerLeads })}>
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 text-white flex items-center justify-center text-[11px] font-black shrink-0">
+                              {(b.name || "?").charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-800">{b.name}</p>
+                              {buyerLeads.length > 0 && <p className="text-[9px] text-teal-600 font-black uppercase tracking-wider">{buyerLeads.length} inquiry{buyerLeads.length !== 1 ? "ies" : ""}</p>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <p className="text-slate-600">{b.email}</p>
+                          {b.phone && <p className="text-[10px] text-slate-400 font-mono mt-0.5">{b.phone}</p>}
+                        </td>
+                        <td className="p-4 font-mono text-slate-400">
+                          {b.joinDate ? new Date(b.joinDate).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-slate-700">{buyerLeads.length}</span>
+                            {buyerLeads.filter(l => l.status === "negotiating").length > 0 && (
+                              <span className="text-[8px] font-black px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded-full uppercase">
+                                {buyerLeads.filter(l => l.status === "negotiating").length} active
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 font-mono text-slate-400">
+                          {lastLead ? new Date(lastLead.inquiryDate).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <button
+                            onClick={e => { e.stopPropagation(); setSelectedBuyer({ ...b, leads: buyerLeads }); }}
+                            className="p-1.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                          >
+                            <ChevronRight size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                      );
+                    });
+                  })()}
+                  {users.filter(u => u.role === "buyer").length === 0 && (
+                    <tr><td colSpan={7} className="p-10 text-center text-slate-400 font-bold">No registered buyers yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <Pagination currentPage={buyerPage} totalPages={Math.ceil(users.filter(u => u.role === "buyer").filter(b => !buyerSearch || `${(b as any).name} ${(b as any).email}`.toLowerCase().includes(buyerSearch.toLowerCase())).length / ITEMS_PER_PAGE)} onPageChange={setBuyerPage} />
+          </div>
+        </div>
+      )}
+                         <span className="text-[9px] text-slate-400 ml-1">inquiry{leadCount !== 1 ? "ies" : "y"}</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
+                        </td>
+                      </tr>
+                      );
+                    });
+                  })()}
+                  {users.filter(u => u.role === "buyer").length === 0 && (
+                    <tr><td colSpan={5} className="p-10 text-center text-slate-400 font-bold">No registered buyers yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <Pagination currentPage={buyerPage} totalPages={Math.ceil(users.filter(u => u.role === "buyer").filter(b => !buyerSearch || `${b.name} ${b.email} ${b.phone}`.toLowerCase().includes(buyerSearch.toLowerCase())).length / ITEMS_PER_PAGE)} onPageChange={setBuyerPage} />
           </div>
         </div>
       )}
@@ -1234,70 +1490,90 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
       {/* ── USERS TAB ────────────────────────────────────────────────────────── */}
       {adminTab === "users" && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
             <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
               {users.length} Registered Member{users.length !== 1 ? "s" : ""}
             </p>
-            <button
-              onClick={fetchData}
-              className="text-xs font-bold text-blue-900 hover:text-blue-700 flex items-center gap-1 cursor-pointer transition"
-            >
-              <RefreshCw size={11} /> Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="relative md:w-72 shrink-0">
+                <input
+                  type="text"
+                  value={userSearch}
+                  onChange={e => setUserSearch(e.target.value)}
+                  placeholder="Search by name, email, phone, role..."
+                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+                />
+              </div>
+              <button
+                onClick={fetchData}
+                className="text-xs font-bold text-blue-900 hover:text-blue-700 flex items-center gap-1 cursor-pointer transition"
+              >
+                <RefreshCw size={11} /> Refresh
+              </button>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs min-w-[650px]">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
-                  <th className="p-4">Member</th>
-                  <th className="p-4">Contact</th>
-                  <th className="p-4">Role</th>
-                  <th className="p-4">Joined</th>
-                  <th className="p-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {users.map((u: any, idx: number) => (
-                  <tr key={u.id || idx} className="hover:bg-slate-50/50">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-black shrink-0 text-white ${
-                          u.role === "admin" ? "bg-gradient-to-br from-indigo-600 to-blue-700"
-                          : u.role === "broker" ? "bg-gradient-to-br from-orange-500 to-orange-600"
-                          : "bg-gradient-to-br from-slate-600 to-slate-700"
-                        }`}>
-                          {(u.name || "?").charAt(0).toUpperCase()}
-                        </div>
-                        <span className="font-bold text-slate-800">{u.name}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-slate-600">{u.email}</p>
-                      {u.phone && <p className="text-[10px] text-slate-400 font-mono mt-0.5">{u.phone}</p>}
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border ${
-                        u.role === "admin" ? "bg-indigo-50 text-indigo-700 border-indigo-100"
-                        : u.role === "broker" ? "bg-orange-50 text-orange-600 border-orange-100"
-                        : "bg-slate-100 text-slate-500 border-slate-200"
-                      }`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="p-4 font-mono text-slate-400">
-                      {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
-                    </td>
-                    <td className="p-4">
-                      <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
-                    </td>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                    <th className="p-4">Member</th>
+                    <th className="p-4">Contact</th>
+                    <th className="p-4">Role</th>
+                    <th className="p-4">Joined</th>
+                    <th className="p-4">Status</th>
                   </tr>
-                ))}
-                {users.length === 0 && (
-                  <tr><td colSpan={5} className="p-10 text-center text-slate-400 font-bold">No members found. Users will appear here after registering.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {(() => {
+                    const filtered = users.filter(u =>
+                      !userSearch || `${u.name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(userSearch.toLowerCase())
+                    );
+                    const paginated = filtered.slice((userPage - 1) * ITEMS_PER_PAGE, userPage * ITEMS_PER_PAGE);
+                    return paginated.map((u: any, idx: number) => (
+                      <tr key={u.id || idx} className="hover:bg-slate-50/50">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-black shrink-0 text-white ${
+                              u.role === "admin" ? "bg-gradient-to-br from-indigo-600 to-blue-700"
+                              : u.role === "broker" ? "bg-gradient-to-br from-orange-500 to-orange-600"
+                              : "bg-gradient-to-br from-slate-600 to-slate-700"
+                            }`}>
+                              {(u.name || "?").charAt(0).toUpperCase()}
+                            </div>
+                            <span className="font-bold text-slate-800">{u.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <p className="text-slate-600">{u.email}</p>
+                          {u.phone && <p className="text-[10px] text-slate-400 font-mono mt-0.5">{u.phone}</p>}
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border ${
+                            u.role === "admin" ? "bg-indigo-50 text-indigo-700 border-indigo-100"
+                            : u.role === "broker" ? "bg-orange-50 text-orange-600 border-orange-100"
+                            : "bg-slate-100 text-slate-500 border-slate-200"
+                          }`}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="p-4 font-mono text-slate-400">
+                          {u.joinDate ? new Date(u.joinDate).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
+                        </td>
+                      </tr>
+                    ));
+                  })()}
+                  {users.length === 0 && (
+                    <tr><td colSpan={5} className="p-10 text-center text-slate-400 font-bold">No members found. Users will appear here after registering.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <Pagination currentPage={userPage} totalPages={Math.ceil(users.filter(u => !userSearch || `${u.name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(userSearch.toLowerCase())).length / ITEMS_PER_PAGE)} onPageChange={setUserPage} />
           </div>
         </div>
       )}
