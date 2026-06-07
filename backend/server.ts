@@ -1,7 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { db } from "./db";
 
@@ -17,23 +15,10 @@ if (!process.env.VERCEL) {
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-let aiClient: GoogleGenAI | null = null;
-function getGemini(): GoogleGenAI {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY is not defined.");
-  if (!aiClient) {
-    aiClient = new GoogleGenAI({
-      apiKey,
-      httpOptions: { headers: { "User-Agent": "aistudio-build" } },
-    });
-  }
-  return aiClient;
-}
-
 // 1. Status
 app.get("/api/status", async (req, res) => {
   res.json({
-    configured: typeof process.env.GEMINI_API_KEY === "string" && process.env.GEMINI_API_KEY.length > 0,
+    configured: true,
     dbConnected: db.isUsingMySQL(),
     dbType: db.isUsingMySQL() ? "MySQL Server" : "Simulated Database (In-Memory)"
   });
@@ -65,39 +50,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// 3. Chat
-app.post("/api/chat", async (req, res) => {
-  try {
-    const { message, systemInstruction, temperature, enableSearch, history } = req.body;
-    const ai = getGemini();
-    const tools: any[] = [];
-    if (enableSearch) tools.push({ googleSearch: {} });
-    const contents: any[] = [];
-    if (history && Array.isArray(history)) {
-      history.forEach((h: any) => contents.push({ role: h.role, parts: [{ text: h.text }] }));
-    }
-    contents.push({ role: "user", parts: [{ text: message }] });
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents,
-      config: {
-        systemInstruction: systemInstruction || "You are an expert car broker AI assistant for AutoBroker Ethiopia.",
-        temperature: typeof temperature === "number" ? temperature : 0.7,
-        tools: tools.length > 0 ? tools : undefined,
-      },
-    });
-    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-    const sources = groundingMetadata?.groundingChunks?.map((chunk: any) => ({
-      title: chunk.web?.title || "Web Reference",
-      uri: chunk.web?.uri || "#",
-    })) || [];
-    res.json({ text: response.text || "", sources });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || "An error occurred with the Gemini API." });
-  }
-});
-
-// 4. Vehicles
+// 3. Vehicles
 app.get("/api/vehicles", async (req, res) => {
   try {
     const vehicles = await db.getVehicles();
@@ -582,6 +535,7 @@ app.put("/api/reports/:id/status", async (req, res) => {
 // Express + Vite Integration (local dev only)
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       root: path.join(process.cwd(), "frontend"),
       server: { middlewareMode: true },
