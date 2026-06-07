@@ -7,6 +7,7 @@ interface HomePageProps {
   onViewDetails: (vehicle: VehicleListing) => void;
   onBrowse: (filters?: { brand?: string; model?: string; year?: string; priceRange?: string }) => void;
   onBecomeBroker: () => void;
+  onViewBrokerProfile?: (brokerId: string) => void;
 }
 
 const FALLBACK_VEHICLES: VehicleListing[] = [
@@ -258,23 +259,6 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             </button>
 
           </div>
-
-          {!currentUser && (
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-              <button 
-                onClick={() => onBrowse()}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
-              >
-                Arif Car Sell
-              </button>
-              <button 
-                onClick={onBecomeBroker}
-                className="bg-slate-900/50 hover:bg-slate-900/80 text-white font-semibold px-6 py-3 rounded-lg text-xs border border-white/40 backdrop-blur-sm transition-colors cursor-pointer"
-              >
-                Become a Broker
-              </button>
-            </div>
-          )}
         </div>
       </section>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, Star, SlidersHorizontal, Filter } from "lucide-react";
+import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, ChevronLeft, ChevronRight, Star, SlidersHorizontal, Filter } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
 
 interface ShowroomProps {
@@ -59,7 +59,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const PER_PAGE = 8;
+  const PER_PAGE = 6;
 
   useEffect(() => {
     try {
@@ -305,203 +305,300 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
     </button>
   );
 
+  // Pagination helpers
+  const goToPage = (p: number) => setPage(Math.min(Math.max(1, p), totalPages));
+  const pageNumbers: (number | "…")[] = [];
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || Math.abs(p - safePage) <= 1) pageNumbers.push(p);
+    else if (pageNumbers[pageNumbers.length - 1] !== "…") pageNumbers.push("…");
+  }
+
   return (
     <div className="bg-[#F8FAFC] min-h-screen text-[#111827] font-sans">
+
+
+
       <div className="w-full px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 pb-4 sm:pb-8">
 
-        {/* Odoo-style search bar */}
+        {/* Odoo-style unified search bar */}
         <div className="w-full sm:max-w-3xl sm:mx-auto mb-6" ref={searchRef}>
-          <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-sm">
-            {/* Search input row */}
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 sm:py-3">
-              <Search size={18} className="text-slate-400 shrink-0 sm:size-4" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                onFocus={() => setSearchFocused(true)}
-                placeholder="Search vehicles, brokers, customers..."
-                className="flex-1 text-[15px] sm:text-sm text-[#111827] placeholder:text-slate-400 bg-transparent focus:outline-none min-w-0 py-1"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 cursor-pointer p-1.5 shrink-0"><X size={16} /></button>
-              )}
-              <span className="text-[11px] sm:text-xs text-slate-400 font-semibold whitespace-nowrap shrink-0">{sorted.length}</span>
-              <div className="h-6 w-px bg-[#E5E7EB] shrink-0" />
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="text-[11px] sm:text-xs font-semibold text-slate-500 bg-transparent focus:outline-none appearance-none cursor-pointer py-1.5 shrink-0 max-w-[90px] sm:max-w-none"
-              >
-                <option>Newest</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-              </select>
+
+          {/* ── Single pill bar ── */}
+          <div
+            className={`flex items-center bg-white rounded-xl border-2 shadow-sm overflow-visible transition-colors ${
+              searchFocused || openDropdown ? "border-blue-400" : "border-[#E5E7EB]"
+            }`}
+          >
+            {/* Search icon */}
+            <div className="pl-4 pr-2 text-slate-400 shrink-0">
+              <Search size={17} strokeWidth={2} />
             </div>
 
-            {/* Toolbar */}
-            {(searchFocused || allFiltersCount > 0) && (
-              <div className="flex border-t border-[#E5E7EB] px-2 sm:px-4 py-2 flex-row flex-wrap items-center gap-1.5 sm:gap-2">
-                {/* Filters */}
-                <div className="relative flex-1 sm:flex-none">
-                  {renderToolbarButton(
-                    quickFilters.length > 0,
-                    () => setOpenDropdown(openDropdown === "filters" ? null : "filters"),
-                    <Filter size={15} />, "Filters", quickFilters.length,
-                    openDropdown === "filters"
-                  )}
-                  {openDropdown === "filters" && (
-                    <div className="absolute top-full left-0 right-0 sm:right-auto mt-1 min-w-full sm:w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-80 overflow-y-auto">
-                      {QUICK_FILTERS.map(qf => renderCheckItem(qf.label, quickFilters.includes(qf.id), () => toggleQuickFilter(qf.id)))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Group By */}
-                <div className="relative flex-1 sm:flex-none">
-                  {renderToolbarButton(
-                    !!groupBy,
-                    () => setOpenDropdown(openDropdown === "groupby" ? null : "groupby"),
-                    <SlidersHorizontal size={15} />,
-                    groupBy ? GROUP_OPTIONS.find(g => g.id === groupBy)?.label || "Group By" : "Group By",
-                    undefined,
-                    openDropdown === "groupby"
-                  )}
-                  {openDropdown === "groupby" && (
-                    <div className="absolute top-full left-0 right-0 sm:right-auto mt-1 min-w-full sm:w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-80 overflow-y-auto">
-                      {GROUP_OPTIONS.map(opt => (
-                        <div key={opt.id}
-                          className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
-                            groupBy === opt.id ? "bg-blue-50 text-blue-900" : "text-slate-600 hover:bg-slate-50"
-                          }`}
-                          onClick={() => { setGroupBy(opt.id); setOpenDropdown(null); }}
-                        >
-                          {opt.label || "None"}
-                          {groupBy === opt.id && <span className="text-blue-600 text-[10px]">&#10003;</span>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Favorites */}
-                <div className="relative flex-1 sm:flex-none">
-                  {renderToolbarButton(
-                    false,
-                    () => setOpenDropdown(openDropdown === "favorites" ? null : "favorites"),
-                    <Star size={15} />, "Favorites",
-                    undefined,
-                    openDropdown === "favorites"
-                  )}
-                  {openDropdown === "favorites" && (
-                    <div className="absolute top-full left-0 right-0 sm:right-auto mt-1 min-w-full sm:w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-80 overflow-y-auto">
-                      <button onClick={saveCurrentSearch}
-                        className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-[#0F4C81] hover:bg-blue-50 cursor-pointer transition"
-                      >+ Save Current Search</button>
-                      {savedSearches.length > 0 && <div className="border-t border-slate-100 my-1" />}
-                      {savedSearches.length > 0 && (
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5">My Saved Searches</p>
-                      )}
-                      {savedSearches.map((s, i) => (
-                        <div key={i} className="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-slate-50 group cursor-pointer"
-                          onClick={() => loadSavedSearch(s)}
-                        >
-                          <span className="text-xs font-semibold text-slate-700">{s.name}</span>
-                          <button onClick={(e) => { e.stopPropagation(); deleteSavedSearch(i); }}
-                            className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                          ><X size={12} /></button>
-                        </div>
-                      ))}
-                      {savedSearches.length === 0 && (
-                        <p className="text-xs text-slate-400 px-3 py-2">No saved searches yet</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Advanced */}
-                <div className="flex-1 sm:flex-none">
-                {renderToolbarButton(
-                  showAdvancedSearch,
-                  () => setShowAdvancedSearch(!showAdvancedSearch),
-                  <Filter size={15} />, "Advanced",
-                  undefined,
-                  showAdvancedSearch
-                )}
-                </div>
-              </div>
-            )}
-
-            {/* Advanced Search panel */}
-            {showAdvancedSearch && (
-              <div className="border-t border-[#E5E7EB] px-3 sm:px-4 py-3 sm:py-4 bg-slate-50/50">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-                  {["brand", "fuel", "transmission", "location", "year", "price"].map(key => {
-                    const options = facetOptions[key] || [];
-                    const selected = facets[key] || [];
-                    return (
-                      <div key={key}>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{FACET_LABELS[key]}</label>
-                        <div className="relative">
-                          <button
-                            onClick={() => setOpenDropdown(openDropdown === `adv-${key}` ? null : `adv-${key}`)}
-                            className="w-full flex items-center justify-between gap-1 text-[11px] sm:text-xs font-semibold px-3 py-2.5 sm:py-2 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 cursor-pointer text-slate-700"
-                          >
-                            <span className="truncate">{selected.length > 0 ? selected.join(", ") : `All ${FACET_LABELS[key].toLowerCase()}`}</span>
-                            <ChevronDown size={14} className={`text-slate-400 shrink-0 transition ${openDropdown === `adv-${key}` ? "rotate-180" : ""}`} />
-                          </button>
-                          {openDropdown === `adv-${key}` && (
-                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-48 overflow-y-auto">
-                              {options.length === 0 && <p className="text-xs text-slate-400 px-3 py-2">No options</p>}
-                              {options.map(opt => renderCheckItem(
-                                opt.value, selected.includes(opt.value), () => toggleFacet(key, opt.value), opt.count
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E5E7EB]">
-                  <button onClick={() => setShowAdvancedSearch(false)}
-                    className="text-[11px] sm:text-xs font-bold bg-[#0F4C81] hover:bg-blue-950 text-white px-5 sm:px-4 py-2.5 sm:py-2 rounded-lg cursor-pointer transition flex-1 sm:flex-none"
-                  >Apply Filters</button>
-                  <button onClick={() => { Object.keys(facets).forEach(k => setActiveFacets(prev => ({ ...prev, [k]: [] }))); }}
-                    className="text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 sm:px-3 py-2.5 sm:py-2 cursor-pointer transition flex-1 sm:flex-none"
-                  >Clear</button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Active filter pills */}
-          {hasActiveFacets && (
-            <div className="flex flex-wrap gap-1.5 mt-2 sm:mt-2.5 items-center">
+            {/* Active filter tags inline */}
+            <div className="flex items-center gap-1 flex-wrap py-2 min-w-0 flex-1">
               {quickFilters.map(qfId => {
                 const qf = QUICK_FILTERS.find(f => f.id === qfId);
                 if (!qf) return null;
                 return (
-                  <span key={qf.id} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] sm:text-xs font-medium px-2.5 sm:px-2.5 py-1 sm:py-1 rounded-full shadow-sm">
+                  <span key={qf.id} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-[11px] font-semibold px-2 py-0.5 rounded-md shrink-0">
                     {qf.label}
-                    <button onClick={() => toggleQuickFilter(qf.id)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={13} /></button>
+                    <button onClick={() => toggleQuickFilter(qf.id)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={9} strokeWidth={3} /></button>
                   </span>
                 );
               })}
               {(Object.entries(facets) as [string, string[]][]).map(([key, values]) =>
                 values.map(v => (
-                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] sm:text-xs font-medium px-2.5 sm:px-2.5 py-1 sm:py-1 rounded-full shadow-sm">
-                    {v}
-                    <button onClick={() => removeFacet(key, v)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={13} /></button>
+                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-[11px] font-semibold px-2 py-0.5 rounded-md shrink-0">
+                    {FACET_LABELS[key]}: {v}
+                    <button onClick={() => removeFacet(key, v)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={9} strokeWidth={3} /></button>
+                  </span>
+                ))
+              )}
+
+              {/* Text input */}
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+                onFocus={() => { setSearchFocused(true); setOpenDropdown("panel"); }}
+                onKeyDown={e => e.key === "Escape" && (setSearchFocused(false), setOpenDropdown(null))}
+                placeholder={
+                  quickFilters.length === 0 && Object.values(facets).every(v => v.length === 0)
+                    ? "Search… Brand:, Year:, Status:"
+                    : ""
+                }
+                className="flex-1 min-w-[120px] bg-transparent text-sm text-[#111827] placeholder:text-slate-400 focus:outline-none py-0.5"
+              />
+            </div>
+
+            {/* Result count */}
+            <span className="text-[11px] text-slate-400 font-semibold whitespace-nowrap shrink-0 px-2">{sorted.length}</span>
+
+            {/* Sort */}
+            <div className="h-6 w-px bg-[#E5E7EB] shrink-0" />
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+              className="text-[11px] font-semibold text-slate-500 bg-transparent focus:outline-none appearance-none cursor-pointer px-2 py-3.5 shrink-0 max-w-[90px] sm:max-w-none"
+            >
+              <option>Newest</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+            </select>
+
+            {/* Chevron toggle */}
+            <button
+              onClick={() => {
+                setOpenDropdown(openDropdown === "panel" ? null : "panel");
+                setSearchFocused(o => !o);
+              }}
+              className="px-3 py-3.5 border-l border-[#E5E7EB] text-slate-400 hover:bg-slate-50 transition-colors shrink-0 cursor-pointer"
+            >
+              <ChevronDown size={15} strokeWidth={2.5} className={`transition-transform duration-200 ${openDropdown === "panel" ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+
+          {/* ── 3-column dropdown panel ── */}
+          {(openDropdown === "panel" || searchFocused) && (
+            <div className="relative z-30">
+              <div className="absolute top-1 left-0 right-0 bg-white rounded-xl border border-[#E5E7EB] shadow-2xl overflow-hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+
+                  {/* ── FILTERS column ── */}
+                  <div className="p-4">
+                    <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+                      <Filter size={11} strokeWidth={2.5} /> Filters
+                    </p>
+                    <div className="space-y-0.5">
+                      {QUICK_FILTERS.map(qf => {
+                        const active = quickFilters.includes(qf.id);
+                        return (
+                          <button
+                            key={qf.id}
+                            onClick={() => toggleQuickFilter(qf.id)}
+                            className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${
+                              active ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition ${
+                              active ? "bg-[#0F4C81] border-[#0F4C81]" : "border-slate-300"
+                            }`}>
+                              {active && <span className="text-white text-[8px] font-black">✓</span>}
+                            </span>
+                            {qf.label}
+                          </button>
+                        );
+                      })}
+                      <div className="border-t border-slate-100 mt-2 pt-2">
+                        <button
+                          onClick={() => { setShowAdvancedSearch(true); setOpenDropdown(null); setSearchFocused(false); }}
+                          className="w-full text-left px-2 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-2"
+                        >
+                          <Filter size={12} className="text-slate-400" />
+                          Custom Filter…
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── GROUP BY column ── */}
+                  <div className="p-4">
+                    <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+                      <SlidersHorizontal size={11} strokeWidth={2.5} /> Group By
+                    </p>
+                    <div className="space-y-0.5">
+                      {GROUP_OPTIONS.filter(g => g.id !== "").map(opt => {
+                        const active = groupBy === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            onClick={() => { setGroupBy(active ? "" : opt.id); }}
+                            className={`w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${
+                              active ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            <span>{opt.label}</span>
+                            {active && <span className="text-blue-600 text-[11px] font-black">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* ── FAVORITES column ── */}
+                  <div className="p-4">
+                    <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+                      <Star size={11} strokeWidth={2.5} /> Favorites
+                    </p>
+
+                    {/* Save current search */}
+                    <button
+                      onClick={() => { saveCurrentSearch(); setOpenDropdown(null); setSearchFocused(false); }}
+                      className="w-full flex items-center justify-between gap-2 border border-[#E5E7EB] hover:bg-slate-50 text-slate-600 text-xs font-semibold px-3 py-2 rounded-lg transition-colors cursor-pointer mb-3"
+                    >
+                      Save current search
+                      <ChevronDown size={13} className="text-slate-400 shrink-0" />
+                    </button>
+
+                    {savedSearches.length === 0 ? (
+                      <p className="text-xs text-slate-400 italic px-1">No saved searches</p>
+                    ) : (
+                      <div className="space-y-0.5">
+                        {savedSearches.map((s, i) => (
+                          <div key={i}
+                            className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 group cursor-pointer"
+                            onClick={() => { loadSavedSearch(s); setOpenDropdown(null); setSearchFocused(false); }}
+                          >
+                            <span className="text-sm text-slate-700 font-medium flex items-center gap-2">
+                              <Star size={11} className="text-amber-400 shrink-0" />
+                              {s.name}
+                            </span>
+                            <button
+                              onClick={e => { e.stopPropagation(); deleteSavedSearch(i); }}
+                              className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                            ><X size={12} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Footer: clear-all if anything active */}
+                {(hasActiveFacets) && (
+                  <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-xs text-slate-500">{allFiltersCount} filter{allFiltersCount > 1 ? "s" : ""} active</span>
+                    <button onClick={() => { clearAll(); setOpenDropdown(null); setSearchFocused(false); }}
+                      className="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors cursor-pointer"
+                    >Clear all</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Advanced Search panel (shown when Custom Filter is clicked) */}
+          {showAdvancedSearch && (
+            <div className="mt-2 bg-white rounded-xl border border-[#E5E7EB] shadow-sm px-3 sm:px-4 py-3 sm:py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+                {["brand", "fuel", "transmission", "location", "year", "price"].map(key => {
+                  const options = facetOptions[key] || [];
+                  const selected = facets[key] || [];
+                  return (
+                    <div key={key}>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{FACET_LABELS[key]}</label>
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenDropdown(openDropdown === `adv-${key}` ? null : `adv-${key}`)}
+                          className="w-full flex items-center justify-between gap-1 text-[11px] sm:text-xs font-semibold px-3 py-2.5 sm:py-2 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 cursor-pointer text-slate-700"
+                        >
+                          <span className="truncate">{selected.length > 0 ? selected.join(", ") : `All ${FACET_LABELS[key].toLowerCase()}`}</span>
+                          <ChevronDown size={14} className={`text-slate-400 shrink-0 transition ${openDropdown === `adv-${key}` ? "rotate-180" : ""}`} />
+                        </button>
+                        {openDropdown === `adv-${key}` && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-48 overflow-y-auto">
+                            {options.length === 0 && <p className="text-xs text-slate-400 px-3 py-2">No options</p>}
+                            {options.map(opt => renderCheckItem(
+                              opt.value, selected.includes(opt.value), () => toggleFacet(key, opt.value), opt.count
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E5E7EB]">
+                <button onClick={() => setShowAdvancedSearch(false)}
+                  className="text-[11px] sm:text-xs font-bold bg-[#0F4C81] hover:bg-blue-950 text-white px-5 sm:px-4 py-2.5 sm:py-2 rounded-lg cursor-pointer transition flex-1 sm:flex-none"
+                >Apply Filters</button>
+                <button onClick={() => { Object.keys(facets).forEach(k => setActiveFacets(prev => ({ ...prev, [k]: [] }))); }}
+                  className="text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 sm:px-3 py-2.5 sm:py-2 cursor-pointer transition flex-1 sm:flex-none"
+                >Clear</button>
+              </div>
+            </div>
+          )}
+
+          {/* Active filter pills row (below the bar when panel is closed) */}
+          {hasActiveFacets && !searchFocused && openDropdown !== "panel" && (
+            <div className="flex flex-wrap gap-1.5 mt-2 items-center">
+              {quickFilters.map(qfId => {
+                const qf = QUICK_FILTERS.find(f => f.id === qfId);
+                if (!qf) return null;
+                return (
+                  <span key={qf.id} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] font-medium px-2.5 py-1 rounded-full shadow-sm">
+                    {qf.label}
+                    <button onClick={() => toggleQuickFilter(qf.id)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={12} /></button>
+                  </span>
+                );
+              })}
+              {(Object.entries(facets) as [string, string[]][]).map(([key, values]) =>
+                values.map(v => (
+                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] font-medium px-2.5 py-1 rounded-full shadow-sm">
+                    {FACET_LABELS[key]}: {v}
+                    <button onClick={() => removeFacet(key, v)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={12} /></button>
                   </span>
                 ))
               )}
               {searchQuery && (
-                <span className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] sm:text-xs font-medium px-2.5 sm:px-2.5 py-1 sm:py-1 rounded-full shadow-sm">
+                <span className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] text-slate-700 text-[11px] font-medium px-2.5 py-1 rounded-full shadow-sm">
                   &ldquo;{searchQuery}&rdquo;
-                  <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={13} /></button>
+                  <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"><X size={12} /></button>
                 </span>
               )}
-              <button onClick={clearAll} className="text-[11px] sm:text-xs font-medium text-slate-400 hover:text-rose-500 px-2.5 py-1 transition cursor-pointer">Clear all</button>
+              <button onClick={clearAll} className="text-[11px] font-medium text-slate-400 hover:text-rose-500 px-2.5 py-1 transition cursor-pointer">Clear all</button>
             </div>
+          )}
+        </div>
+
+        {/* ── Results info bar ── */}
+        <div className="flex items-center justify-between mb-4 px-1">
+          <p className="text-xs text-slate-500 font-medium">
+            Showing <span className="font-bold text-slate-700">{(safePage - 1) * PER_PAGE + 1}–{Math.min(safePage * PER_PAGE, sorted.length)}</span> of <span className="font-bold text-slate-700">{sorted.length}</span> vehicles
+          </p>
+          {groupBy && (
+            <span className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">
+              Grouped by {GROUP_OPTIONS.find(g => g.id === groupBy)?.label}
+            </span>
           )}
         </div>
 
@@ -527,8 +624,12 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                 {paginated.length === 0 && (
                   <div className="col-span-full py-16 sm:py-20 text-center space-y-4">
-                    <p className="text-slate-400 font-bold text-sm">No vehicles match your current filters.</p>
-                    <button onClick={clearAll} className="bg-[#FF6B00] hover:bg-orange-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl cursor-pointer transition-colors">Clear All Filters</button>
+                    <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
+                      <Search size={22} className="text-slate-400" />
+                    </div>
+                    <p className="text-slate-500 font-bold text-sm">No vehicles match your filters.</p>
+                    <p className="text-slate-400 text-xs">Try removing some filters to see more results.</p>
+                    <button onClick={clearAll} className="bg-[#0F4C81] hover:bg-blue-950 text-white text-xs font-bold px-6 py-2.5 rounded-xl cursor-pointer transition-colors">Clear All Filters</button>
                   </div>
                 )}
                 {paginated.map(car => (
@@ -536,28 +637,75 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 ))}
               </div>
 
-              {/* Pagination */}
+              {/* ── Redesigned Pagination ── */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-1 pt-6 sm:pt-8 pb-4">
-                  <button onClick={() => setPage(Math.max(1, safePage - 1))} disabled={safePage <= 1}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#E5E7EB] hover:bg-slate-50 flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer disabled:hover:bg-transparent"
-                  >&lsaquo;</button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
-                    const isActive = p === safePage;
-                    if (Math.abs(p - safePage) > 1 && p !== 1 && p !== totalPages) {
-                      return (p === 2 || p === totalPages - 1) ? <span key={p} className="text-[10px] sm:text-xs text-slate-400 font-bold px-1">&hellip;</span> : null;
-                    }
-                    return (
-                      <button key={p} onClick={() => setPage(p)}
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold cursor-pointer ${
-                          isActive ? "bg-[#0F4C81] text-white shadow-sm" : "border border-[#E5E7EB] hover:bg-slate-50 text-slate-600"
-                        }`}
-                      >{p}</button>
-                    );
-                  })}
-                  <button onClick={() => setPage(Math.min(totalPages, safePage + 1))} disabled={safePage >= totalPages}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#E5E7EB] hover:bg-slate-50 flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer disabled:hover:bg-transparent"
-                  >&rsaquo;</button>
+                <div className="mt-8 mb-2">
+                  {/* Top divider */}
+                  <div className="border-t border-[#E5E7EB] mb-5" />
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+
+                    {/* Left: page info */}
+                    <p className="text-xs text-slate-500 font-medium order-2 sm:order-1">
+                      Page <span className="font-bold text-slate-700">{safePage}</span> of <span className="font-bold text-slate-700">{totalPages}</span>
+                    </p>
+
+                    {/* Centre: page buttons */}
+                    <div className="flex items-center gap-1 order-1 sm:order-2">
+                      {/* Previous */}
+                      <button
+                        onClick={() => goToPage(safePage - 1)}
+                        disabled={safePage <= 1}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft size={14} /> Prev
+                      </button>
+
+                      {/* Page numbers */}
+                      <div className="flex items-center gap-1 mx-1">
+                        {pageNumbers.map((p, i) =>
+                          p === "…" ? (
+                            <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-xs text-slate-400 font-bold">…</span>
+                          ) : (
+                            <button
+                              key={p}
+                              onClick={() => goToPage(p as number)}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors cursor-pointer ${
+                                p === safePage
+                                  ? "bg-[#0F4C81] text-white shadow-md shadow-blue-200"
+                                  : "border border-[#E5E7EB] text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                              }`}
+                            >{p}</button>
+                          )
+                        )}
+                      </div>
+
+                      {/* Next */}
+                      <button
+                        onClick={() => goToPage(safePage + 1)}
+                        disabled={safePage >= totalPages}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      >
+                        Next <ChevronRight size={14} />
+                      </button>
+                    </div>
+
+                    {/* Right: jump to page */}
+                    <div className="flex items-center gap-2 order-3 text-xs text-slate-500">
+                      <span className="hidden sm:inline font-medium">Go to</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        defaultValue={safePage}
+                        key={safePage}
+                        onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v)) goToPage(v); }}
+                        onKeyDown={e => { if (e.key === "Enter") { const v = parseInt((e.target as HTMLInputElement).value); if (!isNaN(v)) goToPage(v); } }}
+                        className="w-12 border border-[#E5E7EB] rounded-lg text-center text-xs font-bold py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0F4C81] text-slate-700"
+                      />
+                    </div>
+
+                  </div>
                 </div>
               )}
             </>
