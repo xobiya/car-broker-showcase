@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Shield, ShieldCheck, Home, LayoutGrid, UserCircle, Info } from "lucide-react";
-import HomePage from "./components/HomePage";
-import VehicleDetail from "./components/VehicleDetail";
-import Showroom from "./components/Showroom";
-import BrokerDashboard from "./components/BrokerDashboard";
-import AdminPanel from "./components/AdminPanel";
-import AdminProfilePage from "./components/AdminProfilePage";
-import NotificationsPage from "./components/NotificationsPage";
-import AuthModal from "./components/AuthModal";
-import AboutPage from "./components/AboutPage";
-import ContactPage from "./components/ContactPage";
-import TermsPage from "./components/TermsPage";
-import PrivacyPage from "./components/PrivacyPage";
-import HelpPage from "./components/HelpPage";
-import TrustSafetyPage from "./components/TrustSafetyPage";
-import BrokerProfilePage from "./components/BrokerProfilePage";
-import CommissionCalculator from "./components/CommissionCalculator";
-import BuyerDashboard from "./components/BuyerDashboard";
-import VehicleComparison from "./components/VehicleComparison";
+import HomePage from "./pages/HomePage";
+import VehicleDetail from "./pages/VehicleDetail";
+import Showroom from "./pages/Showroom";
+import BrokerDashboard from "./dashboards/BrokerDashboard";
+import AdminPanel from "./dashboards/AdminPanel";
+import AdminProfilePage from "./dashboards/AdminProfilePage";
+import NotificationsPage from "./dashboards/NotificationsPage";
+import AuthModal from "./components/ui/AuthModal";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import HelpPage from "./pages/HelpPage";
+import TrustSafetyPage from "./pages/TrustSafetyPage";
+import BrokerProfilePage from "./dashboards/BrokerProfilePage";
+import CommissionCalculator from "./components/ui/CommissionCalculator";
+import BuyerDashboard from "./dashboards/BuyerDashboard";
+import VehicleComparison from "./pages/VehicleComparison";
 import { VehicleListing, User } from "../../shared/types";
 import { motion, AnimatePresence } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
@@ -43,8 +43,6 @@ export default function App() {
     if (saved && userPages.includes(saved)) return saved as ActiveView;
     if (saved && adminPages.includes(saved) && role === "admin") return saved as ActiveView;
     if (saved === "broker-dashboard" && role === "broker") return saved as ActiveView;
-    if (role === "admin") return "admin-panel";
-    if (role === "broker") return "broker-dashboard";
     return "home";
   });
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleListing | null>(null);
@@ -61,6 +59,22 @@ export default function App() {
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [initialFilters, setInitialFilters] = useState<any>(null);
 
+  const navigateTo = (view: ActiveView) => {
+    const protectedViews: Record<string, string[]> = {
+      "admin-panel": ["admin"],
+      "admin-profile": ["admin"],
+      "notifications": ["admin"],
+      "broker-dashboard": ["broker"],
+    };
+    const allowed = protectedViews[view];
+    if (allowed && (!currentUser || !allowed.includes(currentUser.role))) {
+      addNotification("Please log in to access this page.", "error");
+      setShowAuthModal(true);
+      return;
+    }
+    setActiveView(view);
+  };
+
   useEffect(() => {
     if (currentUser) setCurrentRole(currentUser.role);
     else setCurrentRole("buyer");
@@ -72,6 +86,19 @@ export default function App() {
       localStorage.setItem("autobroker_activeView", activeView);
     }
   }, [activeView]);
+
+  // Listen for 401 Unauthorized events dispatched by the global fetch interceptor
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+      setCurrentRole("buyer");
+      setActiveView("home");
+      setShowAuthModal(true);
+      addNotification("Your session has expired. Please log in again.", "error");
+    };
+    window.addEventListener("autobroker:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("autobroker:unauthorized", handleUnauthorized);
+  }, []);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -122,7 +149,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      {!FULL_SCREEN_VIEWS.includes(activeView) && currentRole !== "admin" && (
+      {!FULL_SCREEN_VIEWS.includes(activeView) && (
         <header className="shrink-0 bg-white/95 border-b border-slate-200 h-20 px-6 flex items-center justify-between backdrop-blur-xl sticky top-0 z-35 shadow-sm">
           <div onClick={() => setActiveView("home")} className="flex items-center space-x-3 cursor-pointer shrink-0">
             <div className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-blue-900 text-white shadow-md">
@@ -148,7 +175,7 @@ export default function App() {
             )}
 
             {currentRole === "broker" && (
-              <button onClick={() => setActiveView("broker-dashboard")}
+              <button onClick={() => navigateTo("broker-dashboard")}
                 className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${activeView === "broker-dashboard" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
                 My Dashboard
               </button>
@@ -160,7 +187,7 @@ export default function App() {
               </button>
             )}
             {currentRole === "admin" && (
-              <button onClick={() => setActiveView("admin-panel")}
+              <button onClick={() => navigateTo("admin-panel")}
                 className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${activeView === "admin-panel" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
                 Admin Panel
               </button>
@@ -195,19 +222,19 @@ export default function App() {
                         Profile
                       </button>
                       {(currentRole === "broker" && activeView !== "broker-dashboard") && (
-                        <button onClick={() => { setActiveView("broker-dashboard"); setProfileDropdownOpen(false); }}
+                        <button onClick={() => { navigateTo("broker-dashboard"); setProfileDropdownOpen(false); }}
                           className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer">
                           My Dashboard
                         </button>
                       )}
                       {(currentRole === "admin" && activeView !== "admin-panel") && (
-                        <button onClick={() => { setActiveView("admin-panel"); setProfileDropdownOpen(false); }}
+                        <button onClick={() => { navigateTo("admin-panel"); setProfileDropdownOpen(false); }}
                           className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer">
                           Admin Panel
                         </button>
                       )}
                       <div className="border-t border-slate-100 mt-1 pt-1">
-                        <button onClick={() => { localStorage.removeItem("autobroker_user"); setCurrentUser(null); setProfileDropdownOpen(false); setActiveView("home"); addNotification("Logged out successfully.", "success"); }}
+                        <button onClick={() => { localStorage.removeItem("autobroker_user"); localStorage.removeItem("autobroker_token"); setCurrentUser(null); setProfileDropdownOpen(false); setActiveView("home"); addNotification("Logged out successfully.", "success"); }}
                           className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition cursor-pointer">
                           Logout
                         </button>
@@ -244,8 +271,8 @@ export default function App() {
                 onViewBrokerProfile={handleViewBrokerProfile}
                 onBecomeBroker={() => {
                   if (!currentUser) setShowAuthModal(true);
-                  else if (currentUser.role === "broker") setActiveView("broker-dashboard");
-                  else if (currentUser.role === "admin") setActiveView("admin-panel");
+                  else if (currentUser.role === "broker") navigateTo("broker-dashboard");
+                  else if (currentUser.role === "admin") navigateTo("admin-panel");
                   else addNotification("Contact admin to upgrade to a Broker account.", "info");
                 }}
               />
@@ -267,20 +294,20 @@ export default function App() {
             {activeView === "broker-dashboard" && (
               <BrokerDashboard
                 onNotify={addNotification}
-                onLogout={() => { localStorage.removeItem("autobroker_user"); setCurrentUser(null); setActiveView("home"); }}
+                onLogout={() => { localStorage.removeItem("autobroker_user"); localStorage.removeItem("autobroker_token"); setCurrentUser(null); setActiveView("home"); }}
               />
             )}
             {activeView === "admin-panel" && (
               <AdminPanel
                 onNotify={addNotification}
-                onLogout={() => { localStorage.removeItem("autobroker_user"); setCurrentUser(null); setActiveView("home"); }}
+                onLogout={() => { localStorage.removeItem("autobroker_user"); localStorage.removeItem("autobroker_token"); setCurrentUser(null); setActiveView("home"); }}
                 onNavigate={(view: ActiveView) => setActiveView(view)}
               />
             )}
             {activeView === "admin-profile" && (
               <AdminProfilePage
                 onBack={() => setActiveView("admin-panel")}
-                onLogout={() => { localStorage.removeItem("autobroker_user"); setCurrentUser(null); setActiveView("home"); }}
+                onLogout={() => { localStorage.removeItem("autobroker_user"); localStorage.removeItem("autobroker_token"); setCurrentUser(null); setActiveView("home"); }}
                 onNotify={addNotification}
               />
             )}
@@ -324,7 +351,7 @@ export default function App() {
                     </div>
                     <div className="flex gap-3 pt-4 border-t border-slate-100">
                       <button onClick={() => setActiveView("home")} className="text-sm font-bold text-slate-500 hover:text-slate-800 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition cursor-pointer">Back to Home</button>
-                      <button onClick={() => { localStorage.removeItem("autobroker_user"); setCurrentUser(null); setActiveView("home"); addNotification("Logged out.", "success"); }} className="text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 px-4 py-2 rounded-lg transition cursor-pointer">Logout</button>
+                      <button onClick={() => { localStorage.removeItem("autobroker_user"); localStorage.removeItem("autobroker_token"); setCurrentUser(null); setActiveView("home"); addNotification("Logged out.", "success"); }} className="text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 px-4 py-2 rounded-lg transition cursor-pointer">Logout</button>
                     </div>
                   </div>
                 </div>
