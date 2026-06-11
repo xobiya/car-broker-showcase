@@ -1,7 +1,7 @@
 import path from "path";
 import express from "express";
 import app from "./app";
-import { initDB } from "./db";
+import { initDB } from "./db/index";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 

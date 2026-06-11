@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import app from "../backend/app";
-import { initDB } from "../backend/db";
+import { initDB } from "../backend/db/index";
 
 // Serverless lazy connection initialization
 let dbInitialized = false;

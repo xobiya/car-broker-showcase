@@ -3,7 +3,7 @@ import path from "path";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";
-import { db } from "./db";
+import { db } from "./db/index";
 import {
   hashPassword,
   comparePassword,
@@ -13,6 +13,14 @@ import {
   requireSelfOrAdmin,
   AuthenticatedRequest
 } from "./auth";
+import { validate } from "./middleware/validate";
+import {
+  registerSchema, loginSchema, vehicleSchema, leadSchema,
+  saleSchema, testDriveSchema, reportSchema, documentSchema, inspectionSchema
+} from "./validators/index";
+import { upload, uploadToCloudinary } from "./services/cloudinary";
+import { sendEmail, notifyNewLead, notifyListingApproved, notifyListingRejected } from "./services/notifications";
+import { getCached, setCache, clearCache } from "./services/cache";
 
 const app = express();
 
@@ -48,6 +56,7 @@ app.use("/api/auth", authLimiter);
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(require("cookie-parser")());
 
 if (!process.env.VERCEL) {
   app.use("/assets", express.static(path.join(process.cwd(), "assets")));
@@ -56,7 +65,8 @@ if (!process.env.VERCEL) {
 // Helper: Optional authentication middleware to parse tokens without rejecting anonymous requests
 const parseUserOptional = (req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  let token = authHeader && authHeader.split(" ")[1];
+  if (!token && req.cookies?.autobroker_token) token = req.cookies.autobroker_token;
   if (!token) return next();
 
   const JWT_SECRET = process.env.JWT_SECRET || "super-secret-dev-key-for-autobroker-ethiopia";
@@ -75,7 +85,7 @@ app.get("/api/status", async (req, res) => {
     res.json({
       configured: true,
       dbConnected: connected,
-      dbType: db.getDBType() === "mysql" ? "MySQL" : "MongoDB"
+      dbType: "MongoDB"
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -83,12 +93,9 @@ app.get("/api/status", async (req, res) => {
 });
 
 // --- Auth ---
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", validate(registerSchema), async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ error: "Name, email, password, and role are required." });
-    }
     const existing = await db.getUserByEmail(email);
     if (existing) {
       return res.status(400).json({ error: "User with this email already exists." });
@@ -106,18 +113,22 @@ app.post("/api/auth/register", async (req, res) => {
     const token = generateToken(db.mapUser(newUser));
     const { password_hash: _, ...userWithoutPassword } = newUser;
 
+    res.cookie("autobroker_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(201).json({ user: db.mapUser(userWithoutPassword as any), token });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required." });
-    }
     const user = await db.getUserByEmail(email);
     if (!user || !user.password_hash) {
       return res.status(404).json({ error: "Invalid email or password." });
@@ -131,15 +142,46 @@ app.post("/api/auth/login", async (req, res) => {
     const token = generateToken(db.mapUser(user));
     const { password_hash: _, ...userWithoutPassword } = user;
 
+    res.cookie("autobroker_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({ user: db.mapUser(userWithoutPassword as any), token });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
+app.post("/api/auth/logout", (_req, res) => {
+  res.clearCookie("autobroker_token");
+  res.json({ message: "Logged out successfully" });
+});
+
+app.get("/api/auth/me", async (req: AuthenticatedRequest, res) => {
+  try {
+    const token = req.cookies?.autobroker_token;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "super-secret-dev-key-for-autobroker-ethiopia") as any;
+    const user = await db.getUserById(decoded.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const { password_hash: _, ...userWithoutPassword } = user;
+    res.json({ user: db.mapUser(userWithoutPassword as any) });
+  } catch {
+    res.clearCookie("autobroker_token");
+    res.status(401).json({ error: "Invalid or expired session" });
+  }
+});
+
 // --- Vehicles ---
 app.get("/api/vehicles", parseUserOptional, async (req: AuthenticatedRequest, res) => {
   try {
+    const cacheKey = "vehicles_all";
+    const cached = getCached<any[]>(cacheKey);
+    if (cached) return res.json(cached);
+
     const vehicles = await db.getVehicles();
     const brokers = await db.getBrokers();
     const users = await db.getUsers();
@@ -179,13 +221,14 @@ app.get("/api/vehicles", parseUserOptional, async (req: AuthenticatedRequest, re
       return item;
     });
 
+    setCache(cacheKey, enriched, 120);
     res.json(enriched);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post("/api/vehicles", authenticateToken, requireRole(["broker", "admin"]), async (req: AuthenticatedRequest, res) => {
+app.post("/api/vehicles", authenticateToken, requireRole(["broker", "admin"]), validate(vehicleSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const brokers = await db.getBrokers();
     let brokerId = req.body.broker_id;
@@ -227,6 +270,7 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "admin"]), a
       gallery: req.body.gallery,
       cover_photo_index: req.body.cover_photo_index,
     });
+    clearCache("vehicles");
     res.status(201).json(newVehicle);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -286,6 +330,20 @@ app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin"]), 
         target_id: req.params.id,
         details: "Approved vehicle listing"
       });
+      clearCache("vehicles");
+      const vehicles = await db.getVehicles();
+      const vehicle = vehicles.find(v => v.id === req.params.id);
+      if (vehicle) {
+        const brokers = await db.getBrokers();
+        const broker = brokers.find(b => b.id === vehicle.brokerId);
+        if (broker) {
+          const users = await db.getUsers();
+          const brokerUser = users.find(u => u.id === broker.userId);
+          if (brokerUser?.email) {
+            notifyListingApproved(vehicle.brand, vehicle.model, brokerUser.email);
+          }
+        }
+      }
       res.json({ message: "Vehicle approved successfully" });
     } else {
       res.status(404).json({ error: "Vehicle not found" });
@@ -308,6 +366,20 @@ app.put("/api/vehicles/:id/reject", authenticateToken, requireRole(["admin"]), a
         target_id: req.params.id,
         details: `Rejected listing: ${reason || "No reason specified"}`
       });
+      clearCache("vehicles");
+      const vehicles = await db.getVehicles();
+      const vehicle = vehicles.find(v => v.id === req.params.id);
+      if (vehicle) {
+        const brokers = await db.getBrokers();
+        const broker = brokers.find(b => b.id === vehicle.brokerId);
+        if (broker) {
+          const users = await db.getUsers();
+          const brokerUser = users.find(u => u.id === broker.userId);
+          if (brokerUser?.email) {
+            notifyListingRejected(vehicle.brand, vehicle.model, reason || "No reason specified", brokerUser.email);
+          }
+        }
+      }
       res.json({ message: "Vehicle rejected" });
     } else {
       res.status(404).json({ error: "Vehicle not found" });
@@ -359,13 +431,27 @@ app.get("/api/leads", authenticateToken, requireRole(["broker", "admin"]), async
   }
 });
 
-app.post("/api/leads", parseUserOptional, async (req: AuthenticatedRequest, res) => {
+app.post("/api/leads", parseUserOptional, validate(leadSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const { vehicle_id, buyer_name, buyer_email, buyer_phone, message } = req.body;
-    if (!vehicle_id || !buyer_name || !buyer_email || !buyer_phone) {
-      return res.status(400).json({ error: "Vehicle ID, name, email, and phone number are required." });
-    }
     const buyer_id = req.user ? req.user.id : null;
+
+    const vehicles = await db.getVehicles();
+    const vehicle = vehicles.find(v => v.id === vehicle_id);
+    if (vehicle) {
+      const brokers = await db.getBrokers();
+      const broker = brokers.find(b => b.id === vehicle.brokerId);
+      if (broker) {
+        const users = await db.getUsers();
+        const brokerUser = users.find(u => u.id === broker.userId);
+        if (brokerUser?.email) {
+          notifyNewLead(
+            { buyerName: buyer_name, buyerEmail: buyer_email, vehicleBrand: vehicle.brand, vehicleModel: vehicle.model },
+            brokerUser.email
+          );
+        }
+      }
+    }
 
     const newLead = await db.addLead({
       vehicle_id,
@@ -428,12 +514,9 @@ app.get("/api/sales", authenticateToken, requireRole(["broker", "admin"]), async
   }
 });
 
-app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), async (req: AuthenticatedRequest, res) => {
+app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), validate(saleSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const { vehicle_id, sale_price, commission, buyer_name, leadId } = req.body;
-    if (!vehicle_id || !sale_price || !commission) {
-      return res.status(400).json({ error: "Vehicle ID, sale price, and commission are required." });
-    }
 
     const isOwnerOrAdmin = await verifyVehicleOwnership(vehicle_id, req.user!);
     if (!isOwnerOrAdmin) {
@@ -459,6 +542,34 @@ app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), asyn
     }
 
     res.status(201).json(newSale);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Payments & Commissions ---
+app.get("/api/payments", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const brokerId = req.query.brokerId as string | undefined;
+    const payments = await db.getPayments(brokerId);
+    res.json(payments);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/commissions/calculate", authenticateToken, async (req, res) => {
+  try {
+    const { sale_price, commission_rate, commission_type } = req.body;
+    if (!sale_price || !commission_rate) {
+      return res.status(400).json({ error: "sale_price and commission_rate are required." });
+    }
+    const result = db.calculateCommission(
+      parseFloat(sale_price),
+      parseFloat(commission_rate),
+      commission_type || "percentage"
+    );
+    res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -660,12 +771,9 @@ app.get("/api/documents", authenticateToken, async (req: AuthenticatedRequest, r
   }
 });
 
-app.post("/api/documents", authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.post("/api/documents", authenticateToken, validate(documentSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const { vehicle_id, name, type, file_url } = req.body;
-    if (!vehicle_id || !name || !type || !file_url) {
-      return res.status(400).json({ error: "vehicle_id, name, type, and file_url are required." });
-    }
 
     const isOwnerOrAdmin = await verifyVehicleOwnership(vehicle_id, req.user!);
     if (!isOwnerOrAdmin) {
@@ -716,12 +824,9 @@ app.get("/api/inspections", authenticateToken, async (req: AuthenticatedRequest,
   }
 });
 
-app.post("/api/inspections", authenticateToken, requireRole(["admin"]), async (req, res) => {
+app.post("/api/inspections", authenticateToken, requireRole(["admin"]), validate(inspectionSchema), async (req, res) => {
   try {
     const { vehicle_id, inspector_name, status, notes } = req.body;
-    if (!vehicle_id || !inspector_name || !status) {
-      return res.status(400).json({ error: "vehicle_id, inspector_name, and status are required." });
-    }
     const inspection = await db.addInspection({ vehicle_id, inspector_name, status, notes: notes || "" });
     await db.updateVehicle(vehicle_id, { inspection_status: status, inspection_notes: notes || "", inspection_date: inspection.inspectedAt });
     res.status(201).json(inspection);
@@ -735,6 +840,30 @@ app.put("/api/inspections/:id", authenticateToken, requireRole(["admin"]), async
     const success = await db.updateInspection(req.params.id, req.body);
     if (success) res.json({ message: "Inspection updated" });
     else res.status(404).json({ error: "Inspection not found" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Upload (Cloudinary) ---
+app.post("/api/upload", authenticateToken, upload.single("file"), async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file provided." });
+    const folder = (req.body.folder as string) || "autobroker";
+    const url = await uploadToCloudinary(req.file.buffer, folder);
+    res.json({ url, filename: req.file.originalname });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/upload/multiple", authenticateToken, upload.array("files", 10), async (req: AuthenticatedRequest, res) => {
+  try {
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) return res.status(400).json({ error: "No files provided." });
+    const folder = (req.body.folder as string) || "autobroker";
+    const urls = await Promise.all(files.map(f => uploadToCloudinary(f.buffer, folder)));
+    res.json({ urls });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -825,12 +954,9 @@ app.get("/api/test-drives", authenticateToken, async (req: AuthenticatedRequest,
   }
 });
 
-app.post("/api/test-drives", parseUserOptional, async (req: AuthenticatedRequest, res) => {
+app.post("/api/test-drives", parseUserOptional, validate(testDriveSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const { vehicle_id, name, email, phone, preferred_date, preferred_time, message } = req.body;
-    if (!vehicle_id || !name || !phone || !preferred_date || !preferred_time) {
-      return res.status(400).json({ error: "vehicle_id, name, phone, preferred_date, and preferred_time are required." });
-    }
     const user_id = req.user ? req.user.id : null;
 
     const td = await db.addTestDrive({
@@ -900,12 +1026,9 @@ app.get("/api/reports", authenticateToken, requireRole(["admin"]), async (req, r
   }
 });
 
-app.post("/api/reports", parseUserOptional, async (req: AuthenticatedRequest, res) => {
+app.post("/api/reports", parseUserOptional, validate(reportSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const { reporter_name, target_type, target_id, reason, description } = req.body;
-    if (!reporter_name || !target_type || !target_id || !reason) {
-      return res.status(400).json({ error: "reporter_name, target_type, target_id, and reason are required." });
-    }
     const reporter_id = req.user ? req.user.id : null;
 
     const report = await db.addReport({

@@ -45,7 +45,11 @@ export function generateToken(user: User): string {
 
 export function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  let token = authHeader && authHeader.split(" ")[1];
+
+  if (!token && req.cookies?.autobroker_token) {
+    token = req.cookies.autobroker_token;
+  }
 
   if (!token) {
     return res.status(401).json({ error: "Access token required. Please log in." });
@@ -56,6 +60,22 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
       return res.status(403).json({ error: "Invalid or expired session. Please log in again." });
     }
     req.user = decoded;
+    next();
+  });
+}
+
+export function optionalAuth(req: AuthenticatedRequest, _res: Response, next: NextFunction) {
+  const authHeader = req.headers["authorization"];
+  let token = authHeader && authHeader.split(" ")[1];
+
+  if (!token && req.cookies?.autobroker_token) {
+    token = req.cookies.autobroker_token;
+  }
+
+  if (!token) return next();
+
+  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+    if (!err) req.user = decoded;
     next();
   });
 }
