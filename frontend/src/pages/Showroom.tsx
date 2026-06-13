@@ -602,7 +602,9 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                   {cars.map(car => (
-                    <CarCard key={car.id} car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                    <div key={car.id}>
+                      <CarCard car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -621,7 +623,9 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                   </div>
                 )}
                 {paginated.map(car => (
-                  <CarCard key={car.id} car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                  <div key={car.id}>
+                    <CarCard car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                  </div>
                 ))}
               </div>
 
@@ -709,7 +713,6 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
   carFavorites: string[];
   setCarFavorites: React.Dispatch<React.SetStateAction<string[]>>;
   onInquireCar: (car: VehicleListing) => void;
-  key?: string;
 }) {
   return (
     <div className="bg-white rounded-xl sm:rounded-2xl border border-[#E5E7EB] hover:border-slate-300 hover:shadow-lg transition-all flex flex-col overflow-hidden group">
