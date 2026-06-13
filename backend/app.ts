@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import path from "path";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -56,7 +57,7 @@ app.use("/api/auth", authLimiter);
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-app.use(require("cookie-parser")());
+app.use(cookieParser());
 
 if (!process.env.VERCEL) {
   app.use("/assets", express.static(path.join(process.cwd(), "assets")));
@@ -158,6 +159,34 @@ app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
 app.post("/api/auth/logout", (_req, res) => {
   res.clearCookie("autobroker_token");
   res.json({ message: "Logged out successfully" });
+});
+
+app.post("/api/auth/change-password", authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current password and new password are required." });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters." });
+    }
+
+    const user = await db.getUserById(req.user!.id);
+    if (!user || !user.password_hash) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const match = comparePassword(currentPassword, user.password_hash);
+    if (!match) {
+      return res.status(401).json({ error: "Current password is incorrect." });
+    }
+
+    const password_hash = hashPassword(newPassword);
+    await db.updateUser(req.user!.id, { password_hash });
+    res.json({ message: "Password changed successfully." });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get("/api/auth/me", async (req: AuthenticatedRequest, res) => {

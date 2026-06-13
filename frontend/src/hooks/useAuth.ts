@@ -3,7 +3,10 @@ import { useStore } from "../store";
 import { authApi, setToken } from "../lib/api";
 
 export function useAuth() {
-  const { user, isAuthenticated, setUser, logout: storeLogout } = useStore();
+  const user = useStore(s => s.user);
+  const isAuthenticated = useStore(s => s.isAuthenticated);
+  const setUser = useStore(s => s.setUser);
+  const storeLogout = useStore(s => s.logout);
 
   const login = async (email: string, password: string) => {
     const res = await authApi.login(email, password);

@@ -15,8 +15,7 @@ async function startServer() {
         root: path.join(process.cwd(), "frontend"),
         server: {
           middlewareMode: true,
-          // Use a random HMR port to avoid WebSocket conflicts on restart
-          hmr: { port: 0 },
+          hmr: { port: 24678 },
         },
         appType: "spa",
       });

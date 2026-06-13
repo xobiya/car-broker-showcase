@@ -29,7 +29,9 @@ import type { VehicleListing, User } from "../../shared/types";
 const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/admin", "/admin/profile", "/admin/notifications"];
 
 function useToast() {
-  return useStore(s => ({ toasts: s.toasts, removeToast: s.removeToast }));
+  const toasts = useStore(s => s.toasts);
+  const removeToast = useStore(s => s.removeToast);
+  return { toasts, removeToast };
 }
 
 function isFullScreenRoute(path: string) {
@@ -39,7 +41,13 @@ function isFullScreenRoute(path: string) {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated, setUser, addToast, selectedVehicle, setSelectedVehicle, setSelectedBrokerId } = useStore();
+  const user = useStore(s => s.user);
+  const isAuthenticated = useStore(s => s.isAuthenticated);
+  const setUser = useStore(s => s.setUser);
+  const addToast = useStore(s => s.addToast);
+  const selectedVehicle = useStore(s => s.selectedVehicle);
+  const setSelectedVehicle = useStore(s => s.setSelectedVehicle);
+  const setSelectedBrokerId = useStore(s => s.setSelectedBrokerId);
   const { logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
