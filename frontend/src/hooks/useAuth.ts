@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useStore } from "../store";
-import { authApi, setToken } from "../lib/api";
+import { authApi, usersApi, setToken } from "../lib/api";
+import type { User } from "../../../shared/types";
 
 export function useAuth() {
   const user = useStore(s => s.user);
@@ -27,6 +28,17 @@ export function useAuth() {
     storeLogout();
   };
 
+  const updateProfile = async (data: Partial<User>): Promise<User> => {
+    if (!user) throw new Error("Not authenticated");
+    const updated = await usersApi.update(user.id, data);
+    setUser(updated);
+    return updated;
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    await authApi.changePassword(currentPassword, newPassword);
+  };
+
   const checkSession = async () => {
     try {
       const res = await authApi.me();
@@ -42,5 +54,5 @@ export function useAuth() {
     return () => window.removeEventListener("autobroker:unauthorized", handleUnauthorized);
   }, []);
 
-  return { user, isAuthenticated, login, register, logout, checkSession };
+  return { user, isAuthenticated, login, register, logout, checkSession, updateProfile, changePassword };
 }

@@ -237,7 +237,7 @@ export default function App() {
               <Route path="/browse" element={<div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div>} />
               <Route path="/vehicles/:id" element={<VehicleDetail vehicle={selectedVehicle!} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} />} />
               <Route path="/broker-dashboard" element={<BrokerDashboard onNotify={addToast} onLogout={handleLogout} />} />
-              <Route path="/admin" element={<AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(v)} />} />
+              <Route path="/admin" element={<AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} />} />
               <Route path="/admin/profile" element={<AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} />} />
               <Route path="/admin/notifications" element={<NotificationsPage onBack={() => navigate("/admin")} />} />
               <Route path="/profile" element={user ? <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>} />

@@ -836,7 +836,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                       <p className="text-[9px] font-black uppercase tracking-wider text-orange-500 mt-0.5">{adminUser?.email || "admin@platform"}</p>
                     </div>
                     <button
-                      onClick={() => { setShowProfileDropdown(false); onNavigate?.("admin-profile"); }}
+                      onClick={() => { setShowProfileDropdown(false); onNavigate?.("profile"); }}
                       className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer flex items-center gap-2"
                     >
                       <UserCheck size={12} className="text-slate-400" /> My Profile

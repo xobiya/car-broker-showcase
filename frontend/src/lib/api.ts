@@ -69,6 +69,8 @@ export const authApi = {
     api.post<{ user: User; token: string }>("/api/auth/register", payload),
   logout: () => api.post<{ message: string }>("/api/auth/logout"),
   me: () => api.get<{ user: User }>("/api/auth/me"),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post<{ message: string }>("/api/auth/change-password", { currentPassword, newPassword }),
 };
 
 export const vehiclesApi = {

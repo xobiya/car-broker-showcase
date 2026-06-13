@@ -709,6 +709,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
   carFavorites: string[];
   setCarFavorites: React.Dispatch<React.SetStateAction<string[]>>;
   onInquireCar: (car: VehicleListing) => void;
+  key?: string;
 }) {
   return (
     <div className="bg-white rounded-xl sm:rounded-2xl border border-[#E5E7EB] hover:border-slate-300 hover:shadow-lg transition-all flex flex-col overflow-hidden group">
