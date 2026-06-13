@@ -65,7 +65,7 @@ export const api = {
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<{ user: User; token: string }>("/api/auth/login", { email, password }),
-  register: (payload: { name: string; email: string; password: string; phone?: string; role: "buyer" | "broker" }) =>
+  register: (payload: { name: string; email: string; password: string; phone?: string; role: "buyer" | "broker" | "seller" }) =>
     api.post<{ user: User; token: string }>("/api/auth/register", payload),
   logout: () => api.post<{ message: string }>("/api/auth/logout"),
   me: () => api.get<{ user: User }>("/api/auth/me"),

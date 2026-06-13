@@ -24,9 +24,11 @@ import AdminProfilePage from "./dashboards/AdminProfilePage";
 import NotificationsPage from "./dashboards/NotificationsPage";
 import BrokerProfilePage from "./dashboards/BrokerProfilePage";
 import BuyerDashboard from "./dashboards/BuyerDashboard";
+import SellerDashboard from "./dashboards/SellerDashboard";
+import ChooseRolePage from "./pages/ChooseRolePage";
 import type { VehicleListing, User } from "../../shared/types";
 
-const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/admin", "/admin/profile", "/admin/notifications"];
+const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/seller-dashboard", "/admin", "/admin/profile", "/admin/notifications", "/choose-role"];
 
 function useToast() {
   const toasts = useStore(s => s.toasts);
@@ -50,6 +52,7 @@ export default function App() {
   const setSelectedBrokerId = useStore(s => s.setSelectedBrokerId);
   const { logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalRole, setAuthModalRole] = useState<"buyer" | "broker" | "seller">("buyer");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const { toasts, removeToast } = useToast();
@@ -73,6 +76,7 @@ export default function App() {
     setUser(user);
     if (user.role === "admin") navigate("/admin");
     else if (user.role === "broker") navigate("/broker-dashboard");
+    else if (user.role === "seller") navigate("/seller-dashboard");
     else navigate("/browse");
   }, [navigate, setUser]);
 
@@ -131,13 +135,13 @@ export default function App() {
           </div>
 
           <nav className="hidden md:flex items-center space-x-8">
-            {userRole !== "broker" && (
+            {userRole !== "broker" && userRole !== "seller" && (
               <button onClick={() => navigate("/")}
                 className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
                 Home
               </button>
             )}
-            {userRole !== "broker" && (
+            {userRole !== "broker" && userRole !== "seller" && (
               <button onClick={() => navigate("/browse")}
                 className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/browse" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
                 Browse
@@ -149,10 +153,16 @@ export default function App() {
                 My Dashboard
               </button>
             )}
-            {(!user || userRole === "buyer") && (
-              <button onClick={() => { if (!user) setShowAuthModal(true); else addToast("Contact admin to upgrade to a Broker account.", "info"); }}
+            {userRole === "seller" && (
+              <button onClick={() => navigate("/seller-dashboard")}
+                className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/seller-dashboard" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                My Dashboard
+              </button>
+            )}
+            {(!user || userRole === "buyer" || userRole === "seller") && (
+              <button onClick={() => { if (!user) navigate("/choose-role"); else if (userRole === "seller") addToast("You're already a seller!", "info"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }}
                 className="text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors text-slate-600">
-                Become a Broker
+                {userRole === "seller" ? "Sell a Car" : "Become a Broker"}
               </button>
             )}
             {userRole === "admin" && (
@@ -190,8 +200,8 @@ export default function App() {
                         className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer">
                         Profile
                       </button>
-                      {userRole === "broker" && (
-                        <button onClick={() => { navigate("/broker-dashboard"); setProfileDropdownOpen(false); }}
+                      {(userRole === "broker" || userRole === "seller") && (
+                        <button onClick={() => { navigate(userRole === "broker" ? "/broker-dashboard" : "/seller-dashboard"); setProfileDropdownOpen(false); }}
                           className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer">
                           My Dashboard
                         </button>
@@ -233,10 +243,12 @@ export default function App() {
             className={`w-full ${fullScreen ? "h-full flex-1" : "flex-grow"} flex flex-col`}
           >
             <Routes>
-              <Route path="/" element={<HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) setShowAuthModal(true); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} />} />
+              <Route path="/" element={<HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller") navigate("/seller-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} />} />
+              <Route path="/choose-role" element={<ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} />} />
               <Route path="/browse" element={<div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div>} />
               <Route path="/vehicles/:id" element={<VehicleDetail vehicle={selectedVehicle!} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} />} />
               <Route path="/broker-dashboard" element={<BrokerDashboard onNotify={addToast} onLogout={handleLogout} />} />
+              <Route path="/seller-dashboard" element={<SellerDashboard currentUser={user} onNotify={addToast} onLogout={handleLogout} />} />
               <Route path="/admin" element={<AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} />} />
               <Route path="/admin/profile" element={<AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} />} />
               <Route path="/admin/notifications" element={<NotificationsPage onBack={() => navigate("/admin")} />} />
@@ -276,11 +288,12 @@ export default function App() {
               </ul>
             </div>
             <div className="space-y-6">
-              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Broker Support</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">For Sellers</h4>
               <ul className="space-y-3">
-                {['Become a Broker', 'Commission Rates', 'Lead Dashboard', 'Inspection Standards'].map(link => (
+                <li><button onClick={() => user ? navigate("/seller-dashboard") : navigate("/choose-role")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Sell Your Car</button></li>
+                {['Pricing Guide', 'Listing Tips'].map(link => (
                   <li key={link}>
-                    <button onClick={() => { if (!user) setShowAuthModal(true); else addToast("Contact admin to upgrade.", "info"); }} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer">
+                    <button onClick={() => addToast("Coming soon!", "info")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer">
                       <span className="w-1 h-1 rounded-full bg-slate-300" /> {link}
                     </button>
                   </li>
@@ -306,7 +319,7 @@ export default function App() {
         </footer>
       )}
 
-      {!fullScreen && userRole !== "admin" && (
+      {!fullScreen && userRole !== "admin" && userRole !== "seller" && (
         <div className="fixed sm:hidden bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 flex items-center justify-around px-1 py-1 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
           <button onClick={() => navigate("/")} className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors min-w-0 ${location.pathname === "/" ? "text-[#0F4C81]" : "text-slate-400"}`}>
             <Home size={22} /><span className="text-[9px] font-semibold">Home</span>
@@ -325,7 +338,8 @@ export default function App() {
 
       {showAuthModal && (
         <AuthModal
-          onClose={() => setShowAuthModal(false)}
+          defaultRole={authModalRole}
+          onClose={() => { setShowAuthModal(false); setAuthModalRole("buyer"); }}
           onSuccess={handleAuthSuccess}
           onNotify={addToast}
         />

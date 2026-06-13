@@ -8,6 +8,7 @@ interface HomePageProps {
   onBrowse: (filters?: { brand?: string; model?: string; year?: string; priceRange?: string }) => void;
   onBecomeBroker: () => void;
   onViewBrokerProfile?: (brokerId: string) => void;
+  onChooseRole?: () => void;
 }
 
 const FALLBACK_VEHICLES: VehicleListing[] = [
@@ -55,7 +56,7 @@ const FALLBACK_VEHICLES: VehicleListing[] = [
   },
 ];
 
-export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecomeBroker }: HomePageProps) {
+export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecomeBroker, onChooseRole }: HomePageProps) {
   const [vehicles, setVehicles] = useState<VehicleListing[]>(FALLBACK_VEHICLES);
   const [brands, setBrands] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
@@ -165,7 +166,7 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
                 )}
               </div>
             </>
-          ) : (
+            ) : (
             <>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight drop-shadow-md">
                 Find Your Next Car
@@ -179,14 +180,14 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
                 >
                   Browse Vehicles
                 </button>
-                <button onClick={onBecomeBroker}
-                  className="bg-slate-900/50 hover:bg-slate-900/80 text-white font-semibold px-6 py-3 rounded-lg text-xs border border-white/40 backdrop-blur-sm transition-colors cursor-pointer"
+                <button onClick={onChooseRole}
+                  className="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-lg text-xs border border-white/40 backdrop-blur-sm transition-colors cursor-pointer"
                 >
-                  Become a Broker
+                  Get Started
                 </button>
               </div>
             </>
-          )}
+            )}
 
           {/* Quick Search Card - always shown */}
           <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 md:p-6 shadow-xl text-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end max-w-4xl mx-auto border border-slate-200">

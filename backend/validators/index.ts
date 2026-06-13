@@ -5,7 +5,7 @@ export const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   phone: z.string().optional(),
-  role: z.enum(["buyer", "broker"], { message: "Role must be buyer or broker" }),
+  role: z.enum(["buyer", "broker", "seller"], { message: "Role must be buyer, broker, or seller" }),
 });
 
 export const loginSchema = z.object({

@@ -4,7 +4,7 @@ const baseFields = { id: { type: String, unique: true, required: true } };
 
 const userSchema = new Schema({
   ...baseFields, name: String, email: { type: String, unique: true }, password_hash: String, phone: String,
-  role: { type: String, enum: ['buyer', 'broker', 'admin'] }, verified: Boolean,
+  role: { type: String, enum: ['buyer', 'broker', 'seller', 'admin'] }, verified: Boolean,
   verification_status: String, id_document: String, bio: String, avatar: String, join_date: String,
 });
 

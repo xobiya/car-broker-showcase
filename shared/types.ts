@@ -5,7 +5,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  role: "buyer" | "broker" | "admin";
+  role: "buyer" | "broker" | "seller" | "admin";
   verified?: boolean;
   verificationStatus?: "unverified" | "pending" | "verified";
   idDocument?: string;

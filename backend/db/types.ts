@@ -4,7 +4,7 @@ export interface DBUser {
   email: string;
   password_hash?: string;
   phone: string;
-  role: 'buyer' | 'broker' | 'admin';
+  role: 'buyer' | 'broker' | 'seller' | 'admin';
   verified?: boolean;
   verification_status?: 'unverified' | 'pending' | 'verified';
   id_document?: string;

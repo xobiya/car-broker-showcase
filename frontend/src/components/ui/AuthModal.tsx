@@ -7,6 +7,7 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess: (user: User) => void;
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
+  defaultRole?: "buyer" | "broker" | "seller";
 }
 
 type AuthTab = "login" | "register";
@@ -14,16 +15,17 @@ type AuthTab = "login" | "register";
 const DEMO_ACCOUNTS = [
   { label: "Admin", email: "abebe.k@autobroker.et", color: "text-blue-900", dot: "bg-blue-900" },
   { label: "Broker", email: "yonas.h@autobroker.et", color: "text-indigo-600", dot: "bg-indigo-600" },
+  { label: "Seller", email: "mesfin.t@autobroker.et", color: "text-orange-500", dot: "bg-orange-500" },
   { label: "Buyer", email: "dawit.l@gmail.com", color: "text-emerald-600", dot: "bg-emerald-600" },
 ];
 
-export default function AuthModal({ onClose, onSuccess, onNotify }: AuthModalProps) {
-  const [tab, setTab] = useState<AuthTab>("login");
+export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole }: AuthModalProps) {
+  const [tab, setTab] = useState<AuthTab>(defaultRole ? "register" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("+2519");
-  const [role, setRole] = useState<"buyer" | "broker">("buyer");
+  const [role, setRole] = useState<"buyer" | "broker" | "seller">(defaultRole || "buyer");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,7 +34,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify }: AuthModalPro
     setPassword("");
     setName("");
     setPhone("+2519");
-    setRole("buyer");
+    setRole(defaultRole || "buyer");
     setError("");
   };
 
@@ -185,11 +187,12 @@ export default function AuthModal({ onClose, onSuccess, onNotify }: AuthModalPro
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1.5">I want to join as</label>
                 <select
                   value={role}
-                  onChange={e => setRole(e.target.value as "buyer" | "broker")}
+                  onChange={e => setRole(e.target.value as "buyer" | "broker" | "seller")}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 cursor-pointer"
                 >
                   <option value="buyer">Buyer — Search & Inquire Vehicles</option>
-                  <option value="broker">Broker — List & Manage Your Inventory</option>
+                  <option value="seller">Seller — List & Sell Your Car</option>
+                  <option value="broker">Broker — Scale Your Auto Business</option>
                 </select>
               </div>
             )}

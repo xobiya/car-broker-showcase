@@ -224,13 +224,16 @@ app.get("/api/vehicles", parseUserOptional, async (req: AuthenticatedRequest, re
       const broker = brokers.find(b => b.userId === req.user?.id);
       const brokerId = broker ? broker.id : null;
       filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold" || v.brokerId === brokerId);
+    } else if (req.user.role === "seller") {
+      // Sellers see approved, sold, and their own listings
+      filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold" || v.brokerId === req.user!.id);
     }
-    // Admins see all listings
 
     const enriched = filteredVehicles.map(v => {
       const broker = brokers.find(b => b.id === v.brokerId);
-      const user = broker ? users.find(u => u.id === broker.userId) : null;
-      const isOwner = req.user && broker && broker.userId === req.user.id;
+      const sellerUser = broker ? null : users.find(u => u.id === v.brokerId && u.role === "seller");
+      const user = broker ? users.find(u => u.id === broker.userId) : sellerUser || null;
+      const isOwner = req.user && (broker ? broker.userId === req.user.id : v.brokerId === req.user.id);
       const isAdmin = req.user && req.user.role === "admin";
 
       const item: any = {
@@ -257,7 +260,7 @@ app.get("/api/vehicles", parseUserOptional, async (req: AuthenticatedRequest, re
   }
 });
 
-app.post("/api/vehicles", authenticateToken, requireRole(["broker", "admin"]), validate(vehicleSchema), async (req: AuthenticatedRequest, res) => {
+app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "admin"]), validate(vehicleSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const brokers = await db.getBrokers();
     let brokerId = req.body.broker_id;
@@ -266,8 +269,10 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "admin"]), v
       const broker = brokers.find(b => b.userId === req.user!.id);
       if (!broker) return res.status(403).json({ error: "Broker profile not found. Complete your profile registration first." });
       brokerId = broker.id;
+    } else if (req.user!.role === "seller") {
+      brokerId = req.user!.id;
     } else if (req.user!.role === "admin" && !brokerId) {
-      brokerId = "brk-1"; // fallback for admin
+      brokerId = "brk-1";
     }
 
     const newVehicle = await db.addVehicle({
@@ -312,6 +317,9 @@ const verifyVehicleOwnership = async (vehicleId: string, reqUser: any) => {
   const vehicles = await db.getVehicles();
   const vehicle = vehicles.find(v => v.id === vehicleId);
   if (!vehicle) return false;
+  if (reqUser.role === "seller") {
+    return vehicle.brokerId === reqUser.id;
+  }
   const brokers = await db.getBrokers();
   const broker = brokers.find(b => b.id === vehicle.brokerId);
   return broker && broker.userId === reqUser.id;
@@ -434,7 +442,7 @@ app.put("/api/vehicles/:id/submit", authenticateToken, async (req: Authenticated
 });
 
 // --- Leads ---
-app.get("/api/leads", authenticateToken, requireRole(["broker", "admin"]), async (req: AuthenticatedRequest, res) => {
+app.get("/api/leads", authenticateToken, requireRole(["broker", "seller", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
     const leads = await db.getLeads();
     const vehicles = await db.getVehicles();
@@ -447,6 +455,9 @@ app.get("/api/leads", authenticateToken, requireRole(["broker", "admin"]), async
       const brokerId = broker ? broker.id : null;
       const brokerVehicles = vehicles.filter(v => v.brokerId === brokerId).map(v => v.id);
       filteredLeads = leads.filter(l => brokerVehicles.includes(l.vehicleId));
+    } else if (req.user!.role === "seller") {
+      const sellerVehicles = vehicles.filter(v => v.brokerId === req.user!.id).map(v => v.id);
+      filteredLeads = leads.filter(l => sellerVehicles.includes(l.vehicleId));
     }
 
     const enriched = filteredLeads.map(l => {
@@ -496,7 +507,7 @@ app.post("/api/leads", parseUserOptional, validate(leadSchema), async (req: Auth
   }
 });
 
-app.put("/api/leads/:id/status", authenticateToken, requireRole(["broker", "admin"]), async (req: AuthenticatedRequest, res) => {
+app.put("/api/leads/:id/status", authenticateToken, requireRole(["broker", "seller", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
     const { status } = req.body;
     if (!status) return res.status(400).json({ error: "Status is required." });

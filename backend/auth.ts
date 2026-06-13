@@ -21,7 +21,7 @@ export interface AuthenticatedRequest extends Request {
     id: string;
     name: string;
     email: string;
-    role: "buyer" | "broker" | "admin";
+    role: "buyer" | "broker" | "seller" | "admin";
   };
 }
 
@@ -80,7 +80,7 @@ export function optionalAuth(req: AuthenticatedRequest, _res: Response, next: Ne
   });
 }
 
-export function requireRole(roles: Array<"buyer" | "broker" | "admin">) {
+export function requireRole(roles: Array<"buyer" | "broker" | "seller" | "admin">) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized." });
