@@ -7,7 +7,6 @@ interface ShowroomProps {
   onInquireCar: (car: VehicleListing) => void;
 }
 
-
 const QUICK_FILTERS = [
   { id: "available", label: "Available Cars" },
   { id: "verified", label: "Verified Cars" },
@@ -45,13 +44,13 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   const [sortBy, setSortBy] = useState("Newest");
   const [carFavorites, setCarFavorites] = useState<string[]>([]);
   const [page, setPage] = useState(1);
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [groupBy, setGroupBy] = useState("");
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const PER_PAGE = 6;
+  const PER_PAGE = 8;
 
   useEffect(() => {
     try {
@@ -63,7 +62,6 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchFocused(false);
         setOpenDropdown(null);
         setShowAdvancedSearch(false);
       }
@@ -262,12 +260,6 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
     return <div className="flex justify-center items-center py-20 text-slate-400 font-semibold text-xs">Loading Inventory...</div>;
   }
 
-  const renderDropdown = (children: React.ReactNode, alignRight?: boolean) => (
-    <div className={`absolute top-full mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-80 overflow-y-auto ${alignRight ? "right-0" : "left-0 sm:left-0 right-0 sm:right-auto"}`}>
-      {children}
-    </div>
-  );
-
   const renderCheckItem = (label: string, selected: boolean, onChange: () => void, count?: number) => (
     <label className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${selected ? "bg-blue-50 text-blue-900" : "text-slate-600 hover:bg-slate-50"}`}>
       <span className="flex items-center gap-2">
@@ -280,19 +272,6 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
     </label>
   );
 
-  const renderToolbarButton = (active: boolean, onClick: () => void, icon: React.ReactNode, label: string, count?: number, isOpen?: boolean) => (
-    <button onClick={onClick}
-      className={`flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-3 sm:px-3 py-2.5 sm:py-1.5 rounded-lg border cursor-pointer transition-colors w-full sm:w-auto justify-center ${
-        active ? "border-[#0F4C81] bg-blue-50 text-[#0F4C81]" : "border-[#E5E7EB] hover:bg-slate-50 text-slate-600"
-      }`}
-    >
-      {icon}
-      <span className="truncate">{label}</span>
-      {count !== undefined && count > 0 && <span className="bg-[#0F4C81] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-0.5">{count}</span>}
-      <ChevronDown size={14} className={`text-slate-400 shrink-0 transition ${isOpen ? "rotate-180" : ""}`} />
-    </button>
-  );
-
   // Pagination helpers
   const goToPage = (p: number) => setPage(Math.min(Math.max(1, p), totalPages));
   const pageNumbers: (number | "…")[] = [];
@@ -302,11 +281,74 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   }
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen text-[#111827] font-sans">
+    <div className="min-h-screen bg-slate-50">
+      {/* Mobile filter drawer */}
+      {showMobileFilters && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowMobileFilters(false)} />
+          <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+              <h3 className="text-sm font-bold text-slate-800">Filters</h3>
+              <button onClick={() => setShowMobileFilters(false)} className="p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <X size={16} className="text-slate-500" />
+              </button>
+            </div>
+            <div className="p-4 space-y-5">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Quick Filters</p>
+                <div className="space-y-1">
+                  {QUICK_FILTERS.map(qf => {
+                    const active = quickFilters.includes(qf.id);
+                    return (
+                      <button key={qf.id} onClick={() => toggleQuickFilter(qf.id)}
+                        className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${active ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-700 hover:bg-slate-50"}`}
+                      >
+                        <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition ${active ? "bg-[#0F4C81] border-[#0F4C81]" : "border-slate-300"}`}>
+                          {active && <span className="text-white text-[8px] font-black">✓</span>}
+                        </span>
+                        {qf.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Group By</p>
+                <div className="space-y-1">
+                  {GROUP_OPTIONS.filter(g => g.id !== "").map(opt => {
+                    const active = groupBy === opt.id;
+                    return (
+                      <button key={opt.id} onClick={() => setGroupBy(active ? "" : opt.id)}
+                        className={`w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${active ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-700 hover:bg-slate-50"}`}
+                      >
+                        <span>{opt.label}</span>
+                        {active && <span className="text-blue-600 text-[11px] font-black">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Sort By</p>
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none"
+                >
+                  <option>Newest</option>
+                  <option>Price: Low to High</option>
+                  <option>Price: High to Low</option>
+                </select>
+              </div>
+              {hasActiveFacets && (
+                <button onClick={() => { clearAll(); setShowMobileFilters(false); }}
+                  className="w-full text-sm font-bold text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg transition cursor-pointer"
+                >Clear All Filters</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-
-
-      <div className="w-full px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 pb-4 sm:pb-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
         {/* Odoo-style unified search bar */}
         <div className="w-full sm:max-w-3xl sm:mx-auto mb-6" ref={searchRef}>
@@ -314,7 +356,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
           {/* ── Single pill bar ── */}
           <div
             className={`flex items-center bg-white rounded-xl border-2 shadow-sm overflow-visible transition-colors ${
-              searchFocused || openDropdown ? "border-blue-400" : "border-[#E5E7EB]"
+              openDropdown ? "border-blue-400" : "border-[#E5E7EB]"
             }`}
           >
             {/* Search icon */}
@@ -348,8 +390,8 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 type="text"
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                onFocus={() => { setSearchFocused(true); setOpenDropdown("panel"); }}
-                onKeyDown={e => e.key === "Escape" && (setSearchFocused(false), setOpenDropdown(null))}
+                onFocus={() => setOpenDropdown("panel")}
+                onKeyDown={e => e.key === "Escape" && setOpenDropdown(null)}
                 placeholder={
                   quickFilters.length === 0 && Object.values(facets).every(v => v.length === 0)
                     ? "Search… Brand:, Year:, Status:"
@@ -374,10 +416,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
 
             {/* Chevron toggle */}
             <button
-              onClick={() => {
-                setOpenDropdown(openDropdown === "panel" ? null : "panel");
-                setSearchFocused(o => !o);
-              }}
+              onClick={() => setOpenDropdown(openDropdown === "panel" ? null : "panel")}
               className="px-3 py-3.5 border-l border-[#E5E7EB] text-slate-400 hover:bg-slate-50 transition-colors shrink-0 cursor-pointer"
             >
               <ChevronDown size={15} strokeWidth={2.5} className={`transition-transform duration-200 ${openDropdown === "panel" ? "rotate-180" : ""}`} />
@@ -385,7 +424,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
           </div>
 
           {/* ── 3-column dropdown panel ── */}
-          {(openDropdown === "panel" || searchFocused) && (
+          {openDropdown === "panel" && (
             <div className="relative z-30">
               <div className="absolute top-1 left-0 right-0 bg-white rounded-xl border border-[#E5E7EB] shadow-2xl overflow-hidden">
                 <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
@@ -399,9 +438,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                       {QUICK_FILTERS.map(qf => {
                         const active = quickFilters.includes(qf.id);
                         return (
-                          <button
-                            key={qf.id}
-                            onClick={() => toggleQuickFilter(qf.id)}
+                          <button key={qf.id} onClick={() => toggleQuickFilter(qf.id)}
                             className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${
                               active ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-700 hover:bg-slate-50"
                             }`}
@@ -416,8 +453,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                         );
                       })}
                       <div className="border-t border-slate-100 mt-2 pt-2">
-                        <button
-                          onClick={() => { setShowAdvancedSearch(true); setOpenDropdown(null); setSearchFocused(false); }}
+                        <button onClick={() => { setShowAdvancedSearch(true); setOpenDropdown(null); }}
                           className="w-full text-left px-2 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-2"
                         >
                           <Filter size={12} className="text-slate-400" />
@@ -436,9 +472,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                       {GROUP_OPTIONS.filter(g => g.id !== "").map(opt => {
                         const active = groupBy === opt.id;
                         return (
-                          <button
-                            key={opt.id}
-                            onClick={() => { setGroupBy(active ? "" : opt.id); }}
+                          <button key={opt.id} onClick={() => { setGroupBy(active ? "" : opt.id); }}
                             className={`w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${
                               active ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-700 hover:bg-slate-50"
                             }`}
@@ -457,9 +491,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                       <Star size={11} strokeWidth={2.5} /> Favorites
                     </p>
 
-                    {/* Save current search */}
-                    <button
-                      onClick={() => { saveCurrentSearch(); setOpenDropdown(null); setSearchFocused(false); }}
+                    <button onClick={() => { saveCurrentSearch(); setOpenDropdown(null); }}
                       className="w-full flex items-center justify-between gap-2 border border-[#E5E7EB] hover:bg-slate-50 text-slate-600 text-xs font-semibold px-3 py-2 rounded-lg transition-colors cursor-pointer mb-3"
                     >
                       Save current search
@@ -471,16 +503,14 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                     ) : (
                       <div className="space-y-0.5">
                         {savedSearches.map((s, i) => (
-                          <div key={i}
-                            className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 group cursor-pointer"
-                            onClick={() => { loadSavedSearch(s); setOpenDropdown(null); setSearchFocused(false); }}
+                          <div key={i} className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-50 group cursor-pointer"
+                            onClick={() => { loadSavedSearch(s); setOpenDropdown(null); }}
                           >
                             <span className="text-sm text-slate-700 font-medium flex items-center gap-2">
                               <Star size={11} className="text-amber-400 shrink-0" />
                               {s.name}
                             </span>
-                            <button
-                              onClick={e => { e.stopPropagation(); deleteSavedSearch(i); }}
+                            <button onClick={e => { e.stopPropagation(); deleteSavedSearch(i); }}
                               className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition cursor-pointer"
                             ><X size={12} /></button>
                           </div>
@@ -492,10 +522,10 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 </div>
 
                 {/* Footer: clear-all if anything active */}
-                {(hasActiveFacets) && (
+                {hasActiveFacets && (
                   <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-xs text-slate-500">{allFiltersCount} filter{allFiltersCount > 1 ? "s" : ""} active</span>
-                    <button onClick={() => { clearAll(); setOpenDropdown(null); setSearchFocused(false); }}
+                    <button onClick={() => { clearAll(); setOpenDropdown(null); }}
                       className="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors cursor-pointer"
                     >Clear all</button>
                   </div>
@@ -515,8 +545,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                     <div key={key}>
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">{FACET_LABELS[key]}</label>
                       <div className="relative">
-                        <button
-                          onClick={() => setOpenDropdown(openDropdown === `adv-${key}` ? null : `adv-${key}`)}
+                        <button onClick={() => setOpenDropdown(openDropdown === `adv-${key}` ? null : `adv-${key}`)}
                           className="w-full flex items-center justify-between gap-1 text-[11px] sm:text-xs font-semibold px-3 py-2.5 sm:py-2 rounded-lg border border-[#E5E7EB] bg-white hover:bg-slate-50 cursor-pointer text-slate-700"
                         >
                           <span className="truncate">{selected.length > 0 ? selected.join(", ") : `All ${FACET_LABELS[key].toLowerCase()}`}</span>
@@ -525,9 +554,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                         {openDropdown === `adv-${key}` && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 p-2 max-h-48 overflow-y-auto">
                             {options.length === 0 && <p className="text-xs text-slate-400 px-3 py-2">No options</p>}
-                            {options.map(opt => renderCheckItem(
-                              opt.value, selected.includes(opt.value), () => toggleFacet(key, opt.value), opt.count
-                            ))}
+                            {options.map(opt => renderCheckItem(opt.value, selected.includes(opt.value), () => toggleFacet(key, opt.value), opt.count))}
                           </div>
                         )}
                       </div>
@@ -536,7 +563,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 })}
               </div>
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E5E7EB]">
-                <button onClick={() => setShowAdvancedSearch(false)}
+                <button onClick={() => { setShowAdvancedSearch(false); }}
                   className="text-[11px] sm:text-xs font-bold bg-[#0F4C81] hover:bg-blue-950 text-white px-5 sm:px-4 py-2.5 sm:py-2 rounded-lg cursor-pointer transition flex-1 sm:flex-none"
                 >Apply Filters</button>
                 <button onClick={() => { Object.keys(facets).forEach(k => setActiveFacets(prev => ({ ...prev, [k]: [] }))); }}
@@ -547,7 +574,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
           )}
 
           {/* Active filter pills row (below the bar when panel is closed) */}
-          {hasActiveFacets && !searchFocused && openDropdown !== "panel" && (
+          {hasActiveFacets && openDropdown !== "panel" && !showAdvancedSearch && (
             <div className="flex flex-wrap gap-1.5 mt-2 items-center">
               {quickFilters.map(qfId => {
                 const qf = QUICK_FILTERS.find(f => f.id === qfId);
@@ -578,9 +605,9 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
           )}
         </div>
 
-        {/* ── Results info bar ── */}
-        <div className="flex items-center justify-between mb-4 px-1">
-          <p className="text-xs text-slate-500 font-medium">
+        {/* Results info */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
             Showing <span className="font-bold text-slate-700">{(safePage - 1) * PER_PAGE + 1}–{Math.min(safePage * PER_PAGE, sorted.length)}</span> of <span className="font-bold text-slate-700">{sorted.length}</span> vehicles
           </p>
           {groupBy && (
@@ -594,24 +621,22 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         <div>
           {groupBy && grouped ? (
             (Object.entries(grouped) as [string, VehicleListing[]][]).map(([group, cars]) => (
-              <div key={group} className="mb-6 sm:mb-8">
-                <h3 className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2">
-                  <span className="w-1 h-3 sm:h-4 bg-[#0F4C81] rounded-full" />
+              <div key={group} className="mb-8">
+                <h3 className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 bg-[#0F4C81] rounded-full" />
                   {group}
-                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 normal-case">({cars.length})</span>
+                  <span className="text-[10px] font-bold text-slate-400 normal-case">({cars.length})</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
                   {cars.map(car => (
-                    <div key={car.id}>
-                      <CarCard car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
-                    </div>
+                    <CarCard key={car.id} car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
                   ))}
                 </div>
               </div>
             ))
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
                 {paginated.length === 0 && (
                   <div className="col-span-full py-16 sm:py-20 text-center space-y-4">
                     <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
@@ -623,80 +648,53 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                   </div>
                 )}
                 {paginated.map(car => (
-                  <div key={car.id}>
-                    <CarCard car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
-                  </div>
+                  <CarCard key={car.id} car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
                 ))}
               </div>
 
-              {/* ── Redesigned Pagination ── */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="mt-8 mb-2">
-                  {/* Top divider */}
-                  <div className="border-t border-[#E5E7EB] mb-5" />
-
+                  <div className="border-t border-slate-200 mb-5" />
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-
-                    {/* Left: page info */}
                     <p className="text-xs text-slate-500 font-medium order-2 sm:order-1">
                       Page <span className="font-bold text-slate-700">{safePage}</span> of <span className="font-bold text-slate-700">{totalPages}</span>
                     </p>
-
-                    {/* Centre: page buttons */}
                     <div className="flex items-center gap-1 order-1 sm:order-2">
-                      {/* Previous */}
-                      <button
-                        onClick={() => goToPage(safePage - 1)}
-                        disabled={safePage <= 1}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      <button onClick={() => goToPage(safePage - 1)} disabled={safePage <= 1}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                       >
                         <ChevronLeft size={14} /> Prev
                       </button>
-
-                      {/* Page numbers */}
                       <div className="flex items-center gap-1 mx-1">
                         {pageNumbers.map((p, i) =>
                           p === "…" ? (
                             <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-xs text-slate-400 font-bold">…</span>
                           ) : (
-                            <button
-                              key={p}
-                              onClick={() => goToPage(p as number)}
+                            <button key={p} onClick={() => goToPage(p as number)}
                               className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors cursor-pointer ${
                                 p === safePage
                                   ? "bg-[#0F4C81] text-white shadow-md shadow-blue-200"
-                                  : "border border-[#E5E7EB] text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                                  : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                               }`}
                             >{p}</button>
                           )
                         )}
                       </div>
-
-                      {/* Next */}
-                      <button
-                        onClick={() => goToPage(safePage + 1)}
-                        disabled={safePage >= totalPages}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      <button onClick={() => goToPage(safePage + 1)} disabled={safePage >= totalPages}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                       >
                         Next <ChevronRight size={14} />
                       </button>
                     </div>
-
-                    {/* Right: jump to page */}
                     <div className="flex items-center gap-2 order-3 text-xs text-slate-500">
                       <span className="hidden sm:inline font-medium">Go to</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={totalPages}
-                        defaultValue={safePage}
-                        key={safePage}
+                      <input type="number" min={1} max={totalPages} defaultValue={safePage} key={safePage}
                         onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v)) goToPage(v); }}
                         onKeyDown={e => { if (e.key === "Enter") { const v = parseInt((e.target as HTMLInputElement).value); if (!isNaN(v)) goToPage(v); } }}
-                        className="w-12 border border-[#E5E7EB] rounded-lg text-center text-xs font-bold py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0F4C81] text-slate-700"
+                        className="w-12 border border-slate-200 rounded-lg text-center text-xs font-bold py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0F4C81] text-slate-700"
                       />
                     </div>
-
                   </div>
                 </div>
               )}
@@ -715,38 +713,41 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
   onInquireCar: (car: VehicleListing) => void;
 }) {
   return (
-    <div className="bg-white rounded-xl sm:rounded-2xl border border-[#E5E7EB] hover:border-slate-300 hover:shadow-lg transition-all flex flex-col overflow-hidden group">
-      <div className="h-36 sm:h-40 relative bg-slate-100 overflow-hidden">
+    <div className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all flex flex-col overflow-hidden">
+      <div className="relative h-44 sm:h-48 bg-slate-100 overflow-hidden">
         <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-emerald-500 text-white text-[8px] sm:text-[9px] font-black tracking-widest py-0.5 px-1.5 sm:px-2 rounded flex items-center gap-1 shadow-sm uppercase">
+        <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 shadow-sm uppercase">
           <ShieldCheck size={9} />
           <span>Verified</span>
         </div>
         <button onClick={() => setCarFavorites(prev => prev.includes(car.id) ? prev.filter(f => f !== car.id) : [...prev, car.id])}
-          className={`absolute top-2 sm:top-3 right-2 sm:right-3 p-1.5 rounded-full backdrop-blur-md transition-colors cursor-pointer border ${
+          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-colors cursor-pointer border ${
             carFavorites.includes(car.id) ? "bg-rose-500 border-rose-400 text-white" : "bg-white/90 border-slate-200 text-slate-400 hover:text-rose-500"
           }`}
         >
-          <Heart size={12} fill={carFavorites.includes(car.id) ? "currentColor" : "none"} />
+          <Heart size={13} fill={carFavorites.includes(car.id) ? "currentColor" : "none"} />
         </button>
-        {car.model === "RAV4" && <span className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-blue-600 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded shadow-sm">New</span>}
-        {car.model === "Dzire" && <span className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-orange-500 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded shadow-sm">Top Rated</span>}
+        {car.condition === "New" && (
+          <span className="absolute bottom-3 left-3 bg-blue-600 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">New</span>
+        )}
       </div>
-      <div className="p-3 sm:p-4 flex-grow flex flex-col justify-between space-y-2 sm:space-y-3">
-        <div className="space-y-0.5 sm:space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-extrabold text-xs sm:text-sm text-[#111827] truncate">{car.brand} {car.model}</h3>
-            <span className="font-black text-xs sm:text-sm text-[#0F4C81] shrink-0">{Math.round(car.price / 100000) / 10}M ETB</span>
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="font-extrabold text-sm text-slate-900 truncate">{car.brand} {car.model}</h3>
+            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{car.year} &middot; {car.location}</p>
           </div>
-          <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">{car.description}</p>
+          <span className="font-black text-sm text-[#0F4C81] shrink-0 whitespace-nowrap">
+            ETB {car.price >= 1000000 ? `${(car.price / 1000000).toFixed(1)}M` : car.price.toLocaleString()}
+          </span>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 py-1.5 sm:py-2 border-t border-[#E5E7EB] text-[10px] sm:text-[11px] font-semibold text-slate-500">
-          <span className="flex items-center gap-1"><Calendar size={10} className="text-slate-400" /> {car.year}</span>
-          <span className="flex items-center gap-1"><Compass size={10} className="text-slate-400" /> {(car.mileage / 1000).toFixed(0)}k km</span>
-          <span className="flex items-center gap-1 ml-auto"><MapPin size={10} className="text-slate-400" /> {car.location.split(" ")[0]}</span>
+        <div className="flex items-center gap-3 text-xs text-slate-500 py-2 border-t border-slate-100">
+          <span className="flex items-center gap-1"><Compass size={11} /> {((car.mileage || 0) / 1000).toFixed(0)}k km</span>
+          <span className="flex items-center gap-1"><Calendar size={11} /> {car.year}</span>
+          <span className="flex items-center gap-1 ml-auto">{car.transmission}</span>
         </div>
         <button onClick={() => onInquireCar(car)}
-          className="w-full text-center bg-[#0F4C81] hover:bg-blue-950 text-white py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer active:scale-[0.98]"
+          className="w-full text-center bg-[#0F4C81] hover:bg-blue-950 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-[0.98] mt-auto"
         >View Details</button>
       </div>
     </div>
