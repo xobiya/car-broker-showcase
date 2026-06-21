@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { ShieldCheck, Home, LayoutGrid, UserCircle, Info } from "lucide-react";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
+import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -24,7 +24,7 @@ import AdminPanel from "./dashboards/AdminPanel";
 import AdminProfilePage from "./dashboards/AdminProfilePage";
 import NotificationsPage from "./dashboards/NotificationsPage";
 import BrokerProfilePage from "./dashboards/BrokerProfilePage";
-import BuyerDashboard from "./dashboards/BuyerDashboard";
+import BuyerProfilePage from "./dashboards/BuyerProfilePage";
 import SellerDashboard from "./dashboards/SellerDashboard";
 import ChooseRolePage from "./pages/ChooseRolePage";
 import type { VehicleListing, User } from "../../shared/types";
@@ -78,7 +78,7 @@ export default function App() {
     if (user.role === "admin") navigate("/admin");
     else if (user.role === "broker") navigate("/broker-dashboard");
     else if (user.role === "seller") navigate("/seller-dashboard");
-    else navigate("/browse");
+    else navigate("/profile");
   }, [navigate, setUser]);
 
   const handleViewDetails = useCallback((vehicle: VehicleListing) => {
@@ -155,8 +155,8 @@ export default function App() {
                 My Dashboard
               </button>
             )}
-            {(!user || userRole === "buyer" || userRole === "seller") && (
-              <button onClick={() => { if (!user) navigate("/choose-role"); else if (userRole === "seller") addToast("You're already a seller!", "info"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }}
+            {!user && (
+              <button onClick={() => navigate("/choose-role")}
                 className="text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors text-slate-600">
                 Get Started
               </button>
@@ -181,38 +181,36 @@ export default function App() {
             {user ? (
               <div className="relative">
                 <button onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="w-9 h-9 rounded-full bg-blue-900 text-white flex items-center justify-center shadow-sm hover:bg-blue-800 transition cursor-pointer">
-                  <span className="text-sm font-black">{user.name.charAt(0).toUpperCase()}</span>
+                  className="flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-1.5 shadow-sm hover:shadow transition cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-[10px] font-black">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-xs font-bold text-slate-700 hidden sm:block">{user.name.split(" ")[0]}</span>
+                  <ChevronDown size={12} className={`text-slate-400 transition ${profileDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
                 {profileDropdownOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-2 space-y-0.5">
-                      <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                        <p className="text-xs font-bold text-slate-800 truncate">{user.name}</p>
-                        <p className="text-[9px] font-black uppercase tracking-wider text-orange-500">{user.role}</p>
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-slate-100">
+                        <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-500 mt-0.5">{user.role}</p>
                       </div>
-                      <button onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }}
-                        className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer">
-                        Profile
-                      </button>
-                      {(userRole === "broker" || userRole === "seller") && (
-                        <button onClick={() => { navigate(userRole === "broker" ? "/broker-dashboard" : "/seller-dashboard"); setProfileDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer">
-                          My Dashboard
-                        </button>
-                      )}
-                      {userRole === "admin" && (
-                        <button onClick={() => { navigate("/admin"); setProfileDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer">
-                          Admin Panel
-                        </button>
-                      )}
-                      <div className="border-t border-slate-100 mt-1 pt-1">
-                        <button onClick={() => { handleLogout(); setProfileDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition cursor-pointer">
-                          Logout
-                        </button>
+                      <div className="py-1">
+                        {userRole === "buyer" && (
+                          <DropdownItem icon={LayoutDashboard} label="Dashboard" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
+                        )}
+                        {(userRole === "broker" || userRole === "seller") && (
+                          <DropdownItem icon={LayoutDashboard} label="My Dashboard" onClick={() => { navigate(userRole === "broker" ? "/broker-dashboard" : "/seller-dashboard"); setProfileDropdownOpen(false); }} />
+                        )}
+                        {userRole === "admin" && (
+                          <DropdownItem icon={LayoutDashboard} label="Admin Panel" onClick={() => { navigate("/admin"); setProfileDropdownOpen(false); }} />
+                        )}
+                        <DropdownItem icon={UserCircle} label="Profile Settings" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
+                      </div>
+                      <div className="border-t border-slate-100 pt-1">
+                        <DropdownItem icon={LogOut} label="Sign Out" onClick={() => { handleLogout(); setProfileDropdownOpen(false); }} danger />
                       </div>
                     </div>
                   </>
@@ -248,7 +246,7 @@ export default function App() {
               <Route path="/admin" element={<AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} />} />
               <Route path="/admin/profile" element={<AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} />} />
               <Route path="/admin/notifications" element={<NotificationsPage onBack={() => navigate("/admin")} />} />
-              <Route path="/profile" element={user ? <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>} />
+              <Route path="/profile" element={user ? user.role === "buyer" ? <BuyerProfilePage user={user} onNotify={addToast} onViewDetails={handleViewDetails} /> : <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>} />
               <Route path="/about" element={<AboutPage onNotify={addToast} />} />
               <Route path="/contact" element={<ContactPage onNotify={addToast} />} />
               <Route path="/terms" element={<TermsPage onBack={() => navigate("/")} />} />
@@ -256,7 +254,7 @@ export default function App() {
               <Route path="/help" element={<HelpPage onNotify={addToast} />} />
               <Route path="/trust-safety" element={<TrustSafetyPage onBack={() => navigate("/")} />} />
               <Route path="/brokers/:id" element={<BrokerProfilePage brokerId={location.pathname.split("/").pop()!} onBack={() => navigate("/")} onViewDetails={handleViewDetails} />} />
-              <Route path="/my-account" element={user ? <BuyerDashboard currentUser={user} onNotify={addToast} onViewDetails={handleViewDetails} /> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in.</p></div>} />
+              <Route path="/my-account" element={<Navigate to="/profile" replace />} />
               <Route path="/compare" element={<VehicleComparison onNotify={addToast} onViewDetails={handleViewDetails} />} />
             </Routes>
           </motion.div>
@@ -324,7 +322,7 @@ export default function App() {
             <Info size={22} /><span className="text-[9px] font-semibold">About</span>
           </button>
           <button onClick={() => { if (!user) setShowAuthModal(true); else navigate("/profile"); }} className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors min-w-0 ${location.pathname === "/profile" ? "text-[#0F4C81]" : "text-slate-400"}`}>
-            <UserCircle size={22} /><span className="text-[9px] font-semibold">{user ? "Profile" : "Login"}</span>
+            <UserCircle size={22} /><span className="text-[9px] font-semibold">{user ? "Account" : "Login"}</span>
           </button>
         </div>
       )}
@@ -340,6 +338,19 @@ export default function App() {
       <Analytics />
       <SpeedInsights />
     </div>
+  );
+}
+
+function DropdownItem({ icon: Icon, label, onClick, danger }: { icon: any; label: string; onClick: () => void; danger?: boolean }) {
+  return (
+    <button onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
+        danger ? "text-rose-500 hover:bg-rose-50" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+      }`}
+    >
+      <Icon size={15} />
+      {label}
+    </button>
   );
 }
 
