@@ -1,5 +1,6 @@
 import React from "react";
 import { Shield, Phone, Mail, MapPin, Award, Users, Handshake } from "lucide-react";
+import Logo from "../components/ui/Logo";
 
 export default function AboutPage({ onNotify }: { onNotify: (msg: string, type: "success" | "error" | "info") => void }) {
   return (
@@ -7,12 +8,12 @@ export default function AboutPage({ onNotify }: { onNotify: (msg: string, type: 
 
       {/* Hero */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-900 text-white flex items-center justify-center shadow-lg">
-          <Shield size={28} />
+        <div className="flex justify-center">
+          <Logo size="lg" />
         </div>
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight">About Arif Car Sell</h1>
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight">About Us</h1>
         <p className="text-sm text-slate-500 font-medium leading-relaxed">
-          Ethiopia's most trusted digital marketplace for verified vehicles. We connect buyers with reputable brokers, ensuring transparency, quality, and peace of mind in every transaction.
+          Ethiopia's most trusted digital marketplace for verified vehicles. We connect buyers with reputable brokers, ensuring transparency and quality in every transaction.
         </p>
       </div>
 

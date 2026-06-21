@@ -6,6 +6,7 @@ import {
   Bell, LogOut, ChevronRight, Search, RefreshCw
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
+import Logo from "../components/ui/Logo";
 
 const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
 const COLORS = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Gold", "Brown", "Beige", "Orange", "Burgundy", "Navy"];
@@ -544,18 +545,17 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {/* Header / Logo */}
       <div className={`h-20 border-b border-slate-900 flex items-center justify-between px-5 ${sidebarCollapsed ? "justify-center" : ""}`}>
         {!sidebarCollapsed ? (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-              <Shield size={20} className="animate-pulse" />
-            </div>
-            <div>
-              <p className="text-sm font-black text-white uppercase tracking-wider leading-none">Arif Car Sell</p>
-              <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest mt-1 inline-block">Admin Panel</span>
-            </div>
+          <div>
+            <Logo size="sm" inverted />
+            <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest mt-1 inline-block">Admin Panel</span>
           </div>
         ) : (
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 cursor-pointer" onClick={() => setSidebarCollapsed(false)}>
-            <Shield size={20} />
+            <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+              <rect x="2" y="2" width="44" height="44" rx="12" fill="white" fillOpacity="0.2" />
+              <circle cx="24" cy="24" r="8" fill="white" />
+              <path d="M24 18C28.4183 18 32 20.6863 32 24C32 27.3137 28.4183 30 24 30C19.5817 30 16 27.3137 16 24C16 20.6863 19.5817 18 24 18Z" fill="white" />
+            </svg>
           </div>
         )}
         

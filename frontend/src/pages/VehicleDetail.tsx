@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, Phone, MapPin, Star, Compass, Zap, Gauge, Cpu, Users, Car, BadgeCheck, FileText, Video, ClipboardCheck, AlertTriangle, UserCircle, Calendar, Flag, X } from "lucide-react";
+import { ShieldCheck, Phone, MapPin, Star, Compass, Zap, Gauge, Cpu, Users, Car, BadgeCheck, FileText, Video, ClipboardCheck, AlertTriangle, UserCircle, Calendar, Flag, X, Send } from "lucide-react";
 import { VehicleListing, VehicleDocument } from "../../../shared/types";
 import ReportModal from "../components/ui/ReportModal";
 
@@ -159,7 +159,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
       <nav className="text-xs font-semibold text-slate-400 flex items-center space-x-2">
         <button onClick={onBack} className="hover:text-slate-600 transition-colors">Home</button>
         <span>&rsaquo;</span>
-        <button onClick={onBack} className="hover:text-slate-600 transition-colors">Arif Car Sell</button>
+        <button onClick={onBack} className="hover:text-slate-600 transition-colors">Browse</button>
         <span>&rsaquo;</span>
         <span className="text-slate-600">{vehicle.brand} {vehicle.model}</span>
       </nav>
@@ -269,7 +269,7 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-slate-800">{vehicle.brokerName || "Arif Car Sell Broker"}</h3>
+                  <h3 className="font-bold text-sm text-slate-800">{vehicle.brokerName || "Verified Broker"}</h3>
                   {(vehicle as any).brokerVerified && <BadgeCheck size={16} className="text-blue-500" />}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
@@ -297,6 +297,10 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
                   <span>WhatsApp</span>
                 </a>
               )}
+              <a href="https://t.me/+251998119134" target="_blank" rel="noreferrer"
+                className="w-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-sky-200">
+                <Send size={14} /> <span>Telegram</span>
+              </a>
             </div>
 
             {vehicle.inspectionStatus === "passed" && (
@@ -350,10 +354,13 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
       </div>
 
       {vehicle.brokerPhone && (
-        <a href={`tel:${vehicle.brokerPhone}`} className="fixed sm:hidden bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 flex items-center justify-center transition-all active:scale-90">
+        <a href={`tel:${vehicle.brokerPhone}`} className="fixed sm:hidden bottom-32 right-4 z-40 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 flex items-center justify-center transition-all active:scale-90">
           <Phone size={22} />
         </a>
       )}
+      <a href="https://t.me/+251998119134" target="_blank" rel="noreferrer" className="fixed sm:hidden bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/30 flex items-center justify-center transition-all active:scale-90">
+        <Send size={22} />
+      </a>
 
       {showReportModal && (
         <ReportModal

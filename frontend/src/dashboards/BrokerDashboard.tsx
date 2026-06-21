@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { VehicleListing, Lead, Sale, VehicleDocument } from "../../../shared/types";
 import CommissionCalculator from "../components/ui/CommissionCalculator";
+import Logo from "../components/ui/Logo";
 
 // Read the authenticated user stored by AuthModal after login
 const getStoredUser = (): { id: string; name: string; email: string; role: string } | null => {
@@ -557,14 +558,16 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
       <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 bg-white border-r border-slate-200 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
         <div className={`flex items-center ${sidebarCollapsed ? "justify-center p-3" : "justify-between p-4"} border-b border-slate-100`}>
           {sidebarCollapsed ? (
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0">AB</div>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shrink-0">
+              <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="8" fill="white" />
+                <path d="M24 18C28.4183 18 32 20.6863 32 24C32 27.3137 28.4183 30 24 30C19.5817 30 16 27.3137 16 24C16 20.6863 19.5817 18 24 18Z" fill="white" fillOpacity="0.3" />
+              </svg>
+            </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0">AB</div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 leading-none">Arif Car Sell</p>
-                <p className="text-[9px] font-semibold tracking-wider text-indigo-600 uppercase">Broker Portal</p>
-              </div>
+            <div>
+              <Logo size="sm" />
+              <p className="text-[9px] font-semibold tracking-wider text-indigo-600 uppercase mt-0.5">Broker Portal</p>
             </div>
           )}
           <button

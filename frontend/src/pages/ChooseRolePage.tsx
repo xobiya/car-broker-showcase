@@ -1,7 +1,9 @@
 import { Store, Search, BadgePercent, ArrowRight, Shield, Users, Car, Star } from "lucide-react";
+import Logo from "../components/ui/Logo";
 
 interface ChooseRolePageProps {
   onSelectRole: (role: "buyer" | "broker" | "seller") => void;
+  onSignIn?: () => void;
 }
 
 const ROLES = [
@@ -40,30 +42,23 @@ const ROLES = [
   },
 ];
 
-export default function ChooseRolePage({ onSelectRole }: ChooseRolePageProps) {
+export default function ChooseRolePage({ onSelectRole, onSignIn }: ChooseRolePageProps) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-6 h-16 flex items-center">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900 text-white shadow-sm">
-            <Shield size={16} />
-          </div>
-          <span className="text-sm font-black tracking-tight uppercase">Arif Car Sell</span>
-        </div>
-      </div>
-
       {/* Hero */}
-      <div className="bg-gradient-to-b from-blue-950 to-blue-900 text-white py-16 md:py-20 px-6 text-center">
-        <div className="max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-xs font-semibold">
+      <div className="bg-gradient-to-b from-blue-950 to-blue-900 text-white py-12 sm:py-16 md:py-20 px-4 sm:px-6 text-center">
+        <div className="max-w-3xl mx-auto space-y-5 sm:space-y-6">
+          <div className="flex justify-center">
+            <Logo size="lg" inverted />
+          </div>
+          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3 sm:px-4 py-1 rounded-full text-[10px] sm:text-xs font-semibold">
             <Star size={12} />
             Get Started
           </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
             Choose Your Path
           </h1>
-          <p className="text-base text-blue-200/80 max-w-2xl mx-auto font-medium">
+          <p className="text-sm sm:text-base text-blue-200/80 max-w-2xl mx-auto font-medium leading-relaxed px-2">
             Whether you're buying, selling, or brokering — Arif Car Sell gives you the tools you need.
             Select your role to get started.
           </p>
@@ -71,15 +66,15 @@ export default function ChooseRolePage({ onSelectRole }: ChooseRolePageProps) {
       </div>
 
       {/* Role Cards */}
-      <div className="max-w-6xl mx-auto w-full px-6 -mt-8 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+      <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 -mt-6 sm:-mt-8 pb-12 sm:pb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
           {ROLES.map(role => {
             const Icon = role.icon;
             return (
               <div
                 key={role.id}
                 onClick={() => onSelectRole(role.id)}
-                className={`relative bg-white rounded-2xl border-2 border-slate-200 ${role.hover} transition-all duration-200 p-6 md:p-7 flex flex-col cursor-pointer group hover:-translate-y-1 hover:shadow-lg`}
+                className={`relative bg-white rounded-2xl border-2 border-slate-200 ${role.hover} transition-all duration-200 p-5 sm:p-6 md:p-7 flex flex-col cursor-pointer group hover:-translate-y-1 hover:shadow-lg`}
               >
                 {/* Badge */}
                 <div className={`absolute -top-2.5 right-4 ${role.color} text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm`}>
@@ -119,8 +114,15 @@ export default function ChooseRolePage({ onSelectRole }: ChooseRolePageProps) {
         </div>
 
         {/* Bottom text */}
-        <p className="text-center text-xs text-slate-400 font-semibold mt-8">
-          Already have an account? Sign in above to access your dashboard.
+        <p className="text-center text-xs sm:text-sm text-slate-400 font-semibold mt-6 sm:mt-8">
+          Already have an account?{" "}
+          <button
+            onClick={onSignIn}
+            className="text-blue-900 hover:text-orange-500 underline font-bold transition cursor-pointer"
+          >
+            Sign in
+          </button>{" "}
+          to access your dashboard.
         </p>
       </div>
     </div>

@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { Shield, ShieldCheck, Home, LayoutGrid, UserCircle, Info } from "lucide-react";
+import { ShieldCheck, Home, LayoutGrid, UserCircle, Info } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { useStore } from "./store";
 import { useAuth } from "./hooks/useAuth";
 import { authApi, setToken } from "./lib/api";
+import Logo from "./components/ui/Logo";
 import AuthModal from "./components/ui/AuthModal";
 import HomePage from "./pages/HomePage";
 import Showroom from "./pages/Showroom";
@@ -28,7 +29,7 @@ import SellerDashboard from "./dashboards/SellerDashboard";
 import ChooseRolePage from "./pages/ChooseRolePage";
 import type { VehicleListing, User } from "../../shared/types";
 
-const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/seller-dashboard", "/admin", "/admin/profile", "/admin/notifications", "/choose-role"];
+const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/seller-dashboard", "/admin", "/admin/profile", "/admin/notifications"];
 
 function useToast() {
   const toasts = useStore(s => s.toasts);
@@ -125,13 +126,8 @@ export default function App() {
 
       {!fullScreen && (
         <header className="shrink-0 bg-white/95 border-b border-slate-200 h-20 px-6 flex items-center justify-between backdrop-blur-xl sticky top-0 z-35 shadow-sm">
-          <div onClick={() => navigate("/")} className="flex items-center space-x-3 cursor-pointer shrink-0">
-            <div className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-blue-900 text-white shadow-md">
-              <Shield size={18} />
-            </div>
-            <div>
-              <span className="text-sm md:text-base font-black text-slate-900 uppercase tracking-tight font-sans leading-none">Arif Car Sell</span>
-            </div>
+          <div onClick={() => navigate("/")} className="cursor-pointer shrink-0">
+            <Logo />
           </div>
 
           <nav className="hidden md:flex items-center space-x-8">
@@ -162,7 +158,7 @@ export default function App() {
             {(!user || userRole === "buyer" || userRole === "seller") && (
               <button onClick={() => { if (!user) navigate("/choose-role"); else if (userRole === "seller") addToast("You're already a seller!", "info"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }}
                 className="text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors text-slate-600">
-                {userRole === "seller" ? "Sell a Car" : "Become a Broker"}
+                Get Started
               </button>
             )}
             {userRole === "admin" && (
@@ -244,7 +240,7 @@ export default function App() {
           >
             <Routes>
               <Route path="/" element={<HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller") navigate("/seller-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} />} />
-              <Route path="/choose-role" element={<ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} />} />
+              <Route path="/choose-role" element={<ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => { setAuthModalRole("buyer"); setShowAuthModal(true); }} />} />
               <Route path="/browse" element={<div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div>} />
               <Route path="/vehicles/:id" element={<VehicleDetail vehicle={selectedVehicle!} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} />} />
               <Route path="/broker-dashboard" element={<BrokerDashboard onNotify={addToast} onLogout={handleLogout} />} />
@@ -271,10 +267,7 @@ export default function App() {
         <footer className="shrink-0 bg-slate-100 border-t border-slate-200 pt-16 pb-10 px-6 md:px-12 mt-auto">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-16">
             <div className="md:col-span-1 space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900 text-white shadow-sm"><Shield size={16} /></div>
-                <span className="text-base font-black tracking-tight uppercase">Arif Car Sell</span>
-              </div>
+              <Logo size="md" />
               <p className="text-xs text-slate-500 leading-relaxed font-semibold">The leading digital marketplace for high-quality verified vehicles in Ethiopia.</p>
             </div>
             <div className="space-y-6">
