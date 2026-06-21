@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Shield, Check, Users, DollarSign, Award, Star,
   Edit3, Trash2, Plus, Landmark, TrendingUp,
@@ -224,15 +224,60 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
-  const notifications = [
-    { id: "n1", text: "New listing pending approval: Toyota Corolla 2024", time: "5 min ago", unread: true },
-    { id: "n2", text: "Report received: Suspicious activity on listing #V-003", time: "12 min ago", unread: true },
-    { id: "n3", text: "Broker Dawit Mekonnen listed 3 new vehicles", time: "1 hour ago", unread: false },
-    { id: "n4", text: "Commission payout processed: 280,000 ETB", time: "3 hours ago", unread: false },
-    { id: "n5", text: "New buyer inquiry for Hyundai Tucson 2023", time: "5 hours ago", unread: false },
-  ];
+  interface NotificationItem {
+    id: string; type: "listing" | "broker" | "report" | "system" | "inquiry";
+    title: string; description: string; time: string; unread: boolean;
+  }
 
-  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers" | "reports" | "users";
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+
+  const notifications = useMemo(() => {
+    const mins = (m: number) => `${m} min ago`;
+    const hrs = (h: number) => `${h} hour${h > 1 ? "s" : ""} ago`;
+    const items: NotificationItem[] = [
+      ...vehicles.filter(v => v.status === "pending").slice(0, 5).map((v, i) => ({
+        id: `nv-${v.id}`, type: "listing" as const,
+        title: "Pending Listing Approval",
+        description: `${v.brand} ${v.model} (${v.year}) — ${v.price.toLocaleString()} ETB`,
+        time: i === 0 ? mins(5) : i === 1 ? hrs(2) : hrs(6), unread: i < 2,
+      })),
+      ...reports.filter(r => r.status === "pending").slice(0, 3).map((r, i) => ({
+        id: `nr-${r.id}`, type: "report" as const,
+        title: "New Report Submitted",
+        description: `${r.reason} — reported by ${r.reporterName}`,
+        time: i === 0 ? mins(12) : hrs(3), unread: true,
+      })),
+      ...brokers.filter(b => !b.verified).slice(0, 3).map((b, i) => ({
+        id: `nb-${b.id}`, type: "broker" as const,
+        title: "Broker Verification Pending",
+        description: `${b.name} is awaiting verification`,
+        time: i === 0 ? hrs(1) : hrs(8), unread: i === 0,
+      })),
+      ...leads.filter(l => l.status === "new" || l.status === "negotiating").slice(0, 3).map((l, i) => ({
+        id: `nl-${l.id}`, type: "inquiry" as const,
+        title: "New Buyer Inquiry",
+        description: `${l.buyerName || l.buyerEmail} inquired about ${l.vehicleBrand} ${l.vehicleModel}`,
+        time: i === 0 ? mins(30) : hrs(4), unread: i === 0,
+      })),
+    ];
+    if (items.length === 0) {
+      items.push({
+        id: "sys-ok", type: "system", title: "All Clear",
+        description: "No pending notifications at this time.", time: "just now", unread: false,
+      });
+    }
+    items.forEach(n => { if (readIds.has(n.id)) n.unread = false; });
+    return items.filter(n => !dismissedIds.has(n.id));
+  }, [vehicles, reports, brokers, leads, dismissedIds, readIds]);
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+  const markAllRead = () => setReadIds(new Set(notifications.map(n => n.id)));
+  const markRead = (id: string) => setReadIds(prev => new Set([...prev, id]));
+  const clearNotif = (id: string) => setDismissedIds(prev => new Set([...prev, id]));
+  const clearAllNotifs = () => setDismissedIds(new Set(notifications.map(n => n.id)));
+
+  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers" | "reports" | "users" | "notifications";
   const [adminTab, setAdminTab] = useState<AdminTab>("overview");
   const [listingSearch, setListingSearch] = useState("");
   const [listingStatusFilter, setListingStatusFilter] = useState("all");
@@ -532,6 +577,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
   const navItems: { key: AdminTab; label: string; icon: any; badge?: number }[] = [
     { key: "overview", label: "Overview", icon: TrendingUp },
+    { key: "notifications", label: "Notifications", icon: Bell, badge: unreadCount || undefined },
     { key: "listings", label: "Listings", icon: Car, badge: pendingCars || undefined },
     { key: "brokers", label: "Brokers", icon: UserCheck },
     { key: "buyers", label: "Buyers", icon: Users, badge: leads.length || undefined },
@@ -708,6 +754,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               <ChevronRight size={10} />
               <span className="text-slate-600">
                 {adminTab === "overview" && "Overview"}
+                {adminTab === "notifications" && "Notifications"}
                 {adminTab === "listings" && "Listings"}
                 {adminTab === "brokers" && "Brokers"}
                 {adminTab === "buyers" && "Buyers"}
@@ -723,6 +770,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             <div className="min-w-0">
               <h2 className="text-sm font-black text-slate-900 tracking-tight truncate">
                 {adminTab === "overview" && "Dashboard Overview"}
+                {adminTab === "notifications" && "Notification Center"}
                 {adminTab === "listings" && "Vehicle Listings"}
                 {adminTab === "brokers" && "Broker Management"}
                 {adminTab === "buyers" && "Buyer Inquiries"}
@@ -732,6 +780,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               </h2>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest hidden sm:block">
                 {adminTab === "overview" && "Analytics and recent activity"}
+                {adminTab === "notifications" && "System alerts, updates, and activity notifications"}
                 {adminTab === "listings" && "Approve, edit, and manage all vehicles"}
                 {adminTab === "brokers" && "Verify and monitor broker performance"}
                 {adminTab === "buyers" && "Track buyer inquiries and lead status"}
@@ -790,7 +839,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           <div className="flex items-start gap-2.5">
                             <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-blue-600" : "bg-slate-200"}`} />
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-slate-700 font-medium leading-snug">{n.text}</p>
+                              <p className="text-xs text-slate-700 font-bold leading-snug">{n.title}</p>
+                              <p className="text-[10px] text-slate-500 mt-0.5">{n.description}</p>
                               <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{n.time}</p>
                             </div>
                           </div>
@@ -799,7 +849,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     </div>
                     <div className="border-t border-slate-100 p-3 text-center bg-slate-50">
                       <button
-                        onClick={() => { setShowNotifDropdown(false); onNavigate?.("notifications"); }}
+                        onClick={() => { setShowNotifDropdown(false); setAdminTab("notifications"); }}
                         className="text-xs font-bold text-blue-900 hover:text-blue-700 transition cursor-pointer"
                       >
                         View All Notifications →
@@ -880,6 +930,106 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
         )}
 
       {/* ── OVERVIEW TAB ─────────────────────────────────────────────────────── */}
+      {/* ── NOTIFICATIONS TAB ─────────────────────────────────────────────────── */}
+      {adminTab === "notifications" && (
+        <div className="space-y-4">
+          {/* Summary + Actions */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <Bell size={18} className="text-blue-700" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800">Notifications</h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    {notifications.filter(n => n.unread).length} unread · {notifications.length} total
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {notifications.some(n => n.unread) && (
+                  <button onClick={markAllRead}
+                    className="flex items-center gap-1.5 text-xs font-bold text-blue-900 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition cursor-pointer"
+                  >
+                    <Check size={13} /> Mark All Read
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button onClick={clearAllNotifs}
+                    className="flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-lg transition cursor-pointer"
+                  >
+                    <Trash2 size={13} /> Clear All
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Notification List */}
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            {notifications.length === 0 || (notifications.length === 1 && notifications[0].id === "sys-ok") ? (
+              <div className="py-16 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+                  <Check size={20} className="text-emerald-600" />
+                </div>
+                <p className="text-sm font-bold text-slate-700">All caught up!</p>
+                <p className="text-xs text-slate-400">No pending notifications at this time.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {notifications.map(n => {
+                  const typeConfig = {
+                    listing: { icon: Car, bg: "bg-amber-100", color: "text-amber-600" },
+                    broker: { icon: UserCheck, bg: "bg-indigo-100", color: "text-indigo-600" },
+                    report: { icon: Shield, bg: "bg-rose-100", color: "text-rose-600" },
+                    system: { icon: Bell, bg: "bg-blue-100", color: "text-blue-600" },
+                    inquiry: { icon: Users, bg: "bg-teal-100", color: "text-teal-600" },
+                  }[n.type];
+                  const Icon = typeConfig.icon;
+                  return (
+                    <div key={n.id} className={`flex items-start gap-4 px-5 py-4 transition-colors ${n.unread ? "bg-blue-50/50" : "hover:bg-slate-50/50"}`}>
+                      {/* Icon */}
+                      <div className={`w-9 h-9 rounded-xl ${typeConfig.bg} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <Icon size={16} className={typeConfig.color} />
+                      </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          {n.unread && <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />}
+                          <p className={`text-xs ${n.unread ? "font-bold text-slate-900" : "font-semibold text-slate-700"}`}>
+                            {n.title}
+                          </p>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">{n.description}</p>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">{n.time}</p>
+                      </div>
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {n.unread && (
+                          <button onClick={() => markRead(n.id)}
+                            className="p-1.5 rounded-lg hover:bg-blue-100 text-slate-400 hover:text-blue-700 transition cursor-pointer"
+                            title="Mark as read"
+                          >
+                            <Check size={13} />
+                          </button>
+                        )}
+                        <button onClick={() => clearNotif(n.id)}
+                          className="p-1.5 rounded-lg hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                          title="Dismiss"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {adminTab === "overview" && (
         <div className="space-y-6">
           <RevenueChart sales={sales} />
