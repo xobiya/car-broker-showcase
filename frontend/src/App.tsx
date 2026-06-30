@@ -331,6 +331,7 @@ export default function App() {
       {showAuthModal && (
         <AuthModal
           defaultRole={authModalRole}
+          initialTab={authModalTab}
           onClose={() => { setShowAuthModal(false); setAuthModalRole("buyer"); }}
           onSuccess={handleAuthSuccess}
           onNotify={addToast}

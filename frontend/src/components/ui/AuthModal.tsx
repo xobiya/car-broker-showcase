@@ -8,6 +8,7 @@ interface AuthModalProps {
   onSuccess: (user: User) => void;
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
   defaultRole?: "buyer" | "broker" | "seller";
+  initialTab?: "login" | "register";
 }
 
 type AuthTab = "login" | "register";
@@ -19,8 +20,8 @@ const DEMO_ACCOUNTS = [
   { label: "Buyer", email: "dawit.l@gmail.com", color: "text-emerald-600", dot: "bg-emerald-600" },
 ];
 
-export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole }: AuthModalProps) {
-  const [tab, setTab] = useState<AuthTab>(defaultRole ? "register" : "login");
+export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, initialTab }: AuthModalProps) {
+  const [tab, setTab] = useState<AuthTab>(initialTab || (defaultRole ? "register" : "login"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
