@@ -1,0 +1,14 @@
+export const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
+export const LOCATIONS = ["Addis Ababa", "Adama", "Bahir Dar", "Dire Dawa", "Hawassa", "Jimma", "Mekelle", "Gondar", "Debre Zeit", "Shashemene", "Harar", "Dessie"];
+export const COLORS = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Gold", "Brown", "Beige", "Orange", "Burgundy", "Navy"];
+export const FUEL_TYPES = ["Gasoline", "Diesel", "Electric", "Hybrid"];
+export const TRANSMISSIONS = ["Automatic", "Manual"];
+export const DRIVE_TYPES = ["4WD", "AWD", "FWD", "RWD"];
+export const CONDITIONS = ["New", "Used", "Imported", "Damaged"];
+export const BODY_TYPES = ["SUV", "Sedan", "Hatchback", "Pickup", "Truck", "Van", "Coupe", "Convertible"];
+export const ENGINE_TYPES = ["V4", "V6", "V8", "V12", "Electric", "Hybrid"];
+export const DOOR_OPTIONS = [2, 3, 4, 5];
+export const SEAT_OPTIONS = [2, 4, 5, 6, 7, 8];
+export const INQUIRY_STATUSES = ["all", "new", "contacted", "negotiating", "sold", "cancelled"] as const;
+export const LISTING_STATUSES = ["all", "approved", "pending", "sold"] as const;
+export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

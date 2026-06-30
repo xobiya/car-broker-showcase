@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Car, Store, Eye, MessageCircle, TrendingUp, Plus, X, LogOut, ChevronRight,
-  Clock, MapPin, Fuel, Settings, Search, RefreshCw, Trash2, Edit3, Check,
-  Bell, Menu, Star, ShieldCheck, Gauge, DollarSign, Users, Filter
+  Clock, MapPin, Fuel, Settings, Search, RefreshCw, Trash2, Check,
+  Bell, Menu, Star, ShieldCheck, Gauge, DollarSign, Users, Filter, Phone
 } from "lucide-react";
 import type { VehicleListing, Lead } from "../../../shared/types";
+import Combobox from "../components/ui/Combobox";
+import { BRANDS, LOCATIONS, COLORS, FUEL_TYPES, TRANSMISSIONS, DRIVE_TYPES, CONDITIONS, BODY_TYPES, ENGINE_TYPES, DOOR_OPTIONS, SEAT_OPTIONS, INQUIRY_STATUSES, LISTING_STATUSES, MONTHS } from "../lib/constants";
 
 interface SellerDashboardProps {
   currentUser: any;
@@ -12,40 +14,9 @@ interface SellerDashboardProps {
   onLogout: () => void;
 }
 
-const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
-const LOCATIONS = ["Addis Ababa", "Adama", "Bahir Dar", "Dire Dawa", "Hawassa", "Jimma", "Mekelle", "Gondar", "Debre Zeit", "Shashemene", "Harar", "Dessie"];
-
-function Combobox({ value, onChange, options, placeholder }: {
-  value: string; onChange: (v: string) => void; options: string[]; placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState(value);
-  const filtered = options.filter(o => o.toLowerCase().includes(input.toLowerCase()));
-  useEffect(() => { setInput(value); }, [value]);
-  return (
-    <div className="relative">
-      <input type="text" value={input} onChange={e => { setInput(e.target.value); onChange(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 200)} placeholder={placeholder}
-        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-orange-400 focus:bg-white transition"
-      />
-      {open && filtered.length > 0 && (
-        <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-          {filtered.map(o => (
-            <button key={o} type="button" onMouseDown={() => { setInput(o); onChange(o); setOpen(false); }}
-              className={`w-full text-left px-3 py-2 text-xs hover:bg-orange-50 transition cursor-pointer ${o === input ? "bg-orange-50 font-semibold text-orange-700" : "text-slate-700"}`}
-            >{o}</button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 type SellerTab = "listings" | "inquiries" | "activity";
 
 const fmt = (n: number) => n.toLocaleString("en-ET", { maximumFractionDigits: 0 });
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function StatCard({ label, value, icon: Icon, accent, sub }: {
   label: string; value: string | number; icon?: any; accent?: string; sub?: string;
@@ -101,6 +72,16 @@ function ActivityChart({ listings }: { listings: VehicleListing[] }) {
   );
 }
 
+function useScrollLock(locked: boolean) {
+  useEffect(() => {
+    if (locked) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [locked]);
+}
+
 export default function SellerDashboard({ currentUser, onNotify, onLogout }: SellerDashboardProps) {
   const [tab, setTab] = useState<SellerTab>("listings");
   const [listings, setListings] = useState<VehicleListing[]>([]);
@@ -110,6 +91,10 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [inquiryFilter, setInquiryFilter] = useState<string>("all");
+
+  useScrollLock(showAddModal || showDeleteConfirm !== null);
 
   const userId = currentUser?.id;
 
@@ -136,14 +121,25 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
   useEffect(() => { fetchData(); }, [userId]);
 
   const filteredListings = useMemo(() => {
-    if (!searchQuery) return listings;
-    const q = searchQuery.toLowerCase();
-    return listings.filter(v =>
-      `${v.brand} ${v.model}`.toLowerCase().includes(q) ||
-      v.location?.toLowerCase().includes(q) ||
-      v.status?.toLowerCase().includes(q)
-    );
-  }, [listings, searchQuery]);
+    let result = listings;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(v =>
+        `${v.brand} ${v.model}`.toLowerCase().includes(q) ||
+        v.location?.toLowerCase().includes(q) ||
+        v.status?.toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter !== "all") {
+      result = result.filter(v => v.status === statusFilter);
+    }
+    return result;
+  }, [listings, searchQuery, statusFilter]);
+
+  const filteredInquiries = useMemo(() => {
+    if (inquiryFilter === "all") return inquiries;
+    return inquiries.filter(i => i.status === inquiryFilter);
+  }, [inquiries, inquiryFilter]);
 
   const approvedListings = listings.filter(v => v.status === "approved");
   const pendingListings = listings.filter(v => v.status === "pending");
@@ -239,10 +235,8 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
 
   return (
     <div className="flex font-sans text-slate-800 h-screen w-screen overflow-hidden bg-slate-50">
-      {/* Desktop sidebar */}
       <div className="hidden lg:block h-full shrink-0">{sidebar}</div>
 
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
@@ -251,7 +245,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
       )}
 
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Header */}
         <div className="shrink-0 bg-white border-b border-slate-200 px-4 md:px-6 py-0 flex items-center justify-between h-16 shadow-sm">
           <div className="flex items-center gap-3 min-w-0">
             <button onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -283,9 +276,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
           </div>
         </div>
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8">
-          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <StatCard label="Active Listings" value={approvedListings.length} icon={Car} sub={approvedListings.length > 0 ? "Live on marketplace" : undefined} />
             <StatCard label="Pending Review" value={pendingListings.length} icon={Clock} sub={pendingListings.length > 0 ? "Awaiting approval" : undefined} />
@@ -293,7 +284,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
             <StatCard label="Sold" value={soldListings.length} icon={Check} sub={soldListings.length > 0 ? "Completed sales" : undefined} />
           </div>
 
-          {/* ── LISTINGS TAB ── */}
           {tab === "listings" && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
@@ -306,13 +296,13 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    {(["all", "approved", "pending", "sold"] as const).map(st => {
+                    {LISTING_STATUSES.map(st => {
                       const count = st === "all" ? filteredListings.length : filteredListings.filter(v => v.status === st).length;
-                      const active = st === "all" ? !searchQuery : false;
+                      const active = statusFilter === st;
                       return (
-                        <button key={st} onClick={() => {/* filter logic */}}
+                        <button key={st} onClick={() => setStatusFilter(st)}
                           className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition cursor-pointer ${
-                            st === "all" ? "bg-orange-500 text-white shadow-sm" : "bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                            active ? "bg-orange-500 text-white shadow-sm" : "bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                           }`}
                         >{st} <span className="opacity-60">({count})</span></button>
                       );
@@ -340,7 +330,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                   {filteredListings.map(v => (
                     <div key={v.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md transition-all group">
                       <div className="relative h-36 bg-slate-100">
-                        <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <img src={v.imageUrl} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover" />
                         <span className={`absolute top-3 left-3 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-sm ${
                           v.status === "approved" ? "bg-emerald-500 text-white" :
                           v.status === "pending" ? "bg-amber-500 text-white" :
@@ -381,7 +371,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                 </div>
               )}
 
-              {/* Delete confirmation */}
               {showDeleteConfirm && (
                 <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
                   <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
@@ -406,7 +395,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
             </div>
           )}
 
-          {/* ── INQUIRIES TAB ── */}
           {tab === "inquiries" && (
             <div>
               {inquiries.length === 0 ? (
@@ -420,18 +408,19 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-4">
-                    {(["all", "new", "contacted", "negotiating", "sold", "cancelled"] as const).map(st => {
-                      const count = st === "all" ? inquiries.length : inquiries.filter(i => i.status === st).length;
+                    {INQUIRY_STATUSES.map(st => {
+                      const count = st === "all" ? filteredInquiries.length : filteredInquiries.filter(i => i.status === st).length;
+                      const active = inquiryFilter === st;
                       return (
-                        <button key={st}
+                        <button key={st} onClick={() => setInquiryFilter(st)}
                           className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition cursor-pointer ${
-                            st === "all" ? "bg-orange-500 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+                            active ? "bg-orange-500 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
                           }`}
                         >{st} <span className="opacity-60">({count})</span></button>
                       );
                     })}
                   </div>
-                  {inquiries.map(inq => {
+                  {filteredInquiries.map(inq => {
                     const statusColor = {
                       new: "bg-blue-100 text-blue-700 border-blue-200",
                       contacted: "bg-amber-100 text-amber-700 border-amber-200",
@@ -470,12 +459,20 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                           </div>
                         )}
                         <div className="mt-3 flex items-center gap-2 pt-3 border-t border-slate-100">
-                          <button className="flex items-center gap-1 text-[10px] font-bold bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg transition cursor-pointer">
-                            <MessageCircle size={11} /> Reply
-                          </button>
-                          <button className="flex items-center gap-1 text-[10px] font-bold bg-blue-900 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg transition cursor-pointer">
-                            <Check size={11} /> Mark Contacted
-                          </button>
+                          {inq.buyerEmail && (
+                            <a href={`mailto:${inq.buyerEmail}?subject=Inquiry about ${inq.vehicleBrand || "your vehicle"} ${inq.vehicleModel || ""}`}
+                              className="flex items-center gap-1 text-[10px] font-bold bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg transition cursor-pointer no-underline"
+                            >
+                              <MessageCircle size={11} /> Reply via Email
+                            </a>
+                          )}
+                          {inq.buyerPhone && (
+                            <a href={`tel:${inq.buyerPhone}`}
+                              className="flex items-center gap-1 text-[10px] font-bold bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition cursor-pointer no-underline"
+                            >
+                              <Phone size={11} /> Call
+                            </a>
+                          )}
                         </div>
                       </div>
                     );
@@ -485,7 +482,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
             </div>
           )}
 
-          {/* ── ACTIVITY TAB ── */}
           {tab === "activity" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -523,7 +519,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                 </div>
               </div>
 
-              {/* Recent activity timeline */}
               <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100">
                   <h3 className="text-xs font-black text-slate-700 flex items-center gap-2">
@@ -569,7 +564,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
         </div>
       </main>
 
-      {/* Add Listing Modal */}
       {showAddModal && (
         <AddListingModal
           sellerId={userId}
@@ -582,8 +576,6 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
   );
 }
 
-const COLORS = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Gold", "Brown", "Beige", "Orange", "Burgundy", "Navy"];
-
 function AddListingModal({ sellerId, onClose, onCreated, onNotify }: {
   sellerId: string;
   onClose: () => void;
@@ -593,7 +585,7 @@ function AddListingModal({ sellerId, onClose, onCreated, onNotify }: {
   const [form, setForm] = useState({
     brand: "", model: "", year: new Date().getFullYear(), regYear: new Date().getFullYear(),
     price: 0, originalPrice: 0, mileage: 0,
-    fuelType: "Benzine", transmission: "Automatic", driveType: "4WD",
+    fuelType: "Gasoline", transmission: "Automatic", driveType: "4WD",
     location: "Addis Ababa", description: "", color: "", phone: "",
     condition: "Used", bodyType: "SUV",
     doors: 4, seats: 5, engineSize: "", engineType: "V6", horsepower: 0,
@@ -601,6 +593,8 @@ function AddListingModal({ sellerId, onClose, onCreated, onNotify }: {
   });
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  useScrollLock(true);
 
   const handleChange = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -694,14 +688,14 @@ function AddListingModal({ sellerId, onClose, onCreated, onNotify }: {
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Condition</label>
                 <select value={form.condition} onChange={e => handleChange("condition", e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {["New", "Used", "Imported", "Damaged"].map(o => <option key={o}>{o}</option>)}
+                  {CONDITIONS.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Body Type</label>
                 <select value={form.bodyType} onChange={e => handleChange("bodyType", e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {["SUV", "Sedan", "Hatchback", "Pickup", "Truck", "Van", "Coupe", "Convertible"].map(o => <option key={o}>{o}</option>)}
+                  {BODY_TYPES.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
             </div>
@@ -751,21 +745,21 @@ function AddListingModal({ sellerId, onClose, onCreated, onNotify }: {
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Fuel Type</label>
                 <select value={form.fuelType} onChange={e => handleChange("fuelType", e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {["Benzine", "Diesel", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
+                  {FUEL_TYPES.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Transmission</label>
                 <select value={form.transmission} onChange={e => handleChange("transmission", e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {["Automatic", "Manual"].map(o => <option key={o}>{o}</option>)}
+                  {TRANSMISSIONS.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Drive Type</label>
                 <select value={form.driveType} onChange={e => handleChange("driveType", e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {["4WD", "AWD", "FWD", "RWD"].map(o => <option key={o}>{o}</option>)}
+                  {DRIVE_TYPES.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
             </div>
@@ -778,14 +772,14 @@ function AddListingModal({ sellerId, onClose, onCreated, onNotify }: {
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Doors</label>
                 <select value={form.doors} onChange={e => handleChange("doors", parseInt(e.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {[2, 3, 4, 5].map(o => <option key={o} value={o}>{o}</option>)}
+                  {DOOR_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Seats</label>
                 <select value={form.seats} onChange={e => handleChange("seats", parseInt(e.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {[2, 4, 5, 6, 7, 8].map(o => <option key={o} value={o}>{o}</option>)}
+                  {SEAT_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
               <div className="space-y-1">
@@ -799,7 +793,7 @@ function AddListingModal({ sellerId, onClose, onCreated, onNotify }: {
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Engine Type</label>
                 <select value={form.engineType} onChange={e => handleChange("engineType", e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-400">
-                  {["V4", "V6", "V8", "V12", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
+                  {ENGINE_TYPES.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
               <div className="space-y-1">

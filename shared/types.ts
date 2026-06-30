@@ -68,6 +68,7 @@ export interface VehicleListing {
   inspectionDate?: string;
   coverPhotoIndex?: number;
   rejectionReason?: string;
+  createdAt?: string;
 }
 
 export interface VehicleDocument {
