@@ -54,6 +54,7 @@ export default function App() {
   const { logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalRole, setAuthModalRole] = useState<"buyer" | "broker" | "seller">("buyer");
+  const [authModalTab, setAuthModalTab] = useState<"login" | "register">("login");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const { toasts, removeToast } = useToast();
@@ -103,7 +104,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
-      <div className="fixed top-5 right-5 z-50 space-y-2 pointer-events-none w-80 max-w-full">
+      <div className="fixed top-5 right-5 z-[100] space-y-2 pointer-events-none w-80 max-w-full">
         <AnimatePresence>
           {toasts.map(toast => (
             <motion.div
@@ -218,8 +219,8 @@ export default function App() {
               </div>
             ) : (
               <>
-                <button onClick={() => setShowAuthModal(true)} className="text-slate-600 hover:text-slate-900 text-xs font-extrabold cursor-pointer">Login</button>
-                <button onClick={() => setShowAuthModal(true)} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-extrabold hover:shadow-sm transition-all cursor-pointer">Register</button>
+                <button onClick={() => { setAuthModalTab("login"); setShowAuthModal(true); }} className="text-slate-600 hover:text-slate-900 text-xs font-extrabold cursor-pointer">Login</button>
+                <button onClick={() => { setAuthModalTab("register"); setShowAuthModal(true); }} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-extrabold hover:shadow-sm transition-all cursor-pointer">Register</button>
               </>
             )}
           </div>

@@ -707,6 +707,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
 }
 
 function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
+  key?: string;
   car: VehicleListing;
   carFavorites: string[];
   setCarFavorites: React.Dispatch<React.SetStateAction<string[]>>;

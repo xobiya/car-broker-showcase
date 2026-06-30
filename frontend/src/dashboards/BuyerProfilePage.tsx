@@ -612,7 +612,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
   );
 }
 
-function ToggleRow({ checked, onChange, label, desc }: { checked: boolean; onChange: () => void; label: string; desc: string }) {
+function ToggleRow({ checked, onChange, label, desc }: { key?: string; checked: boolean; onChange: () => void; label: string; desc: string }) {
   return (
     <div className="flex items-center justify-between py-2.5">
       <div><p className="text-sm font-semibold text-slate-800">{label}</p><p className="text-xs text-slate-400">{desc}</p></div>
