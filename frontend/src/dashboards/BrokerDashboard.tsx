@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Plus, Trash2, Edit3, Car, TrendingUp, Users, DollarSign,
   Bell, X, Save, Menu, LayoutDashboard, List, MessageSquare,
   Calculator, FileText, ClipboardCheck, Send, AlertTriangle, BarChart3,
-  ChevronDown, ChevronLeft, ChevronRight, Clock, User, Camera,
+  ChevronDown, ChevronLeft, ChevronRight, Clock, User, Camera, Check, CheckCheck,
+  Mail, AlertCircle, CheckCircle2, XCircle,
 } from "lucide-react";
 import { VehicleListing, Lead, Sale, VehicleDocument } from "../../../shared/types";
 import CommissionCalculator from "../components/ui/CommissionCalculator";
@@ -19,7 +21,7 @@ interface BrokerDashboardProps {
   onLogout?: () => void;
 }
 
-type Tab = "dashboard" | "listings" | "leads" | "earnings" | "inspection" | "documents" | "calculator" | "profile";
+type Tab = "dashboard" | "listings" | "leads" | "earnings" | "inspection" | "documents" | "calculator" | "profile" | "notifications";
 
 const fmt = (n: number) => n.toLocaleString("en-ET", { maximumFractionDigits: 0 });
 
@@ -66,6 +68,19 @@ const StatusPill = ({ status }: { status: string }) => {
     </span>
   );
 };
+
+function formatTimeAgo(date: Date): string {
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 const RevenueChart = ({ data }: { data: { label: string; value: number }[] }) => {
   const max = Math.max(...data.map(d => d.value), 1);
@@ -371,6 +386,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "earnings", label: "Earnings", icon: <DollarSign size={16} /> },
   { id: "inspection", label: "Inspections", icon: <ClipboardCheck size={16} /> },
   { id: "documents", label: "Documents", icon: <FileText size={16} /> },
+  { id: "notifications", label: "Notifications", icon: <Bell size={16} /> },
   { id: "calculator", label: "Calculator", icon: <Calculator size={16} /> },
   { id: "profile", label: "Profile", icon: <User size={16} /> },
 ];
@@ -394,6 +410,8 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
   const [docFileData, setDocFileData] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [readNotifs, setReadNotifs] = useState<Set<string>>(new Set());
+  const [notifFilter, setNotifFilter] = useState<"all" | "unread">("all");
 
   const [brokerInfo, setBrokerInfo] = useState<{ id: string; userId: string; name: string; email: string; phone: string; licenseNumber: string; bio: string; avatar: string; verified: boolean; joinDate: string; } | null>(null);
   const [brokerProfile, setBrokerProfile] = useState({ name: "", email: "", phone: "", bio: "", licenseNumber: "", avatar: "" });
@@ -542,6 +560,115 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
     label, value: monthlyData[i] || 0,
   }));
 
+  const notifications = useMemo(() => {
+    const items: Array<{
+      id: string; type: "lead" | "listing_pending" | "listing_approved" | "listing_rejected" | "sale";
+      title: string; description: string; time: Date; relatedId?: string;
+    }> = [];
+
+    leads
+      .filter(l => l.status === "new" || l.status === "contacted")
+      .forEach(l => {
+        items.push({
+          id: `lead-${l.id}`,
+          type: "lead",
+          title: "New Buyer Inquiry",
+          description: `${l.buyerName} is interested in ${l.vehicleBrand} ${l.vehicleModel}`,
+          time: new Date(l.inquiryDate),
+          relatedId: l.vehicleId,
+        });
+      });
+
+    vehicles
+      .filter(v => v.status === "pending" || v.status === "approved" || v.status === "rejected")
+      .forEach(v => {
+        const key = `listing-${v.id}-${v.status}`;
+        if (v.status === "pending") {
+          items.push({
+            id: key,
+            type: "listing_pending",
+            title: "Listing Pending Approval",
+            description: `${v.brand} ${v.model} (${v.year}) is under review`,
+            time: new Date(v.createdAt || Date.now()),
+            relatedId: v.id,
+          });
+        } else if (v.status === "approved") {
+          items.push({
+            id: key,
+            type: "listing_approved",
+            title: "Listing Approved",
+            description: `${v.brand} ${v.model} is now live on the marketplace`,
+            time: new Date(v.createdAt || Date.now()),
+            relatedId: v.id,
+          });
+        } else if (v.status === "rejected") {
+          items.push({
+            id: key,
+            type: "listing_rejected",
+            title: "Listing Rejected",
+            description: `${v.brand} ${v.model} was not approved${v.rejectionReason ? `: ${v.rejectionReason}` : ""}`,
+            time: new Date(v.createdAt || Date.now()),
+            relatedId: v.id,
+          });
+        }
+      });
+
+    sales.forEach(s => {
+      items.push({
+        id: `sale-${s.id}`,
+        type: "sale",
+        title: "Sale Completed",
+        description: `${s.vehicleBrand} ${s.vehicleModel} sold${s.buyerName ? ` to ${s.buyerName}` : ""} — ETB ${fmt(s.salePrice)}`,
+        time: new Date(s.saleDate),
+        relatedId: s.vehicleId,
+      });
+    });
+
+    return items.sort((a, b) => b.time.getTime() - a.time.getTime());
+  }, [leads, vehicles, sales]);
+
+  const markAllRead = () => {
+    setReadNotifs(new Set(notifications.map(n => n.id)));
+  };
+
+  const toggleRead = (id: string) => {
+    setReadNotifs(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearNotifs = () => {
+    setReadNotifs(new Set(notifications.map(n => n.id)));
+  };
+
+  const filteredNotifs = notifFilter === "unread"
+    ? notifications.filter(n => !readNotifs.has(n.id))
+    : notifications;
+
+  const unreadNotifCount = notifications.filter(n => !readNotifs.has(n.id)).length;
+
+  const groupNotifs = (items: typeof notifications) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 86400000);
+    const weekAgo = new Date(today.getTime() - 7 * 86400000);
+    const groups: { label: string; items: typeof items }[] = [];
+    const todayItems = items.filter(n => n.time >= today);
+    const yesterdayItems = items.filter(n => n.time >= yesterday && n.time < today);
+    const weekItems = items.filter(n => n.time >= weekAgo && n.time < yesterday);
+    const olderItems = items.filter(n => n.time < weekAgo);
+    if (todayItems.length) groups.push({ label: "Today", items: todayItems });
+    if (yesterdayItems.length) groups.push({ label: "Yesterday", items: yesterdayItems });
+    if (weekItems.length) groups.push({ label: "This Week", items: weekItems });
+    if (olderItems.length) groups.push({ label: "Earlier", items: olderItems });
+    return groups;
+  };
+
+  const notifGroups = groupNotifs(filteredNotifs);
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center bg-slate-50">
@@ -586,8 +713,24 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                 tab === id ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               }`}
               title={sidebarCollapsed ? label : undefined}>
-              {icon}
-              {!sidebarCollapsed && label}
+              <span className="relative">
+                {icon}
+                {id === "notifications" && unreadNotifCount > 0 && (
+                  <span className={`absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white text-[7px] font-bold rounded-full flex items-center justify-center ${tab === id ? "" : ""}`}>
+                    {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
+                  </span>
+                )}
+              </span>
+              {!sidebarCollapsed && (
+                <span className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="truncate">{label}</span>
+                  {id === "notifications" && unreadNotifCount > 0 && (
+                    <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tab === id ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
+                      {unreadNotifCount}
+                    </span>
+                  )}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -620,9 +763,9 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             <div className="relative">
               <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                 <Bell size={18} />
-                {newLeads.length > 0 && (
+                {unreadNotifCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
-                    {newLeads.length}
+                    {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
                   </span>
                 )}
               </button>
@@ -643,7 +786,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                       )}
                     </div>
                     <div className="px-4 py-2 border-t border-slate-100 bg-slate-50 text-center">
-                      <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer">View All</button>
+                      <button onClick={() => { setNotifOpen(false); setTab("notifications"); }} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer">View All</button>
                     </div>
                   </div>
                 </>
@@ -1183,6 +1326,142 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "notifications" && (
+          <div className="flex-1 overflow-y-auto p-4 md:p-8">
+            <div className="max-w-3xl mx-auto space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-slate-800">Notifications</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {unreadNotifCount > 0
+                      ? `${unreadNotifCount} unread notification${unreadNotifCount !== 1 ? "s" : ""}`
+                      : "All caught up!"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex bg-slate-100 rounded-lg p-0.5">
+                    {(["all", "unread"] as const).map(f => (
+                      <button key={f} onClick={() => setNotifFilter(f)}
+                        className={`px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition cursor-pointer ${
+                          notifFilter === f ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                  {unreadNotifCount > 0 && (
+                    <button onClick={markAllRead}
+                      className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-1.5 rounded-lg transition cursor-pointer"
+                    >
+                      <CheckCheck size={14} /> Mark All Read
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {notifications.length === 0 ? (
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+                  <div className="w-14 h-14 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-4">
+                    <Bell size={24} className="text-indigo-400" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-700">No notifications yet</h3>
+                  <p className="text-xs text-slate-400 mt-1">Activities like inquiries, approvals, and sales will appear here.</p>
+                </div>
+              ) : filteredNotifs.length === 0 ? (
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+                  <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 size={24} className="text-emerald-500" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-700">All caught up!</h3>
+                  <p className="text-xs text-slate-400 mt-1">You have no unread notifications.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {notifGroups.map(group => (
+                    <div key={group.label}>
+                      <div className="flex items-center gap-2.5 mb-3">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{group.label}</span>
+                        <div className="flex-1 h-px bg-slate-100" />
+                        <span className="text-[10px] font-bold text-slate-300">{group.items.length}</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <AnimatePresence initial={false}>
+                          {group.items.map(n => {
+                            const isRead = readNotifs.has(n.id);
+                            const typeConfig = {
+                              lead: { icon: Mail, color: "bg-amber-50 text-amber-600 border-amber-100", dot: "bg-amber-500" },
+                              listing_pending: { icon: Clock, color: "bg-blue-50 text-blue-600 border-blue-100", dot: "bg-blue-500" },
+                              listing_approved: { icon: CheckCircle2, color: "bg-emerald-50 text-emerald-600 border-emerald-100", dot: "bg-emerald-500" },
+                              listing_rejected: { icon: XCircle, color: "bg-red-50 text-red-600 border-red-100", dot: "bg-red-500" },
+                              sale: { icon: DollarSign, color: "bg-indigo-50 text-indigo-600 border-indigo-100", dot: "bg-indigo-500" },
+                            }[n.type];
+                            const Icon = typeConfig.icon;
+                            return (
+                              <motion.div
+                                key={n.id}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                transition={{ duration: 0.2 }}
+                                onClick={() => toggleRead(n.id)}
+                                className={`group relative flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer ${
+                                  isRead
+                                    ? "bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                                    : "bg-indigo-50/40 border-indigo-100/60 hover:border-indigo-200 hover:shadow-sm"
+                                }`}
+                              >
+                                {!isRead && (
+                                  <span className="absolute top-4 left-4 w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5 -ml-0.5" />
+                                )}
+                                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-sm ${typeConfig.color} ${isRead ? "opacity-70" : ""}`}>
+                                  <Icon size={16} />
+                                </div>
+                                <div className="flex-1 min-w-0 pt-0.5">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <h4 className={`text-sm ${isRead ? "font-semibold text-slate-500" : "font-bold text-slate-800"}`}>
+                                      {n.title}
+                                    </h4>
+                                    <span className={`text-[10px] font-medium whitespace-nowrap shrink-0 ${isRead ? "text-slate-300" : "text-slate-400"}`}>
+                                      {formatTimeAgo(n.time)}
+                                    </span>
+                                  </div>
+                                  <p className={`text-xs mt-0.5 leading-relaxed ${isRead ? "text-slate-400" : "text-slate-600"}`}>
+                                    {n.description}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); toggleRead(n.id); }}
+                                  className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer opacity-0 group-hover:opacity-100 ${
+                                    isRead ? "text-slate-300 hover:text-indigo-500 hover:bg-indigo-50" : "text-indigo-400 hover:text-indigo-700 hover:bg-white"
+                                  }`}
+                                  title={isRead ? "Mark as unread" : "Mark as read"}
+                                >
+                                  {isRead ? <X size={13} /> : <Check size={13} />}
+                                </button>
+                              </motion.div>
+                            );
+                          })}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  ))}
+
+                  {notifications.length > 0 && (
+                    <div className="text-center pt-2">
+                      <button onClick={clearNotifs}
+                        className="text-xs font-semibold text-slate-400 hover:text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                      >
+                        Clear All Notifications
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
