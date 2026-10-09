@@ -24,6 +24,9 @@ export async function uploadToCloudinary(
   publicId?: string
 ): Promise<string> {
   if (!process.env.CLOUDINARY_CLOUD_NAME) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Cloudinary storage is unconfigured on this server.");
+    }
     return "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80";
   }
   return new Promise((resolve, reject) => {

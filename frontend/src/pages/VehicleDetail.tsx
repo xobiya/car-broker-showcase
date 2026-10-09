@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, Phone, MapPin, Star, Compass, Zap, Gauge, Cpu, Users, Car, BadgeCheck, FileText, Video, ClipboardCheck, AlertTriangle, UserCircle, Calendar, Flag, X, Send } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { ShieldCheck, Phone, MapPin, Star, Compass, Zap, Gauge, Cpu, Users, Car, BadgeCheck, FileText, Video, ClipboardCheck, AlertTriangle, UserCircle, Calendar, Flag, X, Send, ArrowLeft, Loader2 } from "lucide-react";
 import { VehicleListing, VehicleDocument } from "../../../shared/types";
+import { vehiclesApi } from "../lib/api";
 import ReportModal from "../components/ui/ReportModal";
 
 interface VehicleDetailProps {
-  vehicle: VehicleListing;
+  vehicle?: VehicleListing | null;
   onBack: () => void;
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
   onViewDetails: (vehicle: VehicleListing) => void;
@@ -37,13 +39,17 @@ function getVehicleGallery(vehicle: VehicleListing): string[] {
   return images;
 }
 
-export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails, onViewBrokerProfile }: VehicleDetailProps) {
-  const images = getVehicleGallery(vehicle);
-  const [activeImage, setActiveImage] = useState(images[0]);
+export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotify, onViewDetails, onViewBrokerProfile }: VehicleDetailProps) {
+  const { id: paramId } = useParams<{ id: string }>();
+  const [vehicle, setVehicle] = useState<VehicleListing | null>(initialVehicle || null);
+  const [loading, setLoading] = useState<boolean>(!initialVehicle);
+  const [error, setError] = useState<string | null>(null);
+
+  const [activeImage, setActiveImage] = useState<string>("");
   const [buyerName, setBuyerName] = useState("");
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("+2519");
-  const [inquiryMsg, setInquiryMsg] = useState(`I am interested in this ${vehicle.brand} ${vehicle.model}. Please let me know when I can inspect it.`);
+  const [inquiryMsg, setInquiryMsg] = useState("");
   const [similarVehicles, setSimilarVehicles] = useState<VehicleListing[]>([]);
   const [documents, setDocuments] = useState<VehicleDocument[]>([]);
   const [showVideo, setShowVideo] = useState(false);
@@ -54,28 +60,86 @@ export default function VehicleDetail({ vehicle, onBack, onNotify, onViewDetails
   const [tdPhone, setTdPhone] = useState("+2519");
   const [tdDate, setTdDate] = useState("");
   const [tdTime, setTdTime] = useState("");
-  const [tdMessage, setTdMessage] = useState(`I would like to schedule a test drive for the ${vehicle.brand} ${vehicle.model}.`);
+  const [tdMessage, setTdMessage] = useState("");
 
   useEffect(() => {
+    if (initialVehicle && (!paramId || initialVehicle.id === paramId)) {
+      setVehicle(initialVehicle);
+      setActiveImage(initialVehicle.imageUrl);
+      setInquiryMsg(`I am interested in this ${initialVehicle.brand} ${initialVehicle.model}. Please let me know when I can inspect it.`);
+      setTdMessage(`I would like to schedule a test drive for the ${initialVehicle.brand} ${initialVehicle.model}.`);
+      setLoading(false);
+      return;
+    }
+
+    if (paramId) {
+      setLoading(true);
+      setError(null);
+      vehiclesApi.get(paramId)
+        .then((data) => {
+          setVehicle(data);
+          setActiveImage(data.imageUrl);
+          setInquiryMsg(`I am interested in this ${data.brand} ${data.model}. Please let me know when I can inspect it.`);
+          setTdMessage(`I would like to schedule a test drive for the ${data.brand} ${data.model}.`);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError(err.message || "Vehicle listing not found.");
+          setLoading(false);
+        });
+    }
+  }, [initialVehicle, paramId]);
+
+  useEffect(() => {
+    if (!vehicle) return;
     setActiveImage(vehicle.imageUrl);
+
     const fetchSimilar = async () => {
       try {
-        const res = await fetch("/api/vehicles");
-        if (res.ok) {
-          const all: VehicleListing[] = await res.json();
-          setSimilarVehicles(all.filter(v => v.brand === vehicle.brand && v.id !== vehicle.id && v.status === "approved").slice(0, 4));
-        }
+        const all = await vehiclesApi.list();
+        setSimilarVehicles(all.filter(v => v.brand === vehicle.brand && v.id !== vehicle.id && v.status === "approved").slice(0, 4));
       } catch { /* ignore */ }
     };
+
     const fetchDocs = async () => {
       try {
         const res = await fetch(`/api/documents?vehicleId=${vehicle.id}`);
         if (res.ok) setDocuments(await res.json());
       } catch { /* ignore */ }
     };
+
     fetchSimilar();
     fetchDocs();
   }, [vehicle]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+        <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">Loading vehicle details...</p>
+      </div>
+    );
+  }
+
+  if (error || !vehicle) {
+    return (
+      <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center">
+          <AlertTriangle size={24} />
+        </div>
+        <h2 className="text-lg font-black text-slate-800 tracking-tight">Vehicle Not Found</h2>
+        <p className="text-xs text-slate-500 max-w-md text-center">{error || "This vehicle listing may have been sold or removed."}</p>
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-slate-800 transition cursor-pointer"
+        >
+          <ArrowLeft size={14} /> Back to Showroom
+        </button>
+      </div>
+    );
+  }
+
+  const images = getVehicleGallery(vehicle);
 
   const handleSubmitInquiry = async (e: React.FormEvent) => {
     e.preventDefault();

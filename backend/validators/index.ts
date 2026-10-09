@@ -90,6 +90,17 @@ export const inspectionSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const userUpdateSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").optional(),
+  phone: z.string().optional(),
+  bio: z.string().optional(),
+  avatar: z.string().url("Avatar must be a valid URL").optional().or(z.literal("")),
+});
+
+export const vehicleUpdateSchema = vehicleSchema.partial();
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VehicleInput = z.infer<typeof vehicleSchema>;
+export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+export type VehicleUpdateInput = z.infer<typeof vehicleUpdateSchema>;

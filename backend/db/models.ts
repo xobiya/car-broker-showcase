@@ -73,6 +73,36 @@ const testDriveSchema = new Schema({
   message: String, status: { type: String, default: 'pending' }, requested_at: String,
 });
 
+// Indexes for query performance and data integrity
+brokerSchema.index({ user_id: 1 });
+
+vehicleSchema.index({ status: 1 });
+vehicleSchema.index({ broker_id: 1 });
+vehicleSchema.index({ brand: 1, model: 1 });
+vehicleSchema.index({ price: 1 });
+vehicleSchema.index({ location: 1 });
+
+leadSchema.index({ vehicle_id: 1 });
+leadSchema.index({ status: 1 });
+leadSchema.index({ inquiry_date: -1 });
+
+saleSchema.index({ broker_id: 1 });
+saleSchema.index({ vehicle_id: 1 });
+saleSchema.index({ sale_date: -1 });
+
+auditLogSchema.index({ timestamp: -1 });
+documentSchema.index({ vehicle_id: 1 });
+inspectionSchema.index({ vehicle_id: 1 });
+
+savedVehicleSchema.index({ user_id: 1, vehicle_id: 1 }, { unique: true });
+
+reportSchema.index({ status: 1 });
+reportSchema.index({ created_at: -1 });
+
+paymentSchema.index({ broker_id: 1, status: 1 });
+testDriveSchema.index({ vehicle_id: 1 });
+testDriveSchema.index({ user_id: 1 });
+
 export const UserModel = mongoose.model('User', userSchema, 'users');
 export const BrokerModel = mongoose.model('Broker', brokerSchema, 'brokers');
 export const VehicleModel = mongoose.model('Vehicle', vehicleSchema, 'vehicles');

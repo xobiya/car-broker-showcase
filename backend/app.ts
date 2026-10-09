@@ -16,7 +16,7 @@ import {
 } from "./auth";
 import { validate } from "./middleware/validate";
 import {
-  registerSchema, loginSchema, vehicleSchema, leadSchema,
+  registerSchema, loginSchema, vehicleSchema, vehicleUpdateSchema, userUpdateSchema, leadSchema,
   saleSchema, testDriveSchema, reportSchema, documentSchema, inspectionSchema
 } from "./validators/index";
 import { upload, uploadToCloudinary } from "./services/cloudinary";
@@ -24,6 +24,29 @@ import { sendEmail, notifyNewLead, notifyListingApproved, notifyListingRejected 
 import { getCached, setCache, clearCache } from "./services/cache";
 
 const app = express();
+
+app.set("trust proxy", 1);
+
+// CORS handling
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    process.env.APP_URL,
+    "http://localhost:3000",
+    "http://localhost:5173",
+  ].filter(Boolean) as string[];
+
+  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production")) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // --- Security Middleware ---
 app.use(helmet({
@@ -102,7 +125,7 @@ app.post("/api/auth/register", validate(registerSchema), async (req, res) => {
       return res.status(400).json({ error: "User with this email already exists." });
     }
 
-    const password_hash = hashPassword(password);
+    const password_hash = await hashPassword(password);
     const newUser = await db.addUser({
       name,
       email,
@@ -135,7 +158,7 @@ app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
       return res.status(404).json({ error: "Invalid email or password." });
     }
 
-    const match = comparePassword(password, user.password_hash);
+    const match = await comparePassword(password, user.password_hash);
     if (!match) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
@@ -176,12 +199,12 @@ app.post("/api/auth/change-password", authenticateToken, async (req: Authenticat
       return res.status(404).json({ error: "User not found." });
     }
 
-    const match = comparePassword(currentPassword, user.password_hash);
+    const match = await comparePassword(currentPassword, user.password_hash);
     if (!match) {
       return res.status(401).json({ error: "Current password is incorrect." });
     }
 
-    const password_hash = hashPassword(newPassword);
+    const password_hash = await hashPassword(newPassword);
     await db.updateUser(req.user!.id, { password_hash });
     res.json({ message: "Password changed successfully." });
   } catch (error: any) {
@@ -207,9 +230,13 @@ app.get("/api/auth/me", async (req: AuthenticatedRequest, res) => {
 // --- Vehicles ---
 app.get("/api/vehicles", parseUserOptional, async (req: AuthenticatedRequest, res) => {
   try {
-    const cacheKey = "vehicles_all";
-    const cached = getCached<any[]>(cacheKey);
-    if (cached) return res.json(cached);
+    const isPublicOrBuyer = !req.user || req.user.role === "buyer";
+    const publicCacheKey = "vehicles:public:approved";
+
+    if (isPublicOrBuyer) {
+      const cached = getCached<any[]>(publicCacheKey);
+      if (cached) return res.json(cached);
+    }
 
     const vehicles = await db.getVehicles();
     const brokers = await db.getBrokers();
@@ -217,14 +244,14 @@ app.get("/api/vehicles", parseUserOptional, async (req: AuthenticatedRequest, re
 
     let filteredVehicles = vehicles;
     // Public/Buyers can only see approved and sold vehicles
-    if (!req.user || req.user.role === "buyer") {
+    if (isPublicOrBuyer) {
       filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold");
-    } else if (req.user.role === "broker") {
+    } else if (req.user!.role === "broker") {
       // Brokers see approved, sold, and their own listings
       const broker = brokers.find(b => b.userId === req.user?.id);
       const brokerId = broker ? broker.id : null;
       filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold" || v.brokerId === brokerId);
-    } else if (req.user.role === "seller") {
+    } else if (req.user!.role === "seller") {
       // Sellers see approved, sold, and their own listings
       filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold" || v.brokerId === req.user!.id);
     }
@@ -253,8 +280,50 @@ app.get("/api/vehicles", parseUserOptional, async (req: AuthenticatedRequest, re
       return item;
     });
 
-    setCache(cacheKey, enriched, 120);
+    if (isPublicOrBuyer) {
+      setCache(publicCacheKey, enriched, 120);
+    }
+
     res.json(enriched);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/vehicles/:id", parseUserOptional, async (req: AuthenticatedRequest, res) => {
+  try {
+    const v = await db.getVehicleById(req.params.id);
+    if (!v) return res.status(404).json({ error: "Vehicle not found" });
+
+    const brokers = await db.getBrokers();
+    const users = await db.getUsers();
+
+    const broker = brokers.find(b => b.id === v.brokerId);
+    const sellerUser = broker ? null : users.find(u => u.id === v.brokerId && u.role === "seller");
+    const user = broker ? users.find(u => u.id === broker.userId) : sellerUser || null;
+    const isOwner = req.user && (broker ? broker.userId === req.user.id : v.brokerId === req.user.id);
+    const isAdmin = req.user && req.user.role === "admin";
+
+    // Non-owner/non-admin public users can only view approved or sold vehicles
+    if (!isOwner && !isAdmin && v.status !== "approved" && v.status !== "sold") {
+      return res.status(404).json({ error: "Vehicle not found" });
+    }
+
+    const item: any = {
+      ...v,
+      brokerName: user?.name || "Unknown Broker",
+      brokerPhone: user?.phone || "",
+      brokerLicense: broker?.licenseNumber || "",
+      brokerVerified: broker?.verified || false,
+    };
+
+    if (!isOwner && !isAdmin) {
+      delete item.chassisNumber;
+      delete item.commissionRate;
+      delete item.rejectionReason;
+    }
+
+    res.json(item);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -325,16 +394,33 @@ const verifyVehicleOwnership = async (vehicleId: string, reqUser: any) => {
   return broker && broker.userId === reqUser.id;
 };
 
-app.put("/api/vehicles/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.put("/api/vehicles/:id", authenticateToken, validate(vehicleUpdateSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const isOwnerOrAdmin = await verifyVehicleOwnership(req.params.id, req.user!);
     if (!isOwnerOrAdmin) {
       return res.status(403).json({ error: "Access denied. You do not own this vehicle listing." });
     }
 
-    const success = await db.updateVehicle(req.params.id, req.body);
-    if (success) res.json({ message: "Vehicle updated successfully" });
-    else res.status(404).json({ error: "Vehicle not found" });
+    const updates = { ...req.body };
+    // Non-admins cannot alter system approval status, rejection reasons, or broker assignment
+    if (req.user!.role !== "admin") {
+      delete updates.status;
+      delete updates.rejection_reason;
+      delete updates.rejectionReason;
+      delete updates.broker_id;
+      delete updates.brokerId;
+      delete updates.inspection_status;
+      delete updates.inspection_notes;
+      delete updates.inspection_date;
+    }
+
+    const success = await db.updateVehicle(req.params.id, updates);
+    if (success) {
+      clearCache("vehicles");
+      res.json({ message: "Vehicle updated successfully" });
+    } else {
+      res.status(404).json({ error: "Vehicle not found" });
+    }
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -348,8 +434,12 @@ app.delete("/api/vehicles/:id", authenticateToken, async (req: AuthenticatedRequ
     }
 
     const success = await db.deleteVehicle(req.params.id);
-    if (success) res.json({ message: "Vehicle deleted successfully" });
-    else res.status(404).json({ error: "Vehicle not found" });
+    if (success) {
+      clearCache("vehicles");
+      res.json({ message: "Vehicle deleted successfully" });
+    } else {
+      res.status(404).json({ error: "Vehicle not found" });
+    }
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -588,9 +678,19 @@ app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), vali
 });
 
 // --- Payments & Commissions ---
-app.get("/api/payments", authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.get("/api/payments", authenticateToken, requireRole(["broker", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
-    const brokerId = req.query.brokerId as string | undefined;
+    let brokerId: string | undefined;
+    if (req.user!.role === "broker") {
+      const brokers = await db.getBrokers();
+      const me = brokers.find(b => b.userId === req.user!.id);
+      if (!me) {
+        return res.status(403).json({ error: "Broker profile not found." });
+      }
+      brokerId = me.id;
+    } else {
+      brokerId = req.query.brokerId as string | undefined;
+    }
     const payments = await db.getPayments(brokerId);
     res.json(payments);
   } catch (error: any) {
@@ -674,7 +774,14 @@ app.put("/api/brokers/:id", authenticateToken, async (req: AuthenticatedRequest,
       return res.status(403).json({ error: "Access denied. You cannot modify another broker's profile." });
     }
 
-    const success = await db.updateBroker(req.params.id, req.body);
+    const updates = { ...req.body };
+    if (req.user!.role !== "admin") {
+      delete updates.verified;
+      delete updates.userId;
+      delete updates.id;
+    }
+
+    const success = await db.updateBroker(req.params.id, updates);
     res.json({ success });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -744,9 +851,22 @@ app.get("/api/users/:id", authenticateToken, requireSelfOrAdmin("id"), async (re
   }
 });
 
-app.put("/api/users/:id", authenticateToken, requireSelfOrAdmin("id"), async (req, res) => {
+app.put("/api/users/:id", authenticateToken, requireSelfOrAdmin("id"), validate(userUpdateSchema), async (req: AuthenticatedRequest, res) => {
   try {
-    const success = await db.updateUser(req.params.id, req.body);
+    const allowedUpdates: Record<string, any> = {};
+    if (req.body.name !== undefined) allowedUpdates.name = req.body.name;
+    if (req.body.phone !== undefined) allowedUpdates.phone = req.body.phone;
+    if (req.body.bio !== undefined) allowedUpdates.bio = req.body.bio;
+    if (req.body.avatar !== undefined) allowedUpdates.avatar = req.body.avatar;
+
+    // Only administrative accounts can alter role or verification status
+    if (req.user!.role === "admin") {
+      if (req.body.role !== undefined) allowedUpdates.role = req.body.role;
+      if (req.body.verified !== undefined) allowedUpdates.verified = req.body.verified;
+      if (req.body.verification_status !== undefined) allowedUpdates.verification_status = req.body.verification_status;
+    }
+
+    const success = await db.updateUser(req.params.id, allowedUpdates);
     if (success) {
       const u = await db.getUserById(req.params.id);
       const { password_hash: _, ...userWithoutPassword } = u as any;
@@ -1099,6 +1219,19 @@ app.put("/api/reports/:id/status", authenticateToken, requireRole(["admin"]), as
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Centralized Error Handling Middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(`[Unhandled Error] ${req.method} ${req.path}:`, err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  const status = err.status || err.statusCode || 500;
+  const message = process.env.NODE_ENV === "production" && status === 500
+    ? "Internal Server Error"
+    : err.message || "An unexpected error occurred";
+  res.status(status).json({ error: message });
 });
 
 export default app;

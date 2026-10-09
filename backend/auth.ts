@@ -4,16 +4,19 @@ import jwt from "jsonwebtoken";
 import { User } from "../shared/types";
 
 const DEFAULT_DEV_SECRET = "super-secret-dev-key-for-autobroker-ethiopia";
-const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_DEV_SECRET;
 
-// Warn loudly in production if using the insecure default secret
-if (process.env.NODE_ENV === "production" && JWT_SECRET === DEFAULT_DEV_SECRET) {
-  console.error(
-    "\n⚠️  SECURITY WARNING: JWT_SECRET is not set. " +
-    "The application is using an insecure default key in production. " +
-    "Set JWT_SECRET in your environment variables immediately!\n"
-  );
+// Fatal error in production if using insecure or missing secret
+if (process.env.NODE_ENV === "production") {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret === DEFAULT_DEV_SECRET || secret.length < 32) {
+    console.error(
+      "\n❌ FATAL SECURITY ERROR: JWT_SECRET must be set to a secure, random string (at least 32 characters) in production.\n"
+    );
+    process.exit(1);
+  }
 }
+
+const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_DEV_SECRET;
 
 // Request extension to hold authenticated user info
 export interface AuthenticatedRequest extends Request {
@@ -25,12 +28,12 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export function hashPassword(password: string): string {
-  return bcrypt.hashSync(password, 10);
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 10);
 }
 
-export function comparePassword(password: string, hash: string): boolean {
-  return bcrypt.compareSync(password, hash);
+export async function comparePassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
 }
 
 export function generateToken(user: User): string {

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, type ReactNode } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -39,6 +39,26 @@ function useToast() {
 
 function isFullScreenRoute(path: string) {
   return FULL_SCREEN_ROUTES.some(r => path.startsWith(r));
+}
+
+interface ProtectedRouteProps {
+  children: ReactNode;
+  allowedRoles?: Array<"buyer" | "broker" | "seller" | "admin">;
+}
+
+function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const user = useStore(s => s.user);
+  const isAuthenticated = useStore(s => s.isAuthenticated);
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/choose-role" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -241,12 +261,12 @@ export default function App() {
               <Route path="/" element={<HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller") navigate("/seller-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} />} />
               <Route path="/choose-role" element={<ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => { setAuthModalRole("buyer"); setShowAuthModal(true); }} />} />
               <Route path="/browse" element={<div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div>} />
-              <Route path="/vehicles/:id" element={<VehicleDetail vehicle={selectedVehicle!} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} />} />
-              <Route path="/broker-dashboard" element={<BrokerDashboard onNotify={addToast} onLogout={handleLogout} />} />
-              <Route path="/seller-dashboard" element={<SellerDashboard currentUser={user} onNotify={addToast} onLogout={handleLogout} />} />
-              <Route path="/admin" element={<AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} />} />
-              <Route path="/admin/profile" element={<AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} />} />
-              <Route path="/admin/notifications" element={<NotificationsPage onBack={() => navigate("/admin")} />} />
+              <Route path="/vehicles/:id" element={<VehicleDetail vehicle={selectedVehicle} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} />} />
+              <Route path="/broker-dashboard" element={<ProtectedRoute allowedRoles={["broker", "admin"]}><BrokerDashboard onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
+              <Route path="/seller-dashboard" element={<ProtectedRoute allowedRoles={["seller", "admin"]}><SellerDashboard currentUser={user} onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} /></ProtectedRoute>} />
+              <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} /></ProtectedRoute>} />
+              <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationsPage onBack={() => navigate("/admin")} /></ProtectedRoute>} />
               <Route path="/profile" element={user ? user.role === "buyer" ? <BuyerProfilePage user={user} onNotify={addToast} onViewDetails={handleViewDetails} /> : <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>} />
               <Route path="/about" element={<AboutPage onNotify={addToast} />} />
               <Route path="/contact" element={<ContactPage onNotify={addToast} />} />

@@ -75,6 +75,7 @@ export const authApi = {
 
 export const vehiclesApi = {
   list: () => api.get<VehicleListing[]>("/api/vehicles"),
+  get: (id: string) => api.get<VehicleListing>(`/api/vehicles/${id}`),
   create: (data: Record<string, unknown>) => api.post<VehicleListing>("/api/vehicles", data),
   update: (id: string, data: Record<string, unknown>) => api.put<{ message: string }>(`/api/vehicles/${id}`, data),
   delete: (id: string) => api.delete<{ message: string }>(`/api/vehicles/${id}`),

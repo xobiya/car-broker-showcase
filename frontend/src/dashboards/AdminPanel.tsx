@@ -6,6 +6,7 @@ import {
   Bell, LogOut, ChevronRight, Search, RefreshCw
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
+import { vehiclesApi, brokersApi, leadsApi, salesApi, reportsApi, usersApi } from "../lib/api";
 import Logo from "../components/ui/Logo";
 
 const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
@@ -327,25 +328,15 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   // Image upload state
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
-  const safeFetch = async (url: string) => {
-    try {
-      const token = localStorage.getItem("autobroker_token");
-      const headers: Record<string, string> = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-      const res = await fetch(url, { headers });
-      return res.ok ? await res.json() : null;
-    } catch { return null; }
-  };
-
   const fetchData = async () => {
     setLoading(true);
     const [vehiclesData, salesData, leadsData, reportsData, brokersData, usersData] = await Promise.all([
-      safeFetch("/api/vehicles"),
-      safeFetch("/api/sales"),
-      safeFetch("/api/leads"),
-      safeFetch("/api/reports"),
-      safeFetch("/api/brokers"),
-      safeFetch("/api/users"),
+      vehiclesApi.list().catch(() => null),
+      salesApi.list().catch(() => null),
+      leadsApi.list().catch(() => null),
+      reportsApi.list().catch(() => null),
+      brokersApi.list().catch(() => null),
+      usersApi.list().catch(() => null),
     ]);
     if (vehiclesData) setVehicles(vehiclesData);
     if (salesData) setSales(salesData);
@@ -381,115 +372,77 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
   const handleApprove = async (id: string) => {
     try {
-      const res = await fetch(`/api/vehicles/${id}/approve`, { method: "PUT" });
-      if (res.ok) { onNotify("Listing approved & published.", "success"); fetchData(); }
-      else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error approving listing.", "error");
-      }
-    } catch { onNotify("Network error approving listing.", "error"); }
+      await vehiclesApi.approve(id);
+      onNotify("Listing approved & published.", "success");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err?.message || "Error approving listing.", "error");
+    }
   };
 
   const handleMarkSold = async (id: string) => {
     try {
-      const res = await fetch(`/api/vehicles/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "sold" })
-      });
-      if (res.ok) { onNotify("Vehicle marked as sold.", "success"); fetchData(); }
-      else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error updating vehicle.", "error");
-      }
-    } catch { onNotify("Network error.", "error"); }
+      await vehiclesApi.update(id, { status: "sold" });
+      onNotify("Vehicle marked as sold.", "success");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err?.message || "Error updating vehicle.", "error");
+    }
   };
 
   const handleReject = async (id: string) => {
     try {
-      const res = await fetch(`/api/vehicles/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "pending" })
-      });
-      if (res.ok) { onNotify("Listing returned to pending review.", "info"); fetchData(); }
-      else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error updating listing.", "error");
-      }
-    } catch { onNotify("Network error.", "error"); }
-  };
-
-  const getAuthHeader = () => {
-    const token = localStorage.getItem("autobroker_token");
-    return token ? { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+      await vehiclesApi.update(id, { status: "pending" });
+      onNotify("Listing returned to pending review.", "info");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err?.message || "Error updating listing.", "error");
+    }
   };
 
   const handleBrokerApprove = async (brokerId: string) => {
     try {
-      const res = await fetch(`/api/brokers/${brokerId}/approve`, {
-        method: "PUT",
-        headers: getAuthHeader(),
-      });
-      if (res.ok) {
-        onNotify("Broker approved and verified!", "success");
-        fetchData();
-        if (selectedBroker?.id === brokerId) setSelectedBroker({ ...selectedBroker, verified: true });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error approving broker.", "error");
-      }
-    } catch { onNotify("Network error.", "error"); }
+      await brokersApi.approve(brokerId);
+      onNotify("Broker approved and verified!", "success");
+      fetchData();
+      if (selectedBroker?.id === brokerId) setSelectedBroker({ ...selectedBroker, verified: true });
+    } catch (err: any) {
+      onNotify(err?.message || "Error approving broker.", "error");
+    }
   };
 
   const handleBrokerReject = async (brokerId: string) => {
     try {
-      const res = await fetch(`/api/brokers/${brokerId}/reject`, {
-        method: "PUT",
-        headers: getAuthHeader(),
-      });
-      if (res.ok) {
-        onNotify("Broker verification revoked.", "info");
-        fetchData();
-        if (selectedBroker?.id === brokerId) setSelectedBroker({ ...selectedBroker, verified: false });
-      } else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error revoking broker.", "error");
-      }
-    } catch { onNotify("Network error.", "error"); }
+      await brokersApi.reject(brokerId);
+      onNotify("Broker verification revoked.", "info");
+      fetchData();
+      if (selectedBroker?.id === brokerId) setSelectedBroker({ ...selectedBroker, verified: false });
+    } catch (err: any) {
+      onNotify(err?.message || "Error revoking broker.", "error");
+    }
   };
 
   const handleRejectListing = async (id: string) => {
     const reason = prompt("Please enter the reason for rejecting this listing:");
     if (reason === null) return; // user cancelled
     try {
-      const res = await fetch(`/api/vehicles/${id}/reject`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason })
-      });
-      if (res.ok) {
-        onNotify("Listing rejected.", "info");
-        fetchData();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error rejecting listing.", "error");
-      }
-    } catch {
-      onNotify("Network error rejecting listing.", "error");
+      await vehiclesApi.reject(id, reason);
+      onNotify("Listing rejected.", "info");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err?.message || "Error rejecting listing.", "error");
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Permanently delete this listing?")) return;
     try {
-      const res = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
-      if (res.ok) { onNotify("Listing deleted.", "success"); fetchData(); }
-      else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error deleting listing.", "error");
-      }
-    } catch { onNotify("Network error.", "error"); }
+      await vehiclesApi.delete(id);
+      onNotify("Listing deleted.", "success");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err?.message || "Error deleting listing.", "error");
+    }
   };
 
   const clearForm = () => {
@@ -529,29 +482,28 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
     e.preventDefault();
     try {
       const primaryImage = uploadedImages.length > 0 ? uploadedImages[0] : imageUrl;
-      const payload = {
+      const payload: Record<string, unknown> = {
         brand, model, year, registration_year: regYear, mileage, price,
         original_price: originalPrice || price, image_url: primaryImage, description,
-        gallery_images: uploadedImages.length > 0 ? JSON.stringify(uploadedImages) : undefined,
+        gallery_images: uploadedImages.length > 1 ? JSON.stringify(uploadedImages) : undefined,
         fuel_type: fuelType, transmission, location, status,
         is_featured: isFeatured, condition, body_type: bodyType, drive_type: driveType,
         color, doors, seats, engine_size: engineSize, engine_type: engineType,
         horsepower, chassis_number: chassisNumber, commission_rate: commissionRate,
         commission_type: commissionType, admin_notes: adminNotes,
       };
-      const url = editingVehicle ? `/api/vehicles/${editingVehicle.id}` : "/api/vehicles";
-      const method = editingVehicle ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        onNotify(editingVehicle ? "Vehicle updated!" : "New vehicle created!", "success");
-        setShowFormModal(false);
-        fetchData();
+      if (editingVehicle) {
+        await vehiclesApi.update(editingVehicle.id, payload);
+        onNotify("Vehicle updated!", "success");
       } else {
-        onNotify("Error saving listing.", "error");
+        await vehiclesApi.create(payload);
+        onNotify("New vehicle created!", "success");
       }
-    } catch { onNotify("Connection error.", "error"); }
+      setShowFormModal(false);
+      fetchData();
+    } catch (err: any) {
+      onNotify(err?.message || "Error saving listing.", "error");
+    }
   };
 
   const totalCars = vehicles.length;
@@ -1589,12 +1541,13 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                         {r.status === "pending" && (
                           <button
                             onClick={async () => {
-                              await fetch(`/api/reports/${r.id}/status`, {
-                                method: "PUT",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ status: "reviewed" }),
-                              });
-                              fetchData();
+                              try {
+                                await reportsApi.updateStatus(r.id, "reviewed");
+                                onNotify("Report marked as reviewed", "info");
+                                fetchData();
+                              } catch (err: any) {
+                                onNotify(err?.message || "Failed to update report", "error");
+                              }
                             }}
                             className="bg-blue-900 hover:bg-blue-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"
                           >Mark Reviewed</button>
@@ -1603,23 +1556,25 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           <>
                             <button
                               onClick={async () => {
-                                await fetch(`/api/reports/${r.id}/status`, {
-                                  method: "PUT",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ status: "resolved" }),
-                                });
-                                fetchData();
+                                try {
+                                  await reportsApi.updateStatus(r.id, "resolved");
+                                  onNotify("Report marked as resolved", "success");
+                                  fetchData();
+                                } catch (err: any) {
+                                  onNotify(err?.message || "Failed to resolve report", "error");
+                                }
                               }}
                               className="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"
                             >Resolve</button>
                             <button
                               onClick={async () => {
-                                await fetch(`/api/reports/${r.id}/status`, {
-                                  method: "PUT",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ status: "dismissed" }),
-                                });
-                                fetchData();
+                                try {
+                                  await reportsApi.updateStatus(r.id, "dismissed");
+                                  onNotify("Report dismissed", "info");
+                                  fetchData();
+                                } catch (err: any) {
+                                  onNotify(err?.message || "Failed to dismiss report", "error");
+                                }
                               }}
                               className="border border-slate-200 hover:bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"
                             >Dismiss</button>

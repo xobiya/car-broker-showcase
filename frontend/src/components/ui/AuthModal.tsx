@@ -249,9 +249,9 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
           </div>
         </div>
 
-        {tab === "login" && (
+        {(import.meta as any).env?.DEV && tab === "login" && (
           <div className="border-t border-slate-100 bg-slate-50/50 px-5 sm:px-7 py-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Quick Demo Access</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Quick Demo Access (Dev Only)</p>
             <div className="space-y-1.5">
               {DEMO_ACCOUNTS.map(({ label, email: demoEmail, color, dot }) => (
                 <button

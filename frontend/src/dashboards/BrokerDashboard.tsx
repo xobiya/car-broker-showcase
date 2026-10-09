@@ -8,6 +8,7 @@ import {
   Mail, AlertCircle, CheckCircle2, XCircle,
 } from "lucide-react";
 import { VehicleListing, Lead, Sale, VehicleDocument } from "../../../shared/types";
+import { api, vehiclesApi, leadsApi, salesApi, brokersApi } from "../lib/api";
 import CommissionCalculator from "../components/ui/CommissionCalculator";
 import Logo from "../components/ui/Logo";
 
@@ -422,12 +423,11 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
 
   const fetchData = async () => {
     setLoading(true);
-    const safeFetch = async (url: string) => { try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch { return null; } };
     const [allV, allL, allS, allBrokers] = await Promise.all([
-      safeFetch("/api/vehicles"),
-      safeFetch("/api/leads"),
-      safeFetch("/api/sales"),
-      safeFetch("/api/brokers"),
+      vehiclesApi.list().catch(() => []),
+      leadsApi.list().catch(() => []),
+      salesApi.list().catch(() => []),
+      brokersApi.list().catch(() => []),
     ]);
 
     // Match the broker record to the current logged-in user
@@ -463,7 +463,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
   const handleSave = async (f: any) => {
     if (!brokerInfo) { onNotify("Broker profile not found. Please ensure your account is fully set up.", "error"); return; }
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         broker_id: brokerInfo.id, brand: f.brand, model: f.model, year: f.year,
         registration_year: f.registrationYear || f.year, mileage: f.mileage, price: f.price,
         original_price: f.originalPrice || f.price,
@@ -475,69 +475,87 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         horsepower: f.horsepower, chassis_number: f.chassisNumber, commission_rate: f.commissionRate,
         commission_type: f.commissionType, video_url: f.videoUrl,
       };
-      const res = editingVehicle
-        ? await fetch(`/api/vehicles/${editingVehicle.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-        : await fetch("/api/vehicles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      if (res.ok) {
-        onNotify(editingVehicle ? "Listing updated!" : "Listing saved as draft!", "success");
-        setShowForm(false); setEditingVehicle(null); fetchData();
+      if (editingVehicle) {
+        await vehiclesApi.update(editingVehicle.id, payload);
       } else {
-        const err = await res.json().catch(() => ({}));
-        onNotify(err.error || "Error saving listing.", "error");
+        await vehiclesApi.create(payload);
       }
-    } catch { onNotify("Network error.", "error"); }
+      onNotify(editingVehicle ? "Listing updated!" : "Listing saved as draft!", "success");
+      setShowForm(false); setEditingVehicle(null); fetchData();
+    } catch (err: any) {
+      onNotify(err.message || "Error saving listing.", "error");
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this listing?")) return;
     try {
-      const res = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
-      if (res.ok) { onNotify("Listing removed.", "success"); fetchData(); }
-      else onNotify("Failed to delete.", "error");
-    } catch { onNotify("Error deleting.", "error"); }
+      await vehiclesApi.delete(id);
+      onNotify("Listing removed.", "success");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err.message || "Error deleting listing.", "error");
+    }
   };
 
   const handleSubmitForApproval = async (id: string) => {
     try {
-      const res = await fetch(`/api/vehicles/${id}/submit`, { method: "PUT" });
-      if (res.ok) { onNotify("Submitted for admin approval!", "success"); fetchData(); }
-      else onNotify("Failed to submit.", "error");
-    } catch { onNotify("Error submitting.", "error"); }
+      await vehiclesApi.submit(id);
+      onNotify("Submitted for admin approval!", "success");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err.message || "Error submitting listing.", "error");
+    }
   };
 
   const handleLeadStatus = async (id: string, status: Lead["status"]) => {
     try {
-      const res = await fetch(`/api/leads/${id}/status`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
-      if (res.ok) { onNotify(`Lead marked as ${status}.`, "success"); fetchData(); }
-    } catch { onNotify("Failed to update lead.", "error"); }
+      await leadsApi.updateStatus(id, status);
+      onNotify(`Lead marked as ${status}.`, "success");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err.message || "Failed to update lead status.", "error");
+    }
   };
 
   const handleRecordSale = async () => {
     if (!saleModal) return;
     try {
       const commission = Math.round(salePrice * 0.01);
-      const res = await fetch("/api/sales", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicle_id: saleModal.vehicleId, broker_id: "brk-1", buyer_id: saleModal.buyerId, sale_price: salePrice, commission, buyer_name: saleModal.buyerName }),
+      await salesApi.create({
+        vehicle_id: saleModal.vehicleId,
+        broker_id: brokerInfo?.id || "brk-1",
+        buyer_id: saleModal.buyerId,
+        sale_price: salePrice,
+        commission,
+        buyer_name: saleModal.buyerName
       });
-      if (res.ok) {
-        await fetch(`/api/leads/${saleModal.id}/status`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "sold" }) });
-        onNotify("Sale recorded! Vehicle marked as SOLD.", "success");
-        setSaleModal(null); fetchData();
-      } else onNotify("Failed to record sale.", "error");
-    } catch { onNotify("Error recording sale.", "error"); }
+      await leadsApi.updateStatus(saleModal.id, "sold");
+      onNotify("Sale recorded! Vehicle marked as SOLD.", "success");
+      setSaleModal(null);
+      fetchData();
+    } catch (err: any) {
+      onNotify(err.message || "Error recording sale.", "error");
+    }
   };
 
   const handleUploadDoc = async () => {
     if (!docUploadModal.vehicleId || !docName) { onNotify("Please provide a document name and file.", "error"); return; }
     try {
-      const res = await fetch("/api/documents", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicle_id: docUploadModal.vehicleId, name: docName, type: docType, file_url: docFileData || "" }),
+      await api.post("/api/documents", {
+        vehicle_id: docUploadModal.vehicleId,
+        name: docName,
+        type: docType,
+        file_url: docFileData || ""
       });
-      if (res.ok) { onNotify("Document uploaded.", "success"); setDocUploadModal({ vehicleId: "", open: false }); setDocName(""); setDocFileData(""); fetchData(); }
-      else onNotify("Failed to upload document.", "error");
-    } catch { onNotify("Error uploading document.", "error"); }
+      onNotify("Document uploaded.", "success");
+      setDocUploadModal({ vehicleId: "", open: false });
+      setDocName("");
+      setDocFileData("");
+      fetchData();
+    } catch (err: any) {
+      onNotify(err.message || "Error uploading document.", "error");
+    }
   };
 
   const activeListings = vehicles.filter(v => v.status === "approved").length;
@@ -1289,36 +1307,24 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                       if (!brokerInfo) return;
                       setSavingProfile(true);
                       try {
-                        const res = await fetch(`/api/users/${brokerInfo.userId}`, {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            name: brokerProfile.name,
-                            email: brokerProfile.email,
-                            phone: brokerProfile.phone,
-                            bio: brokerProfile.bio,
-                            avatar: brokerProfile.avatar,
-                          }),
+                        await api.put(`/api/users/${brokerInfo.userId}`, {
+                          name: brokerProfile.name,
+                          phone: brokerProfile.phone,
+                          bio: brokerProfile.bio,
+                          avatar: brokerProfile.avatar,
                         });
-                        if (res.ok) {
-                          await fetch(`/api/brokers/${brokerInfo.id}`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              license_number: brokerProfile.licenseNumber,
-                              bio: brokerProfile.bio,
-                              avatar: brokerProfile.avatar,
-                            }),
-                          });
-                          onNotify("Profile updated successfully!", "success");
-                          fetchData();
-                        } else {
-                          onNotify("Failed to save profile.", "error");
-                        }
-                      } catch {
-                        onNotify("Network error.", "error");
+                        await brokersApi.update(brokerInfo.id, {
+                          license_number: brokerProfile.licenseNumber,
+                          bio: brokerProfile.bio,
+                          avatar: brokerProfile.avatar,
+                        });
+                        onNotify("Profile updated successfully!", "success");
+                        fetchData();
+                      } catch (err: any) {
+                        onNotify(err.message || "Failed to save profile.", "error");
+                      } finally {
+                        setSavingProfile(false);
                       }
-                      setSavingProfile(false);
                     }} disabled={savingProfile}
                       className="flex items-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold px-5 py-2 rounded-lg transition cursor-pointer disabled:cursor-not-allowed">
                       {savingProfile ? "Saving..." : "Save Changes"}

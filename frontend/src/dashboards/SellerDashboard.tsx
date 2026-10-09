@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { VehicleListing, Lead } from "../../../shared/types";
+import { vehiclesApi, leadsApi } from "../lib/api";
 import Combobox from "../components/ui/Combobox";
 import {
   BRANDS, LOCATIONS, COLORS, FUEL_TYPES, TRANSMISSIONS,
@@ -133,15 +134,12 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
     if (!userId) return;
     try {
       setLoading(true);
-      const [vehRes, leadRes] = await Promise.all([
-        fetch(`/api/vehicles?sellerId=${userId}`),
-        fetch(`/api/leads?sellerId=${userId}`),
+      const [allVehicles, allLeads] = await Promise.all([
+        vehiclesApi.list(),
+        leadsApi.list().catch(() => [] as Lead[]),
       ]);
-      if (vehRes.ok) {
-        const all: VehicleListing[] = await vehRes.json();
-        setListings(all.filter(v => v.brokerId === userId || v.brokerId?.startsWith("usr")));
-      }
-      if (leadRes.ok) setInquiries(await leadRes.json());
+      setListings(allVehicles.filter(v => v.brokerId === userId || v.brokerId?.startsWith("usr")));
+      setInquiries(allLeads);
     } catch {
       onNotify("Failed to load seller data.", "error");
     } finally {
@@ -178,23 +176,23 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setListings(prev => prev.filter(v => v.id !== id));
-        onNotify("Listing deleted.", "success");
-      } else onNotify("Failed to delete listing.", "error");
-    } catch { onNotify("Network error.", "error"); }
+      await vehiclesApi.delete(id);
+      setListings(prev => prev.filter(v => v.id !== id));
+      onNotify("Listing deleted.", "success");
+    } catch (err: any) {
+      onNotify(err?.message || "Failed to delete listing.", "error");
+    }
     setShowDeleteConfirm(null);
   };
 
   const handleSubmitForApproval = async (id: string) => {
     try {
-      const res = await fetch(`/api/vehicles/${id}/submit`, { method: "PUT" });
-      if (res.ok) {
-        setListings(prev => prev.map(v => v.id === id ? { ...v, status: "pending" as const } : v));
-        onNotify("Listing submitted for approval.", "success");
-      } else onNotify("Failed to submit listing.", "error");
-    } catch { onNotify("Network error.", "error"); }
+      await vehiclesApi.submit(id);
+      setListings(prev => prev.map(v => v.id === id ? { ...v, status: "pending" as const } : v));
+      onNotify("Listing submitted for approval.", "success");
+    } catch (err: any) {
+      onNotify(err?.message || "Failed to submit listing.", "error");
+    }
   };
 
   const handleSave = (v: VehicleListing) => {
@@ -1005,22 +1003,17 @@ function AddListingModal({ sellerId, editing, onClose, onSaved, onNotify }: {
         commission_rate: form.commissionRate,
         ...(isEditing ? {} : { status: "pending" }),
       };
-      const res = await fetch(isEditing ? `/api/vehicles/${editing!.id}` : "/api/vehicles", {
-        method: isEditing ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (res.ok) { 
-        const data = await res.json(); 
-        onSaved(data); 
-      } else { 
-        const err = await res.json(); 
-        setError(err.error || "Failed to save listing.");
-        onNotify(err.error || "Failed to save listing.", "error"); 
+      if (isEditing) {
+        await vehiclesApi.update(editing!.id, body as Record<string, unknown>);
+        onSaved({ ...editing!, ...body } as any);
+      } else {
+        const created = await vehiclesApi.create(body as Record<string, unknown>);
+        onSaved(created);
       }
-    } catch { 
-      setError("Network error. Please try again.");
-      onNotify("Network error. Please try again.", "error"); 
+    } catch (err: any) { 
+      const msg = err?.message || "Failed to save listing.";
+      setError(msg);
+      onNotify(msg, "error"); 
     } finally { 
       setSubmitting(false); 
     }

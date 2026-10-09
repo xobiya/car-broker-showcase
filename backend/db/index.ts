@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
+
+const genId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 
 import type { DBPayment } from "./types";
 import {
@@ -115,7 +118,20 @@ export async function initDB() {
   const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/autobroker_ethiopia";
   await mongoose.connect(uri);
   console.log("Connected to MongoDB!");
-  await seedDatabase();
+
+  // Never overwrite or seed in production unless explicitly forced
+  if (process.env.NODE_ENV !== "production") {
+    if (process.env.SEED_DB === "true") {
+      console.log("SEED_DB flag detected. Running database seeder...");
+      await seedDatabase();
+    } else {
+      const userCount = await UserModel.countDocuments();
+      if (userCount === 0) {
+        console.log("Database empty. Initializing baseline development seed data...");
+        await seedDatabase();
+      }
+    }
+  }
 }
 
 export const db = {
@@ -130,8 +146,14 @@ export const db = {
     return toPlainArray<DBVehicle>(docs).map(mapVehicle);
   },
 
+  getVehicleById: async (id: string): Promise<VehicleListing | null> => {
+    const doc = await VehicleModel.findOne({ id }).lean();
+    if (!doc) return null;
+    return mapVehicle(toPlain<DBVehicle>(doc));
+  },
+
   addVehicle: async (v: Omit<DBVehicle, "id" | "status">): Promise<VehicleListing> => {
-    const id = `veh-${Date.now()}`;
+    const id = genId("veh");
     const status = "draft" as const;
     await VehicleModel.create({ id, ...v, status });
     return mapVehicle({ ...v, id, status });
@@ -154,7 +176,7 @@ export const db = {
   },
 
   addLead: async (l: Omit<DBLead, "id" | "inquiry_date" | "status">): Promise<Lead> => {
-    const id = `ld-${Date.now()}`;
+    const id = genId("ld");
     const inquiry_date = new Date().toISOString();
     const status = "new" as const;
     await LeadModel.create({ id, ...l, status, inquiry_date });
@@ -173,7 +195,7 @@ export const db = {
   },
 
   addSale: async (s: Omit<DBSale, "id" | "sale_date">): Promise<Sale> => {
-    const id = `sl-${Date.now()}`;
+    const id = genId("sl");
     const sale_date = new Date().toISOString();
     await SaleModel.create({ id, ...s, sale_date });
     return mapSale({ ...s, id, sale_date });
@@ -211,10 +233,10 @@ export const db = {
   },
 
   addUser: async (u: Omit<DBUser, "id"> & { password_hash?: string }): Promise<DBUser> => {
-    const id = `usr-${Date.now()}`;
+    const id = genId("usr");
     await UserModel.create({ id, ...u });
     if (u.role === "broker") {
-      const brokerId = `brk-${Date.now()}`;
+      const brokerId = genId("brk");
       const license = `ET-BRK-${Math.floor(10000 + Math.random() * 90000)}`;
       await BrokerModel.create({ id: brokerId, user_id: id, license_number: license, commission_rate: 1.00, verified: false });
     }
@@ -229,7 +251,7 @@ export const db = {
   },
 
   createPayment: async (p: Omit<DBPayment, "id" | "paid_at">): Promise<any> => {
-    const id = `pay-${Date.now()}`;
+    const id = genId("pay");
     const paid_at = p.status === "paid" ? new Date().toISOString() : null;
     await PaymentModel.create({ id, ...p, paid_at });
     return { id, ...p, paid_at };
@@ -257,7 +279,7 @@ export const db = {
   },
 
   addAuditLog: async (a: Omit<DBAuditLog, "id" | "timestamp">): Promise<AuditLogEntry> => {
-    const id = `al-${Date.now()}`;
+    const id = genId("al");
     const timestamp = new Date().toISOString();
     await AuditLogModel.create({ id, ...a, timestamp });
     return mapAuditLog({ ...a, id, timestamp });
@@ -271,7 +293,7 @@ export const db = {
   },
 
   addDocument: async (d: Omit<DBDocument, "id" | "uploaded_at">): Promise<VehicleDocument> => {
-    const id = `doc-${Date.now()}`;
+    const id = genId("doc");
     const uploaded_at = new Date().toISOString();
     await DocumentModel.create({ id, ...d, uploaded_at });
     return mapDocument({ ...d, id, uploaded_at });
@@ -290,7 +312,7 @@ export const db = {
   },
 
   addInspection: async (i: Omit<DBInspection, "id" | "inspected_at">): Promise<InspectionRecord> => {
-    const id = `ins-${Date.now()}`;
+    const id = genId("ins");
     const inspected_at = new Date().toISOString();
     await InspectionModel.create({ id, ...i, inspected_at });
     return mapInspection({ ...i, id, inspected_at });
@@ -308,7 +330,7 @@ export const db = {
   },
 
   addSavedVehicle: async (userId: string, vehicleId: string): Promise<SavedVehicle> => {
-    const id = `sv-${Date.now()}`;
+    const id = genId("sv");
     const saved_at = new Date().toISOString();
     await SavedVehicleModel.create({ id, user_id: userId, vehicle_id: vehicleId, saved_at });
     return mapSavedVehicle({ id, user_id: userId, vehicle_id: vehicleId, saved_at });
@@ -332,7 +354,7 @@ export const db = {
   },
 
   addTestDrive: async (t: Omit<DBTestDrive, "id" | "requested_at" | "status">): Promise<TestDriveRequest> => {
-    const id = `td-${Date.now()}`;
+    const id = genId("td");
     const requested_at = new Date().toISOString();
     const status = "pending" as const;
     await TestDriveModel.create({ id, ...t, status, requested_at });
@@ -351,7 +373,7 @@ export const db = {
   },
 
   addReport: async (r: Omit<DBReport, "id" | "created_at" | "status" | "admin_notes" | "resolved_at" | "resolved_by">): Promise<Report> => {
-    const id = `rpt-${Date.now()}`;
+    const id = genId("rpt");
     const created_at = new Date().toISOString();
     const status = "pending" as const;
     await ReportModel.create({ id, ...r, status, admin_notes: null, created_at, resolved_at: null, resolved_by: null });
