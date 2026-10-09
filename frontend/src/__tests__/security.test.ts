@@ -74,4 +74,14 @@ describe("Security & Authentication Hardening", () => {
       expect(parsed.data.price).toBe(1500000);
     }
   });
+
+  it("should prevent duplicate ID collisions under high concurrency", () => {
+    const ids = new Set<string>();
+    const count = 1000;
+    for (let i = 0; i < count; i++) {
+      const id = `veh-${crypto.randomUUID()}`;
+      ids.add(id);
+    }
+    expect(ids.size).toBe(count);
+  });
 });

@@ -388,18 +388,56 @@ export const db = {
 
   // --- Stats ---
   getStats: async () => {
-    const [vehicles, leads, sales, brokers, users] = await Promise.all([db.getVehicles(), db.getLeads(), db.getSales(), db.getBrokers(), db.getUsers()]);
+    const [
+      totalVehicles,
+      draftVehicles,
+      pendingVehicles,
+      approvedVehicles,
+      rejectedVehicles,
+      soldVehicles,
+      totalLeads,
+      totalBrokers,
+      totalUsers,
+      salesAgg,
+    ] = await Promise.all([
+      VehicleModel.countDocuments(),
+      VehicleModel.countDocuments({ status: "draft" }),
+      VehicleModel.countDocuments({ status: "pending" }),
+      VehicleModel.countDocuments({ status: "approved" }),
+      VehicleModel.countDocuments({ status: "rejected" }),
+      VehicleModel.countDocuments({ status: "sold" }),
+      LeadModel.countDocuments(),
+      BrokerModel.countDocuments(),
+      UserModel.countDocuments(),
+      SaleModel.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalCount: { $sum: 1 },
+            totalRevenue: { $sum: "$sale_price" },
+            totalCommission: { $sum: "$commission" },
+          },
+        },
+      ]),
+    ]);
+
+    const salesTotals = salesAgg[0] || { totalCount: 0, totalRevenue: 0, totalCommission: 0 };
+
     return {
       totals: {
-        vehicles: vehicles.length, draftVehicles: vehicles.filter(v => v.status === "draft").length,
-        pendingVehicles: vehicles.filter(v => v.status === "pending").length,
-        approvedVehicles: vehicles.filter(v => v.status === "approved").length,
-        rejectedVehicles: vehicles.filter(v => v.status === "rejected").length,
-        soldVehicles: vehicles.filter(v => v.status === "sold").length,
-        leads: leads.length, sales: sales.length, brokers: brokers.length, users: users.length,
-        revenue: sales.reduce((sum, s) => sum + Number(s.salePrice), 0),
-        commission: sales.reduce((sum, s) => sum + Number(s.commission), 0),
-      }
+        vehicles: totalVehicles,
+        draftVehicles,
+        pendingVehicles,
+        approvedVehicles,
+        rejectedVehicles,
+        soldVehicles,
+        leads: totalLeads,
+        sales: salesTotals.totalCount,
+        brokers: totalBrokers,
+        users: totalUsers,
+        revenue: salesTotals.totalRevenue,
+        commission: salesTotals.totalCommission,
+      },
     };
   },
 };
