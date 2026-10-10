@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Heart, Calendar, Trash2, Clock, MapPin, User, Mail, Phone, CalendarDays, Key, Camera, Check, Pencil, Eye, EyeOff, Loader2, ShieldCheck, Bell, BadgeCheck, Save, LayoutDashboard, Settings, LogOut, ArrowRight, Search } from "lucide-react";
 import { VehicleListing, SavedVehicle, TestDriveRequest } from "../../../shared/types";
+import { savedVehiclesApi, testDrivesApi, usersApi, authApi, uploadApi } from "../lib/api";
 
 interface BuyerProfilePageProps {
   user: any;
@@ -50,12 +51,12 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [savedRes, tdRes] = await Promise.all([
-          fetch(`/api/saved-vehicles?userId=${userId}`),
-          fetch(`/api/test-drives?userId=${userId}`),
+        const [savedData, tdData] = await Promise.all([
+          savedVehiclesApi.list(userId).catch(() => [] as SavedVehicle[]),
+          testDrivesApi.list().catch(() => [] as TestDriveRequest[]),
         ]);
-        if (savedRes.ok) setSavedVehicles(await savedRes.json());
-        if (tdRes.ok) setTestDrives(await tdRes.json());
+        setSavedVehicles(savedData);
+        setTestDrives(tdData);
       } catch {
         onNotify("Failed to load data.", "error");
       } finally {
@@ -67,15 +68,9 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
 
   const handleRemoveSaved = async (vehicleId: string) => {
     try {
-      const res = await fetch("/api/saved-vehicles", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, vehicleId }),
-      });
-      if (res.ok) {
-        setSavedVehicles(prev => prev.filter(s => s.vehicleId !== vehicleId));
-        onNotify("Removed from saved.", "success");
-      }
+      await savedVehiclesApi.remove(userId, vehicleId);
+      setSavedVehicles(prev => prev.filter(s => s.vehicleId !== vehicleId));
+      onNotify("Removed from saved.", "success");
     } catch {
       onNotify("Error removing vehicle.", "error");
     }
@@ -83,15 +78,9 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
 
   const handleCancelTestDrive = async (id: string) => {
     try {
-      const res = await fetch(`/api/test-drives/${id}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled" }),
-      });
-      if (res.ok) {
-        setTestDrives(prev => prev.map(t => t.id === id ? { ...t, status: "cancelled" } : t));
-        onNotify("Test drive cancelled.", "info");
-      }
+      await testDrivesApi.updateStatus(id, "cancelled");
+      setTestDrives(prev => prev.map(t => t.id === id ? { ...t, status: "cancelled" } : t));
+      onNotify("Test drive cancelled.", "info");
     } catch {
       onNotify("Error cancelling test drive.", "error");
     }
@@ -381,21 +370,13 @@ function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string,
     if (!user?.id) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        localStorage.setItem("autobroker_user", JSON.stringify(updated));
-        window.dispatchEvent(new CustomEvent("autobroker:user-updated", { detail: updated }));
-        onNotify("Profile updated.", "success");
-        setEditing(false);
-      } else {
-        const err = await res.json();
-        onNotify(err.error || "Update failed.", "error");
-      }
-    } catch {
-      onNotify("Network error.", "error");
+      const updated = await usersApi.update(user.id, form);
+      localStorage.setItem("autobroker_user", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("autobroker:user-updated", { detail: updated }));
+      onNotify("Profile updated.", "success");
+      setEditing(false);
+    } catch (err: any) {
+      onNotify(err.message || "Update failed.", "error");
     } finally {
       setSaving(false);
     }
@@ -405,25 +386,20 @@ function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string,
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
     try {
-      const token = localStorage.getItem("autobroker_token");
-      const fd = new FormData();
-      fd.append("file", file); fd.append("folder", "avatars");
-      const upRes = await fetch("/api/upload", {
-        method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd,
-      });
-      const upData = await upRes.json();
-      if (upRes.ok && upData.url) {
-        await fetch(`/api/users/${user.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ avatar: upData.url }) });
-        const meRes = await fetch("/api/auth/me", { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-        if (meRes.ok) {
-          const meData = await meRes.json();
-          const u = meData.user || meData;
-          localStorage.setItem("autobroker_user", JSON.stringify(u));
-          window.dispatchEvent(new CustomEvent("autobroker:user-updated", { detail: u }));
-        }
+      const upData = await uploadApi.single(file, "avatars");
+      if (upData && upData.url) {
+        await usersApi.update(user.id, { avatar: upData.url });
+        const meData = await authApi.me();
+        const u = meData.user || meData;
+        localStorage.setItem("autobroker_user", JSON.stringify(u));
+        window.dispatchEvent(new CustomEvent("autobroker:user-updated", { detail: u }));
         onNotify("Avatar updated.", "success");
-      } else onNotify(upData.error || "Upload failed.", "error");
-    } catch { onNotify("Error uploading avatar.", "error"); }
+      } else {
+        onNotify("Upload failed.", "error");
+      }
+    } catch (err: any) {
+      onNotify(err.message || "Error uploading avatar.", "error");
+    }
   };
 
   const joined = user?.joinDate ? new Date(user.joinDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "N/A";
@@ -493,15 +469,15 @@ function SecuritySection({ onNotify }: { onNotify: (msg: string, type: "success"
     if (form.newPassword !== form.confirmPassword) { setError("Passwords do not match."); return; }
     setChanging(true);
     try {
-      const res = await fetch("/api/auth/change-password", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword: form.currentPassword, newPassword: form.newPassword }),
-      });
-      if (res.ok) {
-        onNotify("Password changed.", "success"); setShowForm(false);
-        setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      } else { const err = await res.json(); setError(err.error || "Failed."); }
-    } catch { setError("Network error."); } finally { setChanging(false); }
+      await authApi.changePassword(form.currentPassword, form.newPassword);
+      onNotify("Password changed.", "success");
+      setShowForm(false);
+      setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (err: any) {
+      setError(err.message || "Failed.");
+    } finally {
+      setChanging(false);
+    }
   };
 
   return (
@@ -553,12 +529,19 @@ function AccountSection({ user, onNotify }: { user: any; onNotify: (msg: string,
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const handleDelete = async () => {
-    if (!user?.id) return; setDeleting(true);
+    if (!user?.id) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" });
-      if (res.ok) { onNotify("Account deleted.", "info"); localStorage.clear(); window.location.href = "/"; }
-      else { const err = await res.json(); onNotify(err.error || "Delete failed.", "error"); setConfirmDelete(false); }
-    } catch { onNotify("Network error.", "error"); setConfirmDelete(false); } finally { setDeleting(false); }
+      await usersApi.delete(user.id);
+      onNotify("Account deleted.", "info");
+      localStorage.clear();
+      window.location.href = "/";
+    } catch (err: any) {
+      onNotify(err.message || "Delete failed.", "error");
+      setConfirmDelete(false);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (

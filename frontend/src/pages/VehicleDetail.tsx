@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ShieldCheck, Phone, MapPin, Star, Compass, Zap, Gauge, Cpu, Users, Car, BadgeCheck, FileText, Video, ClipboardCheck, AlertTriangle, UserCircle, Calendar, Flag, X, Send, ArrowLeft, Loader2 } from "lucide-react";
 import { VehicleListing, VehicleDocument } from "../../../shared/types";
-import { vehiclesApi } from "../lib/api";
+import { vehiclesApi, documentsApi, leadsApi, testDrivesApi } from "../lib/api";
 import ReportModal from "../components/ui/ReportModal";
 
 interface VehicleDetailProps {
@@ -103,8 +103,8 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
 
     const fetchDocs = async () => {
       try {
-        const res = await fetch(`/api/documents?vehicleId=${vehicle.id}`);
-        if (res.ok) setDocuments(await res.json());
+        const docs = await documentsApi.list(vehicle.id);
+        setDocuments(docs);
       } catch { /* ignore */ }
     };
 
@@ -144,20 +144,20 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
   const handleSubmitInquiry = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicle_id: vehicle.id, buyer_name: buyerName,
-          buyer_email: buyerEmail || `${buyerName.toLowerCase().replace(/\s+/g, '')}@example.com`,
-          buyer_phone: buyerPhone, message: inquiryMsg
-        })
+      await leadsApi.create({
+        vehicle_id: vehicle.id,
+        buyer_name: buyerName,
+        buyer_email: buyerEmail || `${buyerName.toLowerCase().replace(/\s+/g, '')}@example.com`,
+        buyer_phone: buyerPhone,
+        message: inquiryMsg,
       });
-      if (res.ok) {
-        onNotify("Inquiry sent successfully! The broker will contact you shortly.", "success");
-        setBuyerName(""); setBuyerEmail(""); setBuyerPhone("+2519");
-      } else onNotify("Failed to submit inquiry.", "error");
-    } catch { onNotify("Error submitting inquiry.", "error"); }
+      onNotify("Inquiry sent successfully! The broker will contact you shortly.", "success");
+      setBuyerName("");
+      setBuyerEmail("");
+      setBuyerPhone("+2519");
+    } catch {
+      onNotify("Failed to submit inquiry.", "error");
+    }
   };
 
   const handleSubmitTestDrive = async (e: React.FormEvent) => {
@@ -165,26 +165,26 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
     try {
       const saved = localStorage.getItem("autobroker_user");
       const user = saved ? JSON.parse(saved) : null;
-      const res = await fetch("/api/test-drives", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicle_id: vehicle.id,
-          user_id: user?.id || null,
-          name: tdName,
-          email: tdEmail,
-          phone: tdPhone,
-          preferred_date: tdDate,
-          preferred_time: tdTime,
-          message: tdMessage,
-        })
+      await testDrivesApi.create({
+        vehicle_id: vehicle.id,
+        user_id: user?.id || null,
+        name: tdName,
+        email: tdEmail,
+        phone: tdPhone,
+        preferred_date: tdDate,
+        preferred_time: tdTime,
+        message: tdMessage,
       });
-      if (res.ok) {
-        onNotify("Test drive requested! The broker will confirm your appointment.", "success");
-        setShowTestDriveModal(false);
-        setTdName(""); setTdEmail(""); setTdPhone("+2519"); setTdDate(""); setTdTime("");
-      } else onNotify("Failed to schedule test drive.", "error");
-    } catch { onNotify("Error scheduling test drive.", "error"); }
+      onNotify("Test drive requested! The broker will confirm your appointment.", "success");
+      setShowTestDriveModal(false);
+      setTdName("");
+      setTdEmail("");
+      setTdPhone("+2519");
+      setTdDate("");
+      setTdTime("");
+    } catch {
+      onNotify("Failed to schedule test drive.", "error");
+    }
   };
 
   const specItems: { label: string; value: string | number | undefined; icon: React.ReactNode }[] = [

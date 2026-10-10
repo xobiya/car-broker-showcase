@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Shield, ShieldCheck, BadgeCheck, FileSearch, Users, Lock, ArrowLeft, Camera, FileText, Car, Flag } from "lucide-react";
+import { reportsApi } from "../lib/api";
 
 interface TrustSafetyPageProps {
   onBack: () => void;
@@ -11,11 +12,8 @@ export default function TrustSafetyPage({ onBack }: TrustSafetyPageProps) {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await fetch("/api/reports");
-        if (res.ok) {
-          const data = await res.json();
-          setResolvedCount(data.filter((r: any) => r.status === "resolved").length);
-        }
+        const data = await reportsApi.list();
+        setResolvedCount(data.filter((r: any) => r.status === "resolved").length);
       } catch {}
     };
     fetchReports();

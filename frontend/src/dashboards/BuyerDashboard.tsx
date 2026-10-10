@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Heart, Calendar, Trash2, Clock, MapPin, ArrowRight } from "lucide-react";
 import { VehicleListing, SavedVehicle, TestDriveRequest } from "../../../shared/types";
+import { savedVehiclesApi, testDrivesApi } from "../lib/api";
 
 interface BuyerDashboardProps {
   currentUser: any;
@@ -39,12 +40,12 @@ export default function BuyerDashboard({ currentUser, onNotify, onViewDetails }:
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [savedRes, tdRes] = await Promise.all([
-          fetch(`/api/saved-vehicles?userId=${userId}`),
-          fetch(`/api/test-drives?userId=${userId}`),
+        const [savedData, tdData] = await Promise.all([
+          savedVehiclesApi.list(userId).catch(() => [] as SavedVehicle[]),
+          testDrivesApi.list().catch(() => [] as TestDriveRequest[]),
         ]);
-        if (savedRes.ok) setSavedVehicles(await savedRes.json());
-        if (tdRes.ok) setTestDrives(await tdRes.json());
+        setSavedVehicles(savedData);
+        setTestDrives(tdData);
       } catch {
         onNotify("Failed to load data.", "error");
       } finally {
@@ -56,15 +57,9 @@ export default function BuyerDashboard({ currentUser, onNotify, onViewDetails }:
 
   const handleRemoveSaved = async (vehicleId: string) => {
     try {
-      const res = await fetch("/api/saved-vehicles", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, vehicleId }),
-      });
-      if (res.ok) {
-        setSavedVehicles(prev => prev.filter(s => s.vehicleId !== vehicleId));
-        onNotify("Removed from saved.", "success");
-      }
+      await savedVehiclesApi.remove(userId, vehicleId);
+      setSavedVehicles(prev => prev.filter(s => s.vehicleId !== vehicleId));
+      onNotify("Removed from saved.", "success");
     } catch {
       onNotify("Error removing vehicle.", "error");
     }
@@ -72,15 +67,9 @@ export default function BuyerDashboard({ currentUser, onNotify, onViewDetails }:
 
   const handleCancelTestDrive = async (id: string) => {
     try {
-      const res = await fetch(`/api/test-drives/${id}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled" }),
-      });
-      if (res.ok) {
-        setTestDrives(prev => prev.map(t => t.id === id ? { ...t, status: "cancelled" } : t));
-        onNotify("Test drive cancelled.", "info");
-      }
+      await testDrivesApi.updateStatus(id, "cancelled");
+      setTestDrives(prev => prev.map(t => t.id === id ? { ...t, status: "cancelled" } : t));
+      onNotify("Test drive cancelled.", "info");
     } catch {
       onNotify("Error cancelling test drive.", "error");
     }

@@ -107,6 +107,7 @@ export const usersApi = {
   list: () => api.get<User[]>("/api/users"),
   get: (id: string) => api.get<User>(`/api/users/${id}`),
   update: (id: string, data: Record<string, unknown>) => api.put<User>(`/api/users/${id}`, data),
+  delete: (id: string) => api.delete<{ message: string }>(`/api/users/${id}`),
 };
 
 export const statsApi = {

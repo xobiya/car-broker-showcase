@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { AlertTriangle, X, Shield } from "lucide-react";
+import { reportsApi } from "../../lib/api";
 
 interface ReportModalProps {
   targetType: "listing" | "broker" | "user";
@@ -34,26 +35,18 @@ export default function ReportModal({ targetType, targetId, targetLabel, onClose
     try {
       const saved = localStorage.getItem("autobroker_user");
       const user = saved ? JSON.parse(saved) : null;
-      const res = await fetch("/api/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reporter_id: user?.id || null,
-          reporter_name: reporterName,
-          target_type: targetType,
-          target_id: targetId,
-          reason,
-          description,
-        }),
+      await reportsApi.create({
+        reporter_id: user?.id || null,
+        reporter_name: reporterName,
+        target_type: targetType,
+        target_id: targetId,
+        reason,
+        description,
       });
-      if (res.ok) {
-        onNotify("Report submitted. Our team will review it shortly.", "success");
-        onClose();
-      } else {
-        onNotify("Failed to submit report.", "error");
-      }
+      onNotify("Report submitted. Our team will review it shortly.", "success");
+      onClose();
     } catch {
-      onNotify("Error submitting report.", "error");
+      onNotify("Failed to submit report.", "error");
     } finally {
       setSubmitting(false);
     }
