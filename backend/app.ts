@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import helmet from "helmet";
@@ -28,26 +29,29 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-// CORS handling
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    process.env.APP_URL,
-    "http://localhost:3000",
-    "http://localhost:5173",
-  ].filter(Boolean) as string[];
+// CORS middleware
+const envOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map(s => s.trim())
+  : [];
+const allowedOrigins = [
+  process.env.APP_URL,
+  "http://localhost:3000",
+  "http://localhost:5173",
+  ...envOrigins,
+].filter(Boolean) as string[];
 
-  if (origin && (allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production")) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
-  }
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production") {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+}));
 
 // --- Security Middleware ---
 app.use(helmet({
@@ -214,30 +218,60 @@ app.get("/api/auth/me", authenticateToken, async (req: AuthenticatedRequest, res
 app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const isPublicOrBuyer = !req.user || req.user.role === "buyer";
+    const hasQueryParams = Object.keys(req.query).length > 0;
     const publicCacheKey = "vehicles:public:approved";
 
-    if (isPublicOrBuyer) {
+    if (isPublicOrBuyer && !hasQueryParams) {
       const cached = getCached<any[]>(publicCacheKey);
       if (cached) return res.json(cached);
     }
 
-    const vehicles = await db.getVehicles();
     const brokers = await db.getBrokers();
     const users = await db.getUsers();
 
-    let filteredVehicles = vehicles;
-    // Public/Buyers can only see approved and sold vehicles
+    let dbFilter: any = {};
     if (isPublicOrBuyer) {
-      filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold");
+      dbFilter = { status: { $in: ["approved", "sold"] } };
     } else if (req.user!.role === "broker") {
-      // Brokers see approved, sold, and their own listings
       const broker = brokers.find(b => b.userId === req.user?.id);
       const brokerId = broker ? broker.id : null;
-      filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold" || v.brokerId === brokerId);
+      dbFilter = brokerId
+        ? { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: brokerId }] }
+        : { status: { $in: ["approved", "sold"] } };
     } else if (req.user!.role === "seller") {
-      // Sellers see approved, sold, and their own listings
-      filteredVehicles = vehicles.filter(v => v.status === "approved" || v.status === "sold" || v.brokerId === req.user!.id);
+      dbFilter = { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: req.user!.id }] };
     }
+
+    // Server-side filtering parameters
+    if (req.query.brand) dbFilter.brand = req.query.brand;
+    if (req.query.model) dbFilter.model = req.query.model;
+    if (req.query.condition) dbFilter.condition = req.query.condition;
+    if (req.query.minPrice || req.query.maxPrice) {
+      dbFilter.price = dbFilter.price || {};
+      if (req.query.minPrice) dbFilter.price.$gte = Number(req.query.minPrice);
+      if (req.query.maxPrice) dbFilter.price.$lte = Number(req.query.maxPrice);
+    }
+
+    // Server-side pagination & sorting options
+    let options: { limit?: number; skip?: number; sort?: any } | undefined;
+    const page = parseInt(req.query.page as string);
+    const limit = parseInt(req.query.limit as string);
+    if (page > 0 && limit > 0) {
+      options = { limit, skip: (page - 1) * limit };
+    } else if (limit > 0) {
+      options = { limit };
+    }
+
+    const sortParam = req.query.sort as string;
+    if (sortParam) {
+      options = options || {};
+      if (sortParam === "price_asc") options.sort = { price: 1 };
+      else if (sortParam === "price_desc") options.sort = { price: -1 };
+      else if (sortParam === "year_desc") options.sort = { year: -1 };
+      else if (sortParam === "newest") options.sort = { created_at: -1 };
+    }
+
+    const filteredVehicles = await db.getVehicles(dbFilter, options);
 
     const enriched = filteredVehicles.map(v => {
       const broker = brokers.find(b => b.id === v.brokerId);
@@ -263,7 +297,7 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
       return item;
     });
 
-    if (isPublicOrBuyer) {
+    if (isPublicOrBuyer && !hasQueryParams) {
       setCache(publicCacheKey, enriched, 120);
     }
 
@@ -366,8 +400,7 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "a
 // Helper checking vehicle ownership
 const verifyVehicleOwnership = async (vehicleId: string, reqUser: any) => {
   if (reqUser.role === "admin") return true;
-  const vehicles = await db.getVehicles();
-  const vehicle = vehicles.find(v => v.id === vehicleId);
+  const vehicle = await db.getVehicleById(vehicleId);
   if (!vehicle) return false;
   if (reqUser.role === "seller") {
     return vehicle.brokerId === reqUser.id;
@@ -441,8 +474,7 @@ app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin"]), 
         details: "Approved vehicle listing"
       });
       clearCache("vehicles");
-      const vehicles = await db.getVehicles();
-      const vehicle = vehicles.find(v => v.id === req.params.id);
+      const vehicle = await db.getVehicleById(req.params.id);
       if (vehicle) {
         const brokers = await db.getBrokers();
         const broker = brokers.find(b => b.id === vehicle.brokerId);
@@ -477,8 +509,7 @@ app.put("/api/vehicles/:id/reject", authenticateToken, requireRole(["admin"]), a
         details: `Rejected listing: ${reason || "No reason specified"}`
       });
       clearCache("vehicles");
-      const vehicles = await db.getVehicles();
-      const vehicle = vehicles.find(v => v.id === req.params.id);
+      const vehicle = await db.getVehicleById(req.params.id);
       if (vehicle) {
         const brokers = await db.getBrokers();
         const broker = brokers.find(b => b.id === vehicle.brokerId);
@@ -507,8 +538,12 @@ app.put("/api/vehicles/:id/submit", authenticateToken, async (req: Authenticated
     }
 
     const success = await db.updateVehicle(req.params.id, { status: "pending" });
-    if (success) res.json({ message: "Vehicle submitted for approval" });
-    else res.status(404).json({ error: "Vehicle not found" });
+    if (success) {
+      clearCache("vehicles");
+      res.json({ message: "Vehicle submitted for approval" });
+    } else {
+      res.status(404).json({ error: "Vehicle not found" });
+    }
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -642,8 +677,7 @@ app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), vali
       return res.status(403).json({ error: "Access denied. You do not own this vehicle." });
     }
 
-    const vehicles = await db.getVehicles();
-    const vehicle = vehicles.find(v => v.id === vehicle_id);
+    const vehicle = await db.getVehicleById(vehicle_id);
     if (!vehicle) return res.status(404).json({ error: "Vehicle not found." });
 
     const newSale = await db.addSale({
@@ -656,6 +690,7 @@ app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), vali
     });
 
     await db.updateVehicle(vehicle_id, { status: "sold" });
+    clearCache("vehicles");
     if (leadId) {
       await db.updateLeadStatus(leadId, "sold");
     }
@@ -978,6 +1013,7 @@ app.post("/api/inspections", authenticateToken, requireRole(["admin"]), validate
     const { vehicle_id, inspector_name, status, notes } = req.body;
     const inspection = await db.addInspection({ vehicle_id, inspector_name, status, notes: notes || "" });
     await db.updateVehicle(vehicle_id, { inspection_status: status, inspection_notes: notes || "", inspection_date: inspection.inspectedAt });
+    clearCache("vehicles");
     res.status(201).json(inspection);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

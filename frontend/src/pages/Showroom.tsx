@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, ChevronLeft, ChevronRight, Star, SlidersHorizontal, Filter } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
+import { vehiclesApi } from "../lib/api";
 
 interface ShowroomProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -73,13 +74,8 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/vehicles");
-      let apiData: VehicleListing[] = [];
-      if (res.ok) {
-        apiData = await res.json();
-        apiData = apiData.filter(v => v.status === "approved");
-      }
-      setVehicles(apiData);
+      const data = await vehiclesApi.list();
+      setVehicles(data.filter(v => v.status === "approved"));
     } catch {
       setVehicles([]);
     } finally {

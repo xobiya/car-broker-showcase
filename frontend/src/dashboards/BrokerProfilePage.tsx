@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, BadgeCheck, Star, Phone, Mail, MapPin, Shield, Car, DollarSign, Award, Flag } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
+import { brokersApi, vehiclesApi } from "../lib/api";
 import ReportModal from "../components/ui/ReportModal";
 
 interface BrokerProfilePageProps {
@@ -19,12 +20,12 @@ export default function BrokerProfilePage({ brokerId, onBack, onViewDetails }: B
     const fetchData = async () => {
       try {
         const [bRes, vRes] = await Promise.all([
-          fetch("/api/brokers"),
-          fetch("/api/vehicles"),
+          brokersApi.list(),
+          vehiclesApi.list(),
         ]);
-        if (bRes.ok && vRes.ok) {
-          const allBrokers = await bRes.json();
-          const allVehicles: VehicleListing[] = await vRes.json();
+        if (bRes && vRes) {
+          const allBrokers = bRes;
+          const allVehicles: VehicleListing[] = vRes;
           const found = allBrokers.find((b: any) => b.id === brokerId);
           setBroker(found);
           setVehicles(allVehicles.filter(v => v.brokerId === brokerId && v.status === "approved"));

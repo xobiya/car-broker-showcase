@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Car, Compass, Star, Zap, Cpu, Gauge, Users, MapPin, ShieldCheck } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
+import { vehiclesApi } from "../lib/api";
 
 interface VehicleComparisonProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -39,9 +40,9 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const res = await fetch("/api/vehicles");
-        if (res.ok) {
-          const data: VehicleListing[] = await res.json();
+        const res = await vehiclesApi.list();
+        if (res) {
+          const data = res;
           setVehicles(data.filter(v => v.status === "approved"));
         }
       } catch { /* ignore */ }

@@ -77,15 +77,20 @@ const testDriveSchema = new Schema({
 brokerSchema.index({ user_id: 1 });
 
 vehicleSchema.index({ status: 1 });
+vehicleSchema.index({ status: 1, price: 1 });
+vehicleSchema.index({ broker_id: 1, status: 1 });
 vehicleSchema.index({ broker_id: 1 });
 vehicleSchema.index({ brand: 1, model: 1 });
 vehicleSchema.index({ price: 1 });
 vehicleSchema.index({ location: 1 });
 
+leadSchema.index({ vehicle_id: 1, status: 1 });
 leadSchema.index({ vehicle_id: 1 });
+leadSchema.index({ buyer_id: 1 });
 leadSchema.index({ status: 1 });
 leadSchema.index({ inquiry_date: -1 });
 
+saleSchema.index({ broker_id: 1, sale_date: -1 });
 saleSchema.index({ broker_id: 1 });
 saleSchema.index({ vehicle_id: 1 });
 saleSchema.index({ sale_date: -1 });

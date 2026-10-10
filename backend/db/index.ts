@@ -141,8 +141,15 @@ export const db = {
   getDBType: () => "mongodb" as const,
 
   // --- Vehicles ---
-  getVehicles: async (): Promise<VehicleListing[]> => {
-    const docs = await VehicleModel.find().lean();
+  getVehicles: async (
+    filter: any = {},
+    options?: { limit?: number; skip?: number; sort?: any }
+  ): Promise<VehicleListing[]> => {
+    let query = VehicleModel.find(filter);
+    if (options?.sort) query = query.sort(options.sort);
+    if (options?.skip) query = query.skip(options.skip);
+    if (options?.limit) query = query.limit(options.limit);
+    const docs = await query.lean();
     return toPlainArray<DBVehicle>(docs).map(mapVehicle);
   },
 

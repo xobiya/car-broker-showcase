@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Shield, ShieldCheck, Users, Lock, ArrowRight, Car, LogIn, UserPlus } from "lucide-react";
 import { VehicleListing, User } from "../../../shared/types";
+import { vehiclesApi } from "../lib/api";
 
 interface HomePageProps {
   currentUser?: User | null;
@@ -71,9 +72,9 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const res = await fetch("/api/vehicles");
-        if (res.ok) {
-          const data: VehicleListing[] = await res.json();
+        const res = await vehiclesApi.list();
+        if (res) {
+          const data = res;
           const approved = data.filter(v => v.status === "approved");
           if (approved.length > 0) setVehicles(approved);
         }
