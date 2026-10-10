@@ -120,86 +120,91 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
       
       {/* 1. Hero Section */}
       <section 
-        className="relative min-h-[550px] flex flex-col justify-center items-center px-4 bg-cover bg-center py-20"
+        className="relative min-h-[500px] sm:min-h-[560px] flex flex-col justify-center items-center px-4 sm:px-6 bg-cover bg-center py-16 sm:py-24"
         style={{ 
-          backgroundImage: `linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.75)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80')` 
+          backgroundImage: `linear-gradient(to bottom, rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.85)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80')` 
         }}
       >
-        <div className="max-w-4xl w-full text-center text-white space-y-8 z-10">
+        <div className="max-w-4xl w-full text-center text-white space-y-6 sm:space-y-8 z-10">
 
           {currentUser ? (
             <>
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full text-xs font-semibold mb-2">
-                <ShieldCheck size={12} />
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-xs font-semibold">
+                <ShieldCheck size={14} className="text-emerald-400" />
                 Welcome back, {currentUser.name}
               </div>
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight drop-shadow-md">
-                {currentUser.role === "broker" ? "Manage Your Listings" :
-                 currentUser.role === "admin" ? "Control Center" :
-                 "Find Your Next Car"}
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight drop-shadow-md">
+                {currentUser.role === "broker" ? "Brokerage Control Center" :
+                 currentUser.role === "admin" ? "Administrative Portal" :
+                 "Ethiopia's Verified Automotive Exchange"}
               </h1>
-              <p className="text-sm md:text-base text-blue-100/80 max-w-xl mx-auto font-medium">
-                {currentUser.role === "broker" ? "Track leads, manage inventory, and close more deals." :
-                 currentUser.role === "admin" ? "Oversee platform activity, brokers, and revenue." :
-                 "Browse thousands of verified vehicles from trusted brokers across Ethiopia."}
+              <p className="text-xs sm:text-sm md:text-base text-slate-200/90 max-w-xl mx-auto font-medium leading-relaxed">
+                {currentUser.role === "broker" ? "Manage listings, track buyer inquiries, and finalize sales." :
+                 currentUser.role === "admin" ? "Oversee listings, verify brokers, and monitor platform health." :
+                 "Browse certified pre-owned and new vehicles verified by licensed brokers in Addis Ababa."}
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                 {currentUser.role === "buyer" && (
                   <button onClick={() => onBrowse()}
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                    className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold px-6 py-3 rounded-xl text-xs transition cursor-pointer shadow-md"
                   >
-                    Browse Vehicles
+                    Explore Showroom
                   </button>
                 )}
                 {currentUser.role === "broker" && (
                   <button onClick={onBecomeBroker}
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                    className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold px-6 py-3 rounded-xl text-xs transition cursor-pointer shadow-md"
                   >
-                    Go to Dashboard
+                    Open Broker Dashboard
                   </button>
                 )}
                 {currentUser.role === "admin" && (
                   <button onClick={onBecomeBroker}
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                    className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold px-6 py-3 rounded-xl text-xs transition cursor-pointer shadow-md"
                   >
-                    Admin Panel
+                    Open Admin Panel
                   </button>
                 )}
               </div>
             </>
-            ) : (
+          ) : (
             <>
-              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight drop-shadow-md">
-                Find Your Next Car
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-slate-200">
+                <ShieldCheck size={14} className="text-emerald-400" />
+                Verified Automotive Marketplace in Ethiopia
+              </div>
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight drop-shadow-md leading-tight">
+                Find Your Next Car with Absolute Confidence
               </h1>
-              <p className="text-sm md:text-base text-blue-100/80 max-w-xl mx-auto font-medium">
-                Browse thousands of verified vehicles from trusted brokers across Ethiopia.
+              <p className="text-xs sm:text-sm md:text-base text-slate-200/90 max-w-xl mx-auto font-medium leading-relaxed">
+                Connecting genuine car buyers directly with verified, licensed automotive brokers across Addis Ababa and regional hubs.
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                 <button onClick={() => onBrowse()}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg text-xs transition-colors cursor-pointer"
+                  className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold px-6 py-3 rounded-xl text-xs transition cursor-pointer shadow-md"
                 >
-                  Browse Vehicles
+                  Browse Showroom
                 </button>
                 <button onClick={onChooseRole}
-                  className="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-lg text-xs border border-white/40 backdrop-blur-sm transition-colors cursor-pointer"
+                  className="bg-white/15 hover:bg-white/25 text-white font-bold px-6 py-3 rounded-xl text-xs border border-white/30 backdrop-blur-sm transition cursor-pointer"
                 >
-                  Get Started
+                  Join as Seller / Broker
                 </button>
               </div>
             </>
-            )}
+          )}
 
           {/* Quick Search Card - always shown */}
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 md:p-6 shadow-xl text-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end max-w-4xl mx-auto border border-slate-200">
+          {/* Quick Search Card */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl text-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 items-end max-w-4xl mx-auto border border-slate-200/80 text-left">
             
             {/* Brand Select */}
-            <div className="text-left space-y-1">
+            <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Brand</label>
               <select 
                 value={selectedBrand} 
                 onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-[#0F4C81] focus:outline-none cursor-pointer"
               >
                 <option>Any Brand</option>
                 {brands.map(b => <option key={b} value={b}>{b}</option>)}
@@ -207,13 +212,13 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             </div>
 
             {/* Model Select */}
-            <div className="text-left space-y-1">
+            <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Model</label>
               <select 
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
                 disabled={selectedBrand === "Any Brand"}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none disabled:opacity-50"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-[#0F4C81] focus:outline-none disabled:opacity-50 cursor-pointer"
               >
                 <option>Any Model</option>
                 {models.map(m => <option key={m} value={m}>{m}</option>)}
@@ -221,12 +226,12 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             </div>
 
             {/* Year Select */}
-            <div className="text-left space-y-1">
+            <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Year</label>
               <select 
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-[#0F4C81] focus:outline-none cursor-pointer"
               >
                 <option>Any Year</option>
                 {Array.from({ length: 6 }, (_, i) => 2026 - i).map(yr => (
@@ -236,12 +241,12 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             </div>
 
             {/* Price Select */}
-            <div className="text-left space-y-1">
+            <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Price Range</label>
               <select 
                 value={selectedPrice}
                 onChange={(e) => setSelectedPrice(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-[#0F4C81] focus:outline-none cursor-pointer"
               >
                 <option>Any Price</option>
                 <option value="under-5m">Under 5M ETB</option>
@@ -254,62 +259,75 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             {/* Search Button */}
             <button 
               onClick={handleSearch}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer w-full"
+              className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer w-full shadow-sm"
             >
               <Search size={14} />
-              <span>Search</span>
+              <span>Search Cars</span>
             </button>
 
+          </div>
+
+          {/* Quick trust metrics row */}
+          <div className="hidden sm:flex items-center justify-center gap-6 pt-2 text-[11px] font-semibold text-slate-300">
+            <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-400" /> 150-Point Inspection</span>
+            <span className="w-1 h-1 rounded-full bg-slate-500" />
+            <span>Licensed Addis Ababa Brokers</span>
+            <span className="w-1 h-1 rounded-full bg-slate-500" />
+            <span>Verified Title & Customs</span>
           </div>
         </div>
       </section>
 
       {/* 2. Featured Listings Section */}
-      <section className="max-w-7xl mx-auto w-full px-6 py-16 space-y-10">
-        <div className="flex justify-between items-end border-b border-slate-200 pb-5">
+      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-12 sm:py-16 space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-slate-200 pb-5">
           <div className="space-y-1">
-            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Featured Listings</h2>
-            <p className="text-slate-500 text-xs md:text-sm font-medium">Hand-picked premium vehicles from verified brokers.</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Featured Listings</h2>
+            <p className="text-slate-500 text-xs sm:text-sm font-medium">Hand-picked premium vehicles inspected and ready for sale.</p>
           </div>
           <button 
             onClick={() => onBrowse()}
-            className="text-orange-500 hover:text-orange-600 font-bold text-xs md:text-sm flex items-center gap-1 transition-colors"
+            className="self-start sm:self-auto text-[#0F4C81] hover:text-blue-900 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition cursor-pointer"
           >
-            <span>View All Inventory</span>
-            <ArrowRight size={16} />
+            <span>View All Vehicles</span>
+            <ArrowRight size={14} />
           </button>
         </div>
 
         {/* Listings Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto justify-items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {vehicles.slice(0, 4).map(car => (
             <div 
               key={car.id} 
-              className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden group w-full max-w-xs"
+              className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all flex flex-col overflow-hidden group w-full"
             >
               {/* Image Container */}
-              <div className="h-44 relative bg-slate-100 overflow-hidden">
+              <div className="h-44 sm:h-48 relative bg-slate-100 overflow-hidden">
                 <img 
                   src={car.imageUrl} 
                   alt={`${car.brand} ${car.model}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[9px] font-black tracking-widest py-0.5 px-2 rounded flex items-center gap-1 shadow-sm uppercase">
+                <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[9px] font-black tracking-widest py-0.5 px-2 rounded-md flex items-center gap-1 shadow-sm uppercase">
                   <ShieldCheck size={10} />
                   <span>Verified</span>
                 </div>
+                {car.condition === "New" && (
+                  <span className="absolute bottom-3 left-3 bg-[#0F4C81] text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+                    New
+                  </span>
+                )}
               </div>
 
               {/* Card Details */}
               <div className="p-4 flex-grow flex flex-col justify-between space-y-4">
-                <div className="space-y-1">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-extrabold text-sm text-slate-800 truncate">{car.brand} {car.model}</h3>
-                    <span className="font-black text-xs text-orange-500 shrink-0">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-bold text-sm text-slate-900 truncate">{car.brand} {car.model}</h3>
+                    <span className="font-black text-xs text-[#0F4C81] shrink-0 whitespace-nowrap">
                       {(car.price / 1000000).toFixed(1)}M ETB
                     </span>
                   </div>
-                  {/* Specifications subtext */}
                   <p className="text-[11px] text-slate-400 font-medium">
                     {car.year} &bull; {car.transmission} &bull; {car.fuelType}
                   </p>
@@ -317,7 +335,7 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
 
                 <button 
                   onClick={() => onViewDetails(car)}
-                  className="w-full text-center border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-slate-900 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                  className="w-full text-center border border-slate-200 hover:bg-slate-50 text-slate-800 hover:text-slate-900 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
                 >
                   View Details
                 </button>
@@ -325,52 +343,52 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             </div>
           ))}
           {vehicles.length === 0 && (
-            <div className="col-span-full text-center text-slate-400 py-10 font-medium text-xs">
-              No vehicles available.
+            <div className="col-span-full text-center text-slate-400 py-12 font-medium text-xs">
+              No vehicles available at this time.
             </div>
           )}
         </div>
       </section>
 
-      {/* 3. Why Choose AutoBroker Ethiopia Section */}
-      <section className="bg-slate-100/80 py-16 border-y border-slate-200/50">
-        <div className="max-w-7xl mx-auto w-full px-6 space-y-12 text-center">
+      {/* 3. Why Choose Arif Car Sell Section */}
+      <section className="bg-slate-100/70 py-12 sm:py-16 border-y border-slate-200/80">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-10 sm:space-y-12 text-center">
           <div className="space-y-2 max-w-2xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Why Choose Us</h2>
-            <p className="text-slate-500 text-xs md:text-sm">We provide the most secure and efficient way to buy or sell vehicles in Ethiopia.</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Built for Trust in Ethiopian Auto Trade</h2>
+            <p className="text-slate-500 text-xs sm:text-sm">We eliminate market uncertainty through physical vehicle verification and licensed broker accountability.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {/* Box 1 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center space-y-4 shadow-sm">
-              <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center shadow-inner">
-                <Shield size={24} />
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 flex flex-col items-center space-y-4 shadow-sm hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#0F4C81] flex items-center justify-center">
+                <ShieldCheck size={24} />
               </div>
-              <h3 className="font-bold text-base">Verified Listings</h3>
+              <h3 className="font-bold text-sm sm:text-base text-slate-900">150-Point Physical Inspection</h3>
               <p className="text-slate-500 text-xs leading-relaxed max-w-xs">
-                Every car listed goes through a 150-point inspection to ensure quality and authenticity.
+                Every vehicle is inspected for chassis integrity, engine condition, mileage authenticity, and customs paperwork validity.
               </p>
             </div>
 
             {/* Box 2 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center space-y-4 shadow-sm">
-              <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center shadow-inner">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 flex flex-col items-center space-y-4 shadow-sm hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
                 <Users size={24} />
               </div>
-              <h3 className="font-bold text-base">Trusted Brokers</h3>
+              <h3 className="font-bold text-sm sm:text-base text-slate-900">Licensed Professional Brokers</h3>
               <p className="text-slate-500 text-xs leading-relaxed max-w-xs">
-                Connect with licensed automotive professionals who manage the entire transaction for you.
+                Direct contact with verified brokers who handle vehicle viewing, title transfer, and negotiation transparently.
               </p>
             </div>
 
             {/* Box 3 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center space-y-4 shadow-sm">
-              <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center shadow-inner">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 flex flex-col items-center space-y-4 shadow-sm hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
                 <Lock size={24} />
               </div>
-              <h3 className="font-bold text-base">Secure Transactions</h3>
+              <h3 className="font-bold text-sm sm:text-base text-slate-900">Transparent Pricing & Records</h3>
               <p className="text-slate-500 text-xs leading-relaxed max-w-xs">
-                Our secure payment and documentation systems protect both buyers and sellers.
+                No duplicate or ghost listings. Real asking prices in Ethiopian Birr with verifiable broker commission caps.
               </p>
             </div>
           </div>
@@ -378,44 +396,50 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
       </section>
 
       {/* 4. Broker CTA Banner */}
-      <section className="bg-blue-950 text-white py-16 px-6 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-slate-900 opacity-90" />
-        <div className="max-w-3xl mx-auto space-y-6 relative z-10">
+      <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white py-14 sm:py-18 px-4 sm:px-8 text-center relative overflow-hidden">
+        <div className="max-w-3xl mx-auto space-y-5 sm:space-y-6 relative z-10">
           {currentUser?.role === "broker" ? (
             <>
-              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">Your brokerage dashboard awaits</h2>
-              <p className="text-blue-200/80 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-                Manage your listings, respond to leads, and track your earnings all in one place.
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight">Manage Your Auto Brokerage</h2>
+              <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto">
+                Track buyer inquiries in real time, upload verified inspection documents, and record sales on your dashboard.
               </p>
               <button onClick={onBecomeBroker}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg text-xs tracking-wider transition-all cursor-pointer shadow-md inline-block"
+                className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold px-7 py-3 rounded-xl text-xs tracking-wider transition cursor-pointer shadow-md inline-block"
               >
-                Go to Dashboard
+                Go to Broker Portal
               </button>
             </>
           ) : currentUser?.role === "admin" ? (
             <>
-              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">Platform administration</h2>
-              <p className="text-blue-200/80 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-                Monitor listings, manage brokers, and review platform revenue.
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight">System Control Panel</h2>
+              <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto">
+                Review pending listing approvals, audit user activities, and manage platform brokers.
               </p>
               <button onClick={onBecomeBroker}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg text-xs tracking-wider transition-all cursor-pointer shadow-md inline-block"
+                className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold px-7 py-3 rounded-xl text-xs tracking-wider transition cursor-pointer shadow-md inline-block"
               >
                 Open Admin Panel
               </button>
             </>
           ) : (
             <>
-              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">Want to scale your brokerage business?</h2>
-              <p className="text-blue-200/80 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-                Join Ethiopia's largest network of verified brokers and gain access to thousands of daily leads.
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight">Are You a Car Seller or Automotive Broker?</h2>
+              <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto">
+                Join Ethiopia's verified automotive exchange. List your inventory to thousands of active buyers with transparent commission tracking.
               </p>
-              <button onClick={onBecomeBroker}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-lg text-xs tracking-wider transition-all cursor-pointer shadow-md inline-block"
-              >
-                Register as a Broker
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button onClick={onBecomeBroker}
+                  className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold px-6 py-3 rounded-xl text-xs tracking-wider transition cursor-pointer shadow-md"
+                >
+                  Register as Broker
+                </button>
+                <button onClick={onChooseRole}
+                  className="bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl text-xs border border-white/20 transition cursor-pointer"
+                >
+                  Learn More
+                </button>
+              </div>
             </>
           )}
         </div>

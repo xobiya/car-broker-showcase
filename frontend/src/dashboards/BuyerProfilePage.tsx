@@ -116,21 +116,21 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                   </div>
                 </div>
               </div>
-              <nav className="p-2 space-y-0.5">
+              <nav className="p-2 flex lg:flex-col gap-1 overflow-x-auto scrollbar-none">
                 {sections.map(sec => {
                   const Icon = sec.icon;
                   const counts: Record<string, number> = { saved: savedVehicles.length, testdrives: testDrives.length };
                   const count = counts[sec.id];
                   return (
                     <button key={sec.id} onClick={() => setActiveSection(sec.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 lg:w-full ${
                         activeSection === sec.id
-                          ? "bg-blue-50 text-blue-700"
+                          ? "bg-blue-50 text-blue-700 font-extrabold shadow-sm"
                           : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                       }`}
                     >
-                      <Icon size={16} />
-                      <span className="flex-1 text-left">{sec.label}</span>
+                      <Icon size={15} className="shrink-0" />
+                      <span className="text-left">{sec.label}</span>
                       {count !== undefined && (
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                           activeSection === sec.id ? "bg-blue-200 text-blue-800" : "bg-slate-100 text-slate-500"
@@ -275,10 +275,10 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {vehicles.map(sv => sv.vehicle && (
-              <div key={sv.id} className="border border-slate-200 rounded-2xl overflow-hidden flex hover:shadow-md transition cursor-pointer group"
+              <div key={sv.id} className="border border-slate-200 rounded-2xl overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition cursor-pointer group bg-white"
                 onClick={() => onViewDetails?.(sv.vehicle!)}
               >
-                <div className="w-36 h-28 shrink-0 bg-slate-100 overflow-hidden">
+                <div className="w-full sm:w-36 h-44 sm:h-auto shrink-0 bg-slate-100 overflow-hidden relative">
                   <img src={sv.vehicle.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                 </div>
                 <div className="p-4 flex-1 flex flex-col justify-between min-w-0">
@@ -287,13 +287,14 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
                       <h4 className="text-sm font-bold text-slate-800 truncate">{sv.vehicle.brand} {sv.vehicle.model}</h4>
                       <button onClick={(e) => { e.stopPropagation(); onRemove(sv.vehicleId); }}
                         className="text-slate-300 hover:text-rose-500 transition cursor-pointer p-1 shrink-0"
+                        title="Remove vehicle"
                       >
                         <Trash2 size={13} />
                       </button>
                     </div>
-                    <p className="text-[11px] text-slate-400 font-medium truncate">{sv.vehicle.year} &bull; {sv.vehicle.transmission} &bull; {sv.vehicle.fuelType}</p>
+                    <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">{sv.vehicle.year} &bull; {sv.vehicle.transmission} &bull; {sv.vehicle.fuelType}</p>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
                     <span className="text-sm font-black text-blue-900">ETB {fmt(sv.vehicle.price)}</span>
                     <span className="text-[10px] text-slate-400 flex items-center gap-1"><MapPin size={10} /> {sv.vehicle.location}</span>
                   </div>

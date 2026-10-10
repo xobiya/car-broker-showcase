@@ -351,13 +351,13 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
 
           {/* ── Single pill bar ── */}
           <div
-            className={`flex items-center bg-white rounded-xl border-2 shadow-sm overflow-visible transition-colors ${
-              openDropdown ? "border-blue-400" : "border-[#E5E7EB]"
+            className={`flex items-center bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible transition-colors ${
+              openDropdown ? "border-[#0F4C81] ring-2 ring-blue-100" : "hover:border-slate-300"
             }`}
           >
             {/* Search icon */}
-            <div className="pl-4 pr-2 text-slate-400 shrink-0">
-              <Search size={17} strokeWidth={2} />
+            <div className="pl-3.5 pr-1.5 text-slate-400 shrink-0">
+              <Search size={18} strokeWidth={2} />
             </div>
 
             {/* Active filter tags inline */}
@@ -366,17 +366,17 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 const qf = QUICK_FILTERS.find(f => f.id === qfId);
                 if (!qf) return null;
                 return (
-                  <span key={qf.id} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-[11px] font-semibold px-2 py-0.5 rounded-md shrink-0">
+                  <span key={qf.id} className="inline-flex items-center gap-1 bg-blue-50 text-[#0F4C81] border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0">
                     {qf.label}
-                    <button onClick={() => toggleQuickFilter(qf.id)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={9} strokeWidth={3} /></button>
+                    <button onClick={() => toggleQuickFilter(qf.id)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={10} strokeWidth={3} /></button>
                   </span>
                 );
               })}
               {(Object.entries(facets) as [string, string[]][]).map(([key, values]) =>
                 values.map(v => (
-                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-[11px] font-semibold px-2 py-0.5 rounded-md shrink-0">
+                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1 bg-blue-50 text-[#0F4C81] border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0">
                     {FACET_LABELS[key]}: {v}
-                    <button onClick={() => removeFacet(key, v)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={9} strokeWidth={3} /></button>
+                    <button onClick={() => removeFacet(key, v)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={10} strokeWidth={3} /></button>
                   </span>
                 ))
               )}
@@ -390,20 +390,20 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 onKeyDown={e => e.key === "Escape" && setOpenDropdown(null)}
                 placeholder={
                   quickFilters.length === 0 && Object.values(facets).every(v => v.length === 0)
-                    ? "Search… Brand:, Year:, Status:"
+                    ? "Search make, model, year, or location..."
                     : ""
                 }
-                className="flex-1 min-w-[120px] bg-transparent text-sm text-[#111827] placeholder:text-slate-400 focus:outline-none py-0.5"
+                className="flex-1 min-w-[100px] sm:min-w-[140px] bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none py-1"
               />
             </div>
 
             {/* Result count */}
-            <span className="text-[11px] text-slate-400 font-semibold whitespace-nowrap shrink-0 px-2">{sorted.length}</span>
+            <span className="hidden sm:inline-block text-[11px] text-slate-400 font-bold whitespace-nowrap shrink-0 px-2">{sorted.length} cars</span>
 
             {/* Sort */}
-            <div className="h-6 w-px bg-[#E5E7EB] shrink-0" />
+            <div className="h-6 w-px bg-slate-200 shrink-0" />
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="text-[11px] font-semibold text-slate-500 bg-transparent focus:outline-none appearance-none cursor-pointer px-2 py-3.5 shrink-0 max-w-[90px] sm:max-w-none"
+              className="text-[11px] font-bold text-slate-600 bg-transparent focus:outline-none appearance-none cursor-pointer px-2 py-3 shrink-0 max-w-[85px] sm:max-w-none"
             >
               <option>Newest</option>
               <option>Price: Low to High</option>
@@ -413,9 +413,11 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
             {/* Chevron toggle */}
             <button
               onClick={() => setOpenDropdown(openDropdown === "panel" ? null : "panel")}
-              className="px-3 py-3.5 border-l border-[#E5E7EB] text-slate-400 hover:bg-slate-50 transition-colors shrink-0 cursor-pointer"
+              className="px-3 py-3 border-l border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 cursor-pointer flex items-center gap-1"
+              title="Toggle filters panel"
             >
-              <ChevronDown size={15} strokeWidth={2.5} className={`transition-transform duration-200 ${openDropdown === "panel" ? "rotate-180" : ""}`} />
+              <span className="hidden md:inline text-[11px] font-bold text-slate-600">Filters</span>
+              <ChevronDown size={14} strokeWidth={2.5} className={`transition-transform duration-200 ${openDropdown === "panel" ? "rotate-180" : ""}`} />
             </button>
           </div>
 

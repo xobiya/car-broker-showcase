@@ -219,18 +219,18 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
   const fmt = (n: number) => n.toLocaleString("en-ET", { maximumFractionDigits: 0 });
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-6 py-8 space-y-6 bg-slate-50 text-slate-800">
-      <nav className="text-xs font-semibold text-slate-400 flex items-center space-x-2">
-        <button onClick={onBack} className="hover:text-slate-600 transition-colors">Home</button>
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 sm:py-8 space-y-6 bg-slate-50 text-slate-800 pb-28 sm:pb-8">
+      <nav className="text-xs font-semibold text-slate-400 flex items-center space-x-2 overflow-x-auto whitespace-nowrap pb-1">
+        <button onClick={onBack} className="hover:text-slate-600 transition-colors cursor-pointer">Home</button>
         <span>&rsaquo;</span>
-        <button onClick={onBack} className="hover:text-slate-600 transition-colors">Browse</button>
+        <button onClick={onBack} className="hover:text-slate-600 transition-colors cursor-pointer">Showroom</button>
         <span>&rsaquo;</span>
-        <span className="text-slate-600">{vehicle.brand} {vehicle.model}</span>
+        <span className="text-slate-700 font-bold truncate">{vehicle.brand} {vehicle.model}</span>
       </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         <div className="lg:col-span-8 space-y-6">
-          <div className="relative h-64 md:h-[480px] bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+          <div className="relative h-64 sm:h-80 md:h-[460px] bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
             <img src={activeImage} alt={`${vehicle.brand} ${vehicle.model}`} className="w-full h-full object-cover transition-transform duration-500" />
             <div className="absolute top-4 left-4 flex flex-wrap gap-2">
               <span className="bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded shadow-sm flex items-center gap-1">
@@ -417,14 +417,32 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
         </div>
       </div>
 
-      {vehicle.brokerPhone && (
-        <a href={`tel:${vehicle.brokerPhone}`} className="fixed sm:hidden bottom-32 right-4 z-40 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 flex items-center justify-center transition-all active:scale-90">
-          <Phone size={22} />
-        </a>
-      )}
-      <a href="https://t.me/+251998119134" target="_blank" rel="noreferrer" className="fixed sm:hidden bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/30 flex items-center justify-center transition-all active:scale-90">
-        <Send size={22} />
-      </a>
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="fixed sm:hidden bottom-12 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 py-2.5 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="min-w-0 pr-3">
+          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Price</p>
+          <p className="text-sm font-black text-[#0F4C81] leading-tight truncate">
+            ETB {fmt(vehicle.price)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {vehicle.brokerPhone && (
+            <a
+              href={`tel:${vehicle.brokerPhone}`}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl transition shadow-sm flex items-center justify-center cursor-pointer"
+              title="Call Broker"
+            >
+              <Phone size={16} />
+            </a>
+          )}
+          <button
+            onClick={() => setShowTestDriveModal(true)}
+            className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap"
+          >
+            Test Drive
+          </button>
+        </div>
+      </div>
 
       {showReportModal && (
         <ReportModal

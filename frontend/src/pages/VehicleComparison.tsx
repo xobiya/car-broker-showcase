@@ -75,15 +75,15 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
   );
 
   return (
-    <div className="max-w-7xl mx-auto w-full p-6 md:p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 md:p-8 pb-24 sm:pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl font-black text-slate-900">Compare Vehicles</h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">Compare up to 4 vehicles side by side</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">Compare Vehicles</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Compare up to 4 vehicles side by side</p>
         </div>
         {selected.length < 4 && (
           <button onClick={() => setShowAddPanel(true)}
-            className="flex items-center gap-1.5 bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm"
+            className="self-start sm:self-auto flex items-center gap-1.5 bg-[#0F4C81] hover:bg-blue-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm"
           >
             <Plus size={14} /> Add Vehicle
           </button>
@@ -100,7 +100,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
             />
             <button onClick={() => { setShowAddPanel(false); setSearch(""); }} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
             {filtered.slice(0, 8).map(v => (
               <button key={v.id} onClick={() => addVehicle(v)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-xs font-semibold text-slate-700 transition cursor-pointer"
@@ -115,10 +115,13 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
       )}
 
       {selected.length === 0 ? (
-        <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-2xl">
+        <div className="text-center py-16 sm:py-20 bg-white border border-dashed border-slate-200 rounded-2xl p-6">
           <Car size={40} className="mx-auto text-slate-300 mb-4" />
-          <p className="text-sm font-bold text-slate-400">No vehicles to compare</p>
-          <p className="text-xs text-slate-400 mt-1">Click "Add Vehicle" to start comparing</p>
+          <p className="text-sm font-bold text-slate-700">No vehicles to compare</p>
+          <p className="text-xs text-slate-400 mt-1 mb-4">Select vehicles from the inventory to view differences side by side.</p>
+          <button onClick={() => setShowAddPanel(true)} className="bg-[#0F4C81] hover:bg-blue-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl cursor-pointer transition">
+            Add Your First Vehicle
+          </button>
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
@@ -126,11 +129,14 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-wider bg-slate-50 w-40">Specification</th>
+                  <th className="p-3 sm:p-4 text-[10px] font-black uppercase text-slate-400 tracking-wider bg-slate-50 w-32 sm:w-44 sticky left-0 z-20 border-r border-slate-200">
+                    Specification
+                  </th>
                   {selected.map(v => (
-                    <th key={v.id} className="p-4 min-w-[200px] relative">
+                    <th key={v.id} className="p-3 sm:p-4 min-w-[170px] sm:min-w-[210px] relative">
                       <button onClick={() => removeVehicle(v.id)}
-                        className="absolute top-2 right-2 text-slate-300 hover:text-rose-500 transition cursor-pointer"
+                        className="absolute top-2 right-2 text-slate-300 hover:text-rose-500 transition cursor-pointer p-1"
+                        title="Remove vehicle"
                       >
                         <X size={14} />
                       </button>
@@ -140,7 +146,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                         </div>
                         <h3 className="text-sm font-bold text-slate-800">{v.brand} {v.model}</h3>
                         <p className="text-[11px] text-slate-400 font-medium">{v.year}</p>
-                        <span className="mt-2 text-sm font-black text-blue-900">ETB {v.price.toLocaleString()}</span>
+                        <span className="mt-2 text-sm font-black text-[#0F4C81]">ETB {v.price.toLocaleString()}</span>
                         <button onClick={() => onViewDetails(v)}
                           className="mt-2 text-[10px] font-bold text-orange-500 hover:text-orange-600 transition cursor-pointer"
                         >
@@ -151,14 +157,14 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-100">
                 {COMPARE_FIELDS.map(field => (
                   <tr key={field.key} className="hover:bg-slate-50/50 transition">
-                    <td className="p-4 font-bold text-slate-500 text-[11px] uppercase tracking-wider bg-slate-50/50">
+                    <td className="p-3 sm:p-4 font-bold text-slate-600 text-[10px] sm:text-[11px] uppercase tracking-wider bg-slate-50/90 sticky left-0 z-10 border-r border-slate-200">
                       {field.label}
                     </td>
                     {selected.map(v => (
-                      <td key={v.id} className="p-4 text-slate-700 font-medium">
+                      <td key={v.id} className="p-3 sm:p-4 text-slate-700 font-medium">
                         {getFieldValue(v, field.key)}
                       </td>
                     ))}

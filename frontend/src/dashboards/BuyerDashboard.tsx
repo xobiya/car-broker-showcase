@@ -133,11 +133,14 @@ export default function BuyerDashboard({ currentUser, onNotify, onViewDetails }:
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {savedVehicles.map(sv => sv.vehicle && (
-                  <div key={sv.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex hover:shadow-md transition cursor-pointer group"
+                  <div key={sv.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition cursor-pointer group"
                     onClick={() => onViewDetails(sv.vehicle!)}
                   >
-                    <div className="w-36 h-28 shrink-0 bg-slate-100 overflow-hidden">
+                    <div className="w-full sm:w-44 h-44 sm:h-auto shrink-0 bg-slate-100 overflow-hidden relative">
                       <img src={sv.vehicle.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                      <div className="absolute top-2.5 left-2.5 bg-emerald-600 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+                        Verified
+                      </div>
                     </div>
                     <div className="p-4 flex-1 flex flex-col justify-between min-w-0">
                       <div>
@@ -145,14 +148,15 @@ export default function BuyerDashboard({ currentUser, onNotify, onViewDetails }:
                           <h3 className="text-sm font-bold text-slate-800 truncate">{sv.vehicle.brand} {sv.vehicle.model}</h3>
                           <button onClick={(e) => { e.stopPropagation(); handleRemoveSaved(sv.vehicleId); }}
                             className="text-slate-300 hover:text-rose-500 transition cursor-pointer p-1 shrink-0"
+                            title="Remove from saved"
                           >
                             <Trash2 size={13} />
                           </button>
                         </div>
-                        <p className="text-[11px] text-slate-400 font-medium truncate">{sv.vehicle.year} &bull; {sv.vehicle.transmission} &bull; {sv.vehicle.fuelType}</p>
+                        <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">{sv.vehicle.year} &bull; {sv.vehicle.transmission} &bull; {sv.vehicle.fuelType}</p>
                       </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm font-black text-blue-900">ETB {fmt(sv.vehicle.price)}</span>
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                        <span className="text-sm font-black text-[#0F4C81]">ETB {fmt(sv.vehicle.price)}</span>
                         <span className="text-[10px] text-slate-400 flex items-center gap-1"><MapPin size={10} /> {sv.vehicle.location}</span>
                       </div>
                     </div>
