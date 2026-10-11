@@ -55,7 +55,7 @@ export default function ChooseRolePage({ onSelectRole, onSignIn }: ChooseRolePag
             <Star size={12} />
             Get Started
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight leading-tight text-white">
             Choose Your Path
           </h1>
           <p className="text-sm sm:text-base text-blue-200/80 max-w-2xl mx-auto font-medium leading-relaxed px-2">

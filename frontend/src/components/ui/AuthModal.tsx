@@ -115,9 +115,9 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
           </div>
 
           {tab === "login" && role && (
-            <div className="mb-3 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-              <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">Signing in as:</span>
-              <span className="text-[11px] font-black text-blue-900 capitalize">{role}</span>
+            <div className="mb-3 flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Signing in as:</span>
+              <span className="text-[11px] font-black text-emerald-900 capitalize">{role}</span>
             </div>
           )}
 
@@ -139,7 +139,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="e.g. Dawit Lemma"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="e.g. dawit@example.com"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-9 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-9 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 />
                 <button
                   type="button"
@@ -192,23 +192,23 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
                     placeholder="+251 9X XXX XXXX"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                   />
                 </div>
               </div>
             )}
 
             {tab === "register" && (
-              <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">Joining as:</span>
-                <span className="text-[11px] font-black text-blue-900 capitalize">{role}</span>
+              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+                <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Joining as:</span>
+                <span className="text-[11px] font-black text-emerald-900 capitalize">{role}</span>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-2.5 rounded-lg text-xs tracking-wider transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-2.5 rounded-lg text-xs tracking-wider transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20"
             >
               {loading ? (
                 <><Loader2 size={14} className="animate-spin" /> Please wait...</>

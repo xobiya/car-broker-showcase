@@ -68,7 +68,7 @@ export default function BrokerProfilePage({ brokerId, onBack, onViewDetails }: B
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl md:text-2xl font-bold">{broker.name}</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-white">{broker.name}</h1>
                 {broker.verified && <BadgeCheck size={20} className="text-blue-300" />}
               </div>
               <p className="text-sm text-blue-200">Licensed Broker · {broker.licenseNumber || "N/A"}</p>

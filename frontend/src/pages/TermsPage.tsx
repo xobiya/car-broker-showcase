@@ -15,7 +15,7 @@ export default function TermsPage({ onBack }: TermsPageProps) {
         <div className="bg-gradient-to-r from-blue-900 to-blue-800 p-6 md:p-8 text-white">
           <div className="flex items-center gap-3">
             <FileText size={24} />
-            <h1 className="text-xl md:text-2xl font-black">Terms of Service</h1>
+            <h1 className="text-xl md:text-2xl font-black text-white">Terms of Service</h1>
           </div>
         </div>
         <div className="p-6 md:p-8 space-y-6 text-sm text-slate-600 leading-relaxed">

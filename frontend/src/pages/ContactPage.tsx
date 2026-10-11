@@ -8,11 +8,9 @@ import {
   MessageSquare, 
   ShieldCheck, 
   CheckCircle2, 
-  Copy, 
   ChevronDown, 
   HelpCircle, 
   Sparkles,
-  ExternalLink,
   Car
 } from "lucide-react";
 
@@ -36,7 +34,7 @@ const FAQS = [
   },
   {
     q: "How are broker commission rates capped and disclosed?",
-    a: "All accredited brokers on our platform agree to a transparent, capped commission structure. The fee is clearly specified before closing negotiations, preventing unexpected middleman markups."
+    a: "All accredited brokers on our platform agree to a transparent, capped 1.5% commission structure. The fee is clearly specified before closing negotiations, preventing unexpected middleman markups."
   },
   {
     q: "How can I book an in-person test drive?",
@@ -54,31 +52,21 @@ export default function ContactPage({ onNotify }: ContactPageProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [vehicleRef, setVehicleRef] = useState("");
-  const [preferredContact, setPreferredContact] = useState<"phone" | "whatsapp" | "email">("phone");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
-  const handleCopy = (text: string, label: string) => {
-    try {
-      navigator.clipboard.writeText(text);
-      onNotify(`${label} copied to clipboard!`, "success");
-    } catch {
-      onNotify(`Copied: ${text}`, "info");
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) {
-      onNotify("Please fill in all required fields.", "error");
+    if (!name.trim() || (!phone.trim() && !email.trim())) {
+      onNotify("Please provide your name and either phone or email.", "error");
       return;
     }
 
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
-      onNotify("Message transmitted successfully. A support specialist will respond within 2 hours.", "success");
+      onNotify("Your inquiry has been submitted. Our concierge will contact you within 2 business hours.", "success");
       setName("");
       setEmail("");
       setPhone("");
@@ -88,301 +76,270 @@ export default function ContactPage({ onNotify }: ContactPageProps) {
   };
 
   return (
-    <div className="w-full bg-slate-50 text-slate-800 pb-20">
-      {/* 1. Header Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900 to-blue-950 text-white pt-16 pb-20 px-4 sm:px-6 md:px-8 border-b border-slate-800">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,76,129,0.25),transparent_50%)] pointer-events-none" />
+    <div className="w-full bg-white text-slate-900 pb-20">
+      
+      {/* 1. Hero Header */}
+      <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-20 px-4 sm:px-6 md:px-8 border-b border-slate-800">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 mix-blend-luminosity scale-105"
+          style={{
+            backgroundImage: `url('/images/about/happy_buyer.jpg')`
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/60 pointer-events-none" />
 
-        <div className="max-w-4xl mx-auto text-center space-y-5 relative z-10">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight">
-            Connect with Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500">Concierge Desk</span>
+        <div className="max-w-5xl mx-auto text-center space-y-4 relative z-10">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-400">
+            <Sparkles size={14} />
+            <span>Dedicated Automotive Concierge</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-white">
+            Get in Touch with <span className="text-amber-400">Arif Car Sell</span>
           </h1>
 
-          <p className="text-xs sm:text-sm md:text-base text-slate-300 max-w-xl mx-auto font-medium leading-relaxed">
-            Have questions about a verified listing, broker onboarding, title verification, or booking a vehicle inspection? Our automotive specialists are here to guide you.
+          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto font-medium leading-relaxed">
+            Have questions about an inspected car, Libre title audit, or listing your vehicle? Our team in Addis Ababa is here to assist you.
           </p>
         </div>
       </section>
 
-      {/* 2. Direct Contact Channels */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 -mt-8 relative z-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Card 1: Direct Hotline */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-                <Phone size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Phone Hotline</p>
-                <p className="text-xs font-bold text-slate-900 mt-1">+251 91 123 4567</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Direct phone assistance</p>
-              </div>
-            </div>
-            <button
-              onClick={() => handleCopy("+251911234567", "Phone number")}
-              className="mt-4 w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-[11px] font-bold transition cursor-pointer"
-            >
-              <Copy size={12} />
-              <span>Copy Number</span>
-            </button>
-          </div>
-
-          {/* Card 2: General Inquiries */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                <Mail size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Email Concierge</p>
-                <p className="text-xs font-bold text-slate-900 mt-1">support@arifcarsell.com</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Response within 2 hours</p>
-              </div>
-            </div>
-            <button
-              onClick={() => handleCopy("support@arifcarsell.com", "Email address")}
-              className="mt-4 w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-[11px] font-bold transition cursor-pointer"
-            >
-              <Copy size={12} />
-              <span>Copy Email</span>
-            </button>
-          </div>
-
-          {/* Card 3: Broker Relations */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
-                <ShieldCheck size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Broker Desk</p>
-                <p className="text-xs font-bold text-slate-900 mt-1">brokers@arifcarsell.com</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Licensing & Onboarding</p>
-              </div>
-            </div>
-            <button
-              onClick={() => handleCopy("brokers@arifcarsell.com", "Broker email")}
-              className="mt-4 w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-[11px] font-bold transition cursor-pointer"
-            >
-              <Copy size={12} />
-              <span>Copy Email</span>
-            </button>
-          </div>
-
-          {/* Card 4: Main Office */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                <MapPin size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Verification Center</p>
-                <p className="text-xs font-bold text-slate-900 mt-1">Bole Sub-City, Road 22</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Physical inspection yard</p>
-              </div>
-            </div>
-            <div className="mt-4 py-1.5 px-3 text-center text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-lg">
-              Open for Inspections
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Main Form & Side Info Section */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Form (7 cols) */}
-          <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 md:p-10 shadow-sm space-y-6">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Send an Official Inquiry</h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                Select your inquiry topic and provide your details below.
+      {/* 2. Main Content Grid */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          
+          {/* Left: Contact Info Cards */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                Support Channels
+              </span>
+              <h2 className="text-2xl font-black text-slate-950">
+                Direct Communication Lines
+              </h2>
+              <p className="text-xs text-slate-500">
+                Reach our team directly by phone, messaging, or visit our Addis Ababa headquarters.
               </p>
             </div>
 
-            {/* Topic Pills */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">Inquiry Topic</label>
-              <div className="flex flex-wrap gap-2">
-                {TOPIC_OPTIONS.map(topic => (
-                  <button
-                    key={topic}
-                    type="button"
-                    onClick={() => setSelectedTopic(topic)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      selectedTopic === topic
-                        ? "bg-[#0F4C81] text-white shadow-sm"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {topic}
-                  </button>
-                ))}
+            <div className="space-y-3">
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                  <Phone size={20} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Direct Hotline</h4>
+                  <p className="text-sm font-bold text-slate-900">+251 91 123 4567 / +251 92 234 5678</p>
+                  <p className="text-[11px] text-slate-400">Mon - Sat: 8:30 AM - 6:30 PM (EAT)</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                  <Mail size={20} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email Inquiry</h4>
+                  <p className="text-sm font-bold text-slate-900">support@arifcarsell.com</p>
+                  <p className="text-[11px] text-slate-400">Average response time within 2 hours</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                  <MapPin size={20} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Headquarters & Inspection Lot</h4>
+                  <p className="text-sm font-bold text-slate-900">Bole Sub-City, Next to Medhanialem Mall</p>
+                  <p className="text-[11px] text-slate-400">Addis Ababa, Ethiopia</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <Clock size={20} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Working Hours</h4>
+                  <p className="text-sm font-bold text-slate-900">Monday – Saturday: 8:30 AM – 6:30 PM</p>
+                  <p className="text-[11px] text-slate-400">Sunday: By appointment only</p>
+                </div>
               </div>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="e.g. Dawit Bekele"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">Email Address *</label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">Phone Number (Optional)</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="+251 9X XXX XXXX"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">Vehicle Ref / Model (Optional)</label>
-                  <input
-                    type="text"
-                    value={vehicleRef}
-                    onChange={e => setVehicleRef(e.target.value)}
-                    placeholder="e.g. 2022 Toyota RAV4"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
-                  />
-                </div>
-              </div>
-
-              {/* Preferred Contact Method */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">Preferred Contact Method</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "phone" as const, label: "Phone Call" },
-                    { id: "whatsapp" as const, label: "Telegram / SMS" },
-                    { id: "email" as const, label: "Email" },
-                  ].map(opt => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setPreferredContact(opt.id)}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
-                        preferredContact === opt.id
-                          ? "bg-blue-50 border-[#0F4C81] text-[#0F4C81]"
-                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Message */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">Your Message *</label>
-                <textarea
-                  required
-                  rows={4}
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  placeholder="Describe your inquiry, vehicle requirements, or questions in detail..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition resize-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-[#0F4C81] hover:bg-blue-900 disabled:bg-slate-400 text-white font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
-              >
-                {isSubmitting ? (
-                  <span>Sending Message...</span>
-                ) : (
-                  <>
-                    <Send size={14} />
-                    <span>Send Message to Concierge</span>
-                  </>
-                )}
-              </button>
-            </form>
           </div>
 
-          {/* Right Column: Assurances & FAQs (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Trust Assurance Card */}
-            <div className="bg-gradient-to-br from-slate-900 to-blue-950 rounded-3xl p-6 sm:p-8 text-white space-y-4 border border-slate-800 shadow-md">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                <Sparkles size={20} />
-              </div>
-              <h3 className="font-extrabold text-base tracking-tight">Our Concierge Commitment</h3>
-              <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Verified responses from licensed staff members only.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Strict confidentiality with buyer and seller records.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Complimentary booking of vehicle test drives and audits.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Quick FAQs */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-sm">
-              <div className="flex items-center gap-2 text-slate-900 font-extrabold text-sm">
-                <HelpCircle size={17} className="text-[#0F4C81]" />
-                <span>Frequently Asked Questions</span>
+          {/* Right: Interactive Contact Form */}
+          <div className="lg:col-span-7">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-lg shadow-slate-100 space-y-6">
+              <div className="space-y-1">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-950">
+                  Send Us a Direct Message
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Fill in your details and an accredited concierge will follow up promptly.
+                </p>
               </div>
 
-              <div className="divide-y divide-slate-100">
-                {FAQS.map((faq, idx) => {
-                  const isOpen = expandedFaq === idx;
-                  return (
-                    <div key={faq.q} className="py-3 first:pt-0 last:pb-0">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                
+                {/* Topic Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Inquiry Topic
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {TOPIC_OPTIONS.map((t) => (
                       <button
+                        key={t}
                         type="button"
-                        onClick={() => setExpandedFaq(isOpen ? null : idx)}
-                        className="w-full flex items-center justify-between text-left gap-3 text-xs font-bold text-slate-800 hover:text-blue-900 transition cursor-pointer"
+                        onClick={() => setSelectedTopic(t)}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold text-center transition cursor-pointer border ${
+                          selectedTopic === t
+                            ? "bg-slate-950 text-amber-400 border-slate-950 font-black shadow-xs"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
                       >
-                        <span>{faq.q}</span>
-                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                        {t}
                       </button>
-                      {isOpen && (
-                        <p className="mt-2 text-[11px] text-slate-500 leading-relaxed font-medium">
-                          {faq.a}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Name & Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Solomon Tadesse"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+251 91 123 4567"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Email & Vehicle Ref */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Email Address (Optional)
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@example.com"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Vehicle of Interest (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={vehicleRef}
+                      onChange={(e) => setVehicleRef(e.target.value)}
+                      placeholder="e.g. 2023 Toyota RAV4 Hybrid"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                    />
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Message Details
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Tell us what you are looking for, preferred viewing schedule, or questions..."
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition resize-none"
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/25 active:scale-95 disabled:opacity-50"
+                >
+                  <Send size={15} />
+                  <span>{isSubmitting ? "Submitting Inquiry..." : "Submit Message to Concierge"}</span>
+                </button>
+              </form>
             </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 3. FAQ Accordion */}
+      <section className="bg-slate-50/70 border-t border-slate-200/80 py-16 sm:py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 space-y-8">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Quick answers about contact and concierge appointments
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {FAQS.map((faq, idx) => {
+              const isOpen = expandedFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs transition"
+                >
+                  <button
+                    onClick={() => setExpandedFaq(isOpen ? null : idx)}
+                    className="w-full text-left p-4.5 sm:p-5 font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between gap-3 cursor-pointer hover:text-amber-600 transition"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown
+                      size={18}
+                      className={`text-slate-400 shrink-0 transition-transform duration-200 ${
+                        isOpen ? "rotate-180 text-amber-600" : ""
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-4.5 sm:px-5 pb-5 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-100">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
+
     </div>
   );
 }

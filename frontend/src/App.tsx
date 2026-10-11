@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, lazy, Suspense, type ReactNode } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown, Menu, X, GitCompare, Phone, Loader2 } from "lucide-react";
+import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown, Menu, X, GitCompare, Phone, Loader2, Sparkles, Plus, MapPin, Car, Zap, FileCheck2, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -22,18 +22,21 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
 const BrokerDashboard = lazy(() => import("./dashboards/BrokerDashboard"));
+const SellerDashboard = lazy(() => import("./dashboards/SellerDashboard"));
 const AdminPanel = lazy(() => import("./dashboards/AdminPanel"));
 const AdminProfilePage = lazy(() => import("./dashboards/AdminProfilePage"));
 const NotificationsPage = lazy(() => import("./dashboards/NotificationsPage"));
 const BrokerProfilePage = lazy(() => import("./dashboards/BrokerProfilePage"));
 const BuyerProfilePage = lazy(() => import("./dashboards/BuyerProfilePage"));
-const SellerDashboard = lazy(() => import("./dashboards/SellerDashboard"));
 const ChooseRolePage = lazy(() => import("./pages/ChooseRolePage"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 
 function PageLoader() {
   return (
     <div className="flex-1 min-h-[50vh] flex flex-col items-center justify-center p-8 text-slate-400">
-      <Loader2 size={32} className="animate-spin text-orange-500 mb-3" />
+      <Loader2 size={32} className="animate-spin text-amber-500 mb-3" />
       <p className="text-xs font-semibold tracking-wider uppercase">Loading...</p>
     </div>
   );
@@ -97,6 +100,8 @@ export default function App() {
   const [authModalRole, setAuthModalRole] = useState<"buyer" | "broker" | "seller">("buyer");
   const [authModalTab, setAuthModalTab] = useState<"login" | "register">("login");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [vehiclesMenuOpen, setVehiclesMenuOpen] = useState(false);
+  const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const { toasts, removeToast } = useToast();
@@ -106,6 +111,8 @@ export default function App() {
   useEffect(() => {
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
+    setVehiclesMenuOpen(false);
+    setServicesMenuOpen(false);
   }, [location.pathname]);
 
   // If user is admin and visits any user-side page, redirect them to admin pages
@@ -181,7 +188,7 @@ export default function App() {
 
       {!fullScreen && (
         <>
-          <header className="shrink-0 bg-white/95 border-b border-slate-200/80 h-16 sm:h-20 px-4 sm:px-6 md:px-8 flex items-center justify-between backdrop-blur-xl sticky top-0 z-35 shadow-sm">
+          <header className="shrink-0 bg-white/95 border-b border-slate-200/80 text-slate-900 h-16 sm:h-20 px-4 sm:px-6 md:px-8 flex items-center justify-between backdrop-blur-xl sticky top-0 z-35 shadow-sm transition-colors duration-200">
             <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -198,48 +205,54 @@ export default function App() {
             <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
               {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
                 <button onClick={() => navigate("/")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                   Home
                 </button>
               )}
               {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
                 <button onClick={() => navigate("/browse")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/browse" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/browse" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                   Showroom
                 </button>
               )}
               {userRole !== "admin" && (
+                <button onClick={() => navigate("/services")}
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/services" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                  Services
+                </button>
+              )}
+              {userRole !== "admin" && (
                 <button onClick={() => navigate("/compare")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/compare" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/compare" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                   Compare
                 </button>
               )}
               {userRole === "broker" && (
                 <button onClick={() => navigate("/broker-dashboard")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/broker-dashboard" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/broker-dashboard" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                   Broker Portal
                 </button>
               )}
               {userRole === "seller" && (
                 <button onClick={() => navigate("/seller-dashboard")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/seller-dashboard" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/seller-dashboard" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                   Seller Hub
                 </button>
               )}
               {userRole === "admin" && (
                 <button onClick={() => navigate("/admin")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname.startsWith("/admin") ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname.startsWith("/admin") ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                   Admin Panel
                 </button>
               )}
               {userRole !== "admin" && (
                 <>
                   <button onClick={() => navigate("/about")}
-                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/about" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/about" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                     About
                   </button>
                   <button onClick={() => navigate("/contact")}
-                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/contact" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/contact" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
                     Contact
                   </button>
                 </>
@@ -250,21 +263,21 @@ export default function App() {
               {user ? (
                 <div className="relative">
                   <button onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-2.5 sm:px-3 py-1.5 shadow-sm hover:shadow transition cursor-pointer"
+                    className="flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl px-2.5 sm:px-3 py-1.5 shadow-sm hover:shadow transition cursor-pointer"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-700 to-indigo-800 text-white flex items-center justify-center text-[10px] font-black">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 flex items-center justify-center text-[10px] font-black">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-xs font-bold text-slate-700 hidden sm:block">{user.name.split(" ")[0]}</span>
+                    <span className="text-xs font-bold hidden sm:block">{user.name.split(" ")[0]}</span>
                     <ChevronDown size={12} className={`text-slate-400 transition ${profileDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
                   {profileDropdownOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 text-slate-800 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
                         <div className="px-4 py-3 border-b border-slate-100">
                           <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-500 mt-0.5">{user.role}</p>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 mt-0.5">{user.role}</p>
                         </div>
                         <div className="py-1">
                           {userRole === "buyer" && (
@@ -292,8 +305,8 @@ export default function App() {
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <button onClick={() => { setAuthModalTab("login"); setShowAuthModal(true); }} className="text-slate-700 hover:text-slate-900 text-xs font-bold px-2.5 py-1.5 cursor-pointer">Login</button>
-                  <button onClick={() => { setAuthModalTab("register"); setShowAuthModal(true); }} className="bg-[#0F4C81] hover:bg-blue-900 text-white px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer">Register</button>
+                  <button onClick={() => navigate("/login")} className="text-slate-700 hover:text-slate-900 text-xs font-bold px-2.5 py-1.5 cursor-pointer">Login</button>
+                  <button onClick={() => navigate("/register")} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer">Register</button>
                 </div>
               )}
             </div>
@@ -330,14 +343,14 @@ export default function App() {
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-5">
                     {user ? (
-                      <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white space-y-3">
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 text-white space-y-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-sm font-black border border-white/20">
                             {user.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-bold truncate">{user.name}</p>
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
                               {user.role}
                             </span>
                           </div>
@@ -364,14 +377,14 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <button
-                            onClick={() => { setAuthModalTab("login"); setShowAuthModal(true); setMobileMenuOpen(false); }}
+                            onClick={() => { navigate("/login"); setMobileMenuOpen(false); }}
                             className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
                           >
                             Sign In
                           </button>
                           <button
-                            onClick={() => { setAuthModalTab("register"); setShowAuthModal(true); setMobileMenuOpen(false); }}
-                            className="w-full bg-[#0F4C81] hover:bg-blue-900 text-white text-xs font-bold py-2.5 rounded-xl transition cursor-pointer"
+                            onClick={() => { navigate("/register"); setMobileMenuOpen(false); }}
+                            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-amber-500/20"
                           >
                             Register
                           </button>
@@ -386,6 +399,7 @@ export default function App() {
                           {[
                             { to: "/", label: "Home", icon: Home },
                             { to: "/browse", label: "Showroom Inventory", icon: LayoutGrid },
+                            { to: "/services", label: "Broker Services & Inspection", icon: Sparkles },
                             { to: "/compare", label: "Compare Vehicles", icon: GitCompare },
                             { to: "/about", label: "About Our Marketplace", icon: Info },
                             { to: "/contact", label: "Contact Broker Support", icon: Phone },
@@ -398,11 +412,11 @@ export default function App() {
                                 onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                                   active
-                                    ? "bg-blue-50 text-[#0F4C81]"
+                                    ? "bg-amber-50 text-amber-800 font-extrabold"
                                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                 }`}
                               >
-                                <Icon size={16} className={active ? "text-[#0F4C81]" : "text-slate-400"} />
+                                <Icon size={16} className={active ? "text-amber-600" : "text-slate-400"} />
                                 {item.label}
                               </button>
                             );
@@ -424,11 +438,11 @@ export default function App() {
                                 onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                                   active
-                                    ? "bg-blue-50 text-[#0F4C81]"
+                                    ? "bg-amber-50 text-amber-800 font-extrabold"
                                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                 }`}
                               >
-                                <Icon size={16} className={active ? "text-[#0F4C81]" : "text-slate-400"} />
+                                <Icon size={16} className={active ? "text-amber-600" : "text-slate-400"} />
                                 {item.label}
                               </button>
                             );
@@ -509,7 +523,12 @@ export default function App() {
             >
               <Routes>
                 <Route path="/" element={<UserRoute><HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller") navigate("/seller-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} /></UserRoute>} />
-                <Route path="/choose-role" element={<UserRoute><ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => { setAuthModalRole("buyer"); setShowAuthModal(true); }} /></UserRoute>} />
+                <Route path="/choose-role" element={<UserRoute><ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => navigate("/login")} /></UserRoute>} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/signup" element={<RegisterPage />} />
+                <Route path="/services" element={<UserRoute><ServicesPage onNotify={addToast} /></UserRoute>} />
+                <Route path="/service" element={<Navigate to="/services" replace />} />
                 <Route path="/browse" element={<UserRoute><div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div></UserRoute>} />
                 <Route path="/vehicles/:id" element={<UserRoute><VehicleDetail vehicle={selectedVehicle} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} /></UserRoute>} />
                 <Route path="/broker-dashboard" element={<ProtectedRoute allowedRoles={["broker"]}><BrokerDashboard onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
@@ -519,7 +538,9 @@ export default function App() {
                 <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationsPage onBack={() => navigate("/admin")} /></ProtectedRoute>} />
                 <Route path="/profile" element={<UserRoute>{user ? user.role === "buyer" ? <BuyerProfilePage user={user} onNotify={addToast} onViewDetails={handleViewDetails} /> : <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>}</UserRoute>} />
                 <Route path="/about" element={<UserRoute><AboutPage onNotify={addToast} /></UserRoute>} />
+                <Route path="/about-us" element={<Navigate to="/about" replace />} />
                 <Route path="/contact" element={<UserRoute><ContactPage onNotify={addToast} /></UserRoute>} />
+                <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
                 <Route path="/terms" element={<UserRoute><TermsPage onBack={() => navigate("/")} /></UserRoute>} />
                 <Route path="/privacy" element={<UserRoute><PrivacyPage onBack={() => navigate("/")} /></UserRoute>} />
                 <Route path="/help" element={<UserRoute><HelpPage onNotify={addToast} /></UserRoute>} />
@@ -535,48 +556,49 @@ export default function App() {
       </main>
 
       {!fullScreen && userRole !== "admin" && (
-        <footer className="shrink-0 bg-slate-100 border-t border-slate-200 pt-16 pb-10 px-6 md:px-12 mt-auto">
+        <footer className="shrink-0 bg-slate-950 border-t border-slate-800/80 pt-16 pb-10 px-6 md:px-12 mt-auto text-slate-300">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-16">
             <div className="md:col-span-1 space-y-6">
-              <Logo size="md" />
-              <p className="text-xs text-slate-500 leading-relaxed font-semibold">The leading digital marketplace for high-quality verified vehicles.</p>
+              <Logo size="md" inverted />
+              <p className="text-xs text-slate-400 leading-relaxed font-semibold">The leading digital marketplace for high-quality verified vehicles.</p>
             </div>
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Quick Links</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => navigate("/about")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> About Us</button></li>
-                <li><button onClick={() => navigate("/contact")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Contact</button></li>
-                <li><button onClick={() => navigate("/terms")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Terms of Service</button></li>
-                <li><button onClick={() => navigate("/privacy")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Privacy Policy</button></li>
+                <li><button onClick={() => navigate("/about")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> About Us</button></li>
+                <li><button onClick={() => navigate("/services")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Broker Services</button></li>
+                <li><button onClick={() => navigate("/contact")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Contact</button></li>
+                <li><button onClick={() => navigate("/terms")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Terms of Service</button></li>
+                <li><button onClick={() => navigate("/privacy")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Privacy Policy</button></li>
               </ul>
             </div>
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">For Sellers</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => user ? navigate("/seller-dashboard") : navigate("/choose-role")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Sell Your Car</button></li>
+                <li><button onClick={() => user ? navigate("/seller-dashboard") : navigate("/choose-role")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Sell Your Car</button></li>
                 {['Pricing Guide', 'Listing Tips'].map(link => (
                   <li key={link}>
-                    <button onClick={() => addToast("Coming soon!", "info")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer">
-                      <span className="w-1 h-1 rounded-full bg-slate-300" /> {link}
+                    <button onClick={() => addToast("Coming soon!", "info")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer">
+                      <span className="w-1 h-1 rounded-full bg-slate-600" /> {link}
                     </button>
                   </li>
                 ))}
-                <li><button onClick={() => navigate("/help")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Help Center</button></li>
+                <li><button onClick={() => navigate("/help")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Help Center</button></li>
               </ul>
             </div>
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Newsletter</h4>
-              <p className="text-xs text-slate-500 font-semibold leading-relaxed">Get the latest car deals and market updates.</p>
+              <p className="text-xs text-slate-400 font-semibold leading-relaxed">Get the latest car deals and market updates.</p>
               <div className="flex gap-2">
-                <input type="email" placeholder="Email address" className="w-full text-xs p-2.5 bg-white text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500" />
-                <button onClick={() => addToast("Newsletter registration active!", "success")} className="bg-blue-950 hover:bg-slate-900 text-white px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-colors">Join</button>
+                <input type="email" placeholder="Email address" className="w-full text-xs p-2.5 bg-slate-900 text-white border border-slate-800 rounded-lg focus:outline-none focus:border-amber-400 placeholder:text-slate-500" />
+                <button onClick={() => addToast("Newsletter registration active!", "success")} className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-lg text-xs cursor-pointer transition-colors shadow-sm shadow-amber-500/20">Join</button>
               </div>
             </div>
           </div>
-          <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-200/60 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest">© {new Date().getFullYear()} Arif Car Sell. All rights reserved.</p>
-            <div className="flex items-center space-x-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-emerald-500" /> Secured Platform</span>
+          <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-800/80 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">© {new Date().getFullYear()} Arif Car Sell. All rights reserved.</p>
+            <div className="flex items-center space-x-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-amber-400" /> Secured Platform</span>
             </div>
           </div>
         </footer>
@@ -584,21 +606,21 @@ export default function App() {
 
       {!fullScreen && userRole !== "admin" && (
         <div className="fixed sm:hidden bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 flex items-center justify-around px-1 py-1 shadow-[0_-3px_16px_rgba(0,0,0,0.06)]">
-          <button onClick={() => navigate("/")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/" ? "text-[#0F4C81] font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+          <button onClick={() => navigate("/")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/" ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
             <Home size={20} /><span className="text-[10px]">Home</span>
           </button>
-          <button onClick={() => navigate("/browse")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/browse" ? "text-[#0F4C81] font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+          <button onClick={() => navigate("/browse")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/browse" ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
             <LayoutGrid size={20} /><span className="text-[10px]">Showroom</span>
           </button>
-          <button onClick={() => navigate("/compare")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/compare" ? "text-[#0F4C81] font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+          <button onClick={() => navigate("/compare")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/compare" ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
             <GitCompare size={20} /><span className="text-[10px]">Compare</span>
           </button>
           <button onClick={() => {
-            if (!user) setShowAuthModal(true);
+            if (!user) navigate("/login");
             else if (userRole === "broker") navigate("/broker-dashboard");
             else if (userRole === "seller") navigate("/seller-dashboard");
             else navigate("/profile");
-          }} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${(location.pathname === "/profile" || location.pathname.includes("dashboard")) ? "text-[#0F4C81] font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+          }} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${(location.pathname === "/profile" || location.pathname.includes("dashboard")) ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
             <UserCircle size={20} /><span className="text-[10px]">{user ? (userRole === "broker" ? "Broker" : userRole === "seller" ? "Seller" : "Saved") : "Sign In"}</span>
           </button>
         </div>
@@ -641,7 +663,7 @@ function ProfileView({ user, onLogout, onBack }: { user: User; onLogout: () => v
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 className="text-xl font-bold">{user.name}</h1>
+            <h1 className="text-xl font-bold text-white">{user.name}</h1>
             <p className="text-sm text-blue-200 font-black uppercase tracking-wider mt-0.5">{user.role}</p>
           </div>
         </div>
