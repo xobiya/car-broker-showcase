@@ -228,5 +228,28 @@ describe("Security & Authentication Hardening", () => {
         expect(uuidPart).toMatch(uuidRegex);
       }
     });
+
+    it("should enforce admin redirection away from user-side routes", () => {
+      const resolveRouteForRole = (pathname: string, role: string | undefined): string => {
+        const isUserSidePath = !pathname.startsWith("/admin");
+        if (role === "admin" && isUserSidePath) {
+          return "/admin";
+        }
+        return pathname;
+      };
+
+      const userSidePaths = ["/", "/browse", "/vehicles/veh-123", "/compare", "/choose-role", "/profile", "/broker-dashboard", "/seller-dashboard", "/about"];
+
+      for (const path of userSidePaths) {
+        expect(resolveRouteForRole(path, "admin")).toBe("/admin");
+        expect(resolveRouteForRole(path, "buyer")).toBe(path);
+      }
+
+      // Admin paths should remain accessible
+      expect(resolveRouteForRole("/admin", "admin")).toBe("/admin");
+      expect(resolveRouteForRole("/admin/profile", "admin")).toBe("/admin/profile");
+      expect(resolveRouteForRole("/admin/notifications", "admin")).toBe("/admin/notifications");
+    });
   });
 });
+

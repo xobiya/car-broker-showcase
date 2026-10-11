@@ -714,7 +714,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
   return (
     <div className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all flex flex-col overflow-hidden">
       <div className="relative h-44 sm:h-48 bg-slate-100 overflow-hidden">
-        <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 shadow-sm uppercase">
           <ShieldCheck size={9} />
           <span>Verified</span>

@@ -94,7 +94,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
             <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">
               {tab === "login"
                 ? "Sign in to access your dashboard."
-                : "Join Ethiopia's trusted auto marketplace."}
+                : "Join our trusted automotive marketplace."}
             </p>
           </div>
 

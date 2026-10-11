@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, type ReactNode } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense, type ReactNode } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown, Menu, X, GitCompare, Phone } from "lucide-react";
+import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown, Menu, X, GitCompare, Phone, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -9,25 +9,35 @@ import { useAuth } from "./hooks/useAuth";
 import { authApi, setToken } from "./lib/api";
 import Logo from "./components/ui/Logo";
 import AuthModal from "./components/ui/AuthModal";
-import HomePage from "./pages/HomePage";
-import Showroom from "./pages/Showroom";
-import VehicleDetail from "./pages/VehicleDetail";
-import VehicleComparison from "./pages/VehicleComparison";
-import AboutPage from "./pages/AboutPage";
-import ContactPage from "./pages/ContactPage";
-import TermsPage from "./pages/TermsPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import HelpPage from "./pages/HelpPage";
-import TrustSafetyPage from "./pages/TrustSafetyPage";
-import BrokerDashboard from "./dashboards/BrokerDashboard";
-import AdminPanel from "./dashboards/AdminPanel";
-import AdminProfilePage from "./dashboards/AdminProfilePage";
-import NotificationsPage from "./dashboards/NotificationsPage";
-import BrokerProfilePage from "./dashboards/BrokerProfilePage";
-import BuyerProfilePage from "./dashboards/BuyerProfilePage";
-import SellerDashboard from "./dashboards/SellerDashboard";
-import ChooseRolePage from "./pages/ChooseRolePage";
 import type { VehicleListing, User } from "../../shared/types";
+
+// Code-split routes via React.lazy for on-demand loading
+const HomePage = lazy(() => import("./pages/HomePage"));
+const Showroom = lazy(() => import("./pages/Showroom"));
+const VehicleDetail = lazy(() => import("./pages/VehicleDetail"));
+const VehicleComparison = lazy(() => import("./pages/VehicleComparison"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const HelpPage = lazy(() => import("./pages/HelpPage"));
+const BrokerDashboard = lazy(() => import("./dashboards/BrokerDashboard"));
+const AdminPanel = lazy(() => import("./dashboards/AdminPanel"));
+const AdminProfilePage = lazy(() => import("./dashboards/AdminProfilePage"));
+const NotificationsPage = lazy(() => import("./dashboards/NotificationsPage"));
+const BrokerProfilePage = lazy(() => import("./dashboards/BrokerProfilePage"));
+const BuyerProfilePage = lazy(() => import("./dashboards/BuyerProfilePage"));
+const SellerDashboard = lazy(() => import("./dashboards/SellerDashboard"));
+const ChooseRolePage = lazy(() => import("./pages/ChooseRolePage"));
+
+function PageLoader() {
+  return (
+    <div className="flex-1 min-h-[50vh] flex flex-col items-center justify-center p-8 text-slate-400">
+      <Loader2 size={32} className="animate-spin text-orange-500 mb-3" />
+      <p className="text-xs font-semibold tracking-wider uppercase">Loading...</p>
+    </div>
+  );
+}
 
 const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/seller-dashboard", "/admin", "/admin/profile", "/admin/notifications"];
 
@@ -55,7 +65,18 @@ function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={user.role === "admin" ? "/admin" : "/"} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Blocks admin users from accessing user-side pages and redirects them to /admin
+function UserRoute({ children }: { children: ReactNode }) {
+  const user = useStore(s => s.user);
+
+  if (user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;
@@ -86,6 +107,13 @@ export default function App() {
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
   }, [location.pathname]);
+
+  // If user is admin and visits any user-side page, redirect them to admin pages
+  useEffect(() => {
+    if (user?.role === "admin" && !location.pathname.startsWith("/admin")) {
+      navigate("/admin", { replace: true });
+    }
+  }, [user?.role, location.pathname, navigate]);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -162,28 +190,30 @@ export default function App() {
               >
                 <Menu size={22} />
               </button>
-              <div onClick={() => navigate("/")} className="cursor-pointer shrink-0">
+              <div onClick={() => navigate(userRole === "admin" ? "/admin" : "/")} className="cursor-pointer shrink-0">
                 <Logo />
               </div>
             </div>
 
             <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-              {userRole !== "broker" && userRole !== "seller" && (
+              {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
                 <button onClick={() => navigate("/")}
                   className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
                   Home
                 </button>
               )}
-              {userRole !== "broker" && userRole !== "seller" && (
+              {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
                 <button onClick={() => navigate("/browse")}
                   className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/browse" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
                   Showroom
                 </button>
               )}
-              <button onClick={() => navigate("/compare")}
-                className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/compare" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
-                Compare
-              </button>
+              {userRole !== "admin" && (
+                <button onClick={() => navigate("/compare")}
+                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/compare" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                  Compare
+                </button>
+              )}
               {userRole === "broker" && (
                 <button onClick={() => navigate("/broker-dashboard")}
                   className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/broker-dashboard" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
@@ -202,18 +232,18 @@ export default function App() {
                   Admin Panel
                 </button>
               )}
-              <button onClick={() => navigate("/trust-safety")}
-                className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/trust-safety" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
-                Trust & Safety
-              </button>
-              <button onClick={() => navigate("/about")}
-                className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/about" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
-                About
-              </button>
-              <button onClick={() => navigate("/contact")}
-                className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/contact" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
-                Contact
-              </button>
+              {userRole !== "admin" && (
+                <>
+                  <button onClick={() => navigate("/about")}
+                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/about" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                    About
+                  </button>
+                  <button onClick={() => navigate("/contact")}
+                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-orange-500 transition-colors ${location.pathname === "/contact" ? "text-orange-500 border-b-2 border-orange-500 pb-1" : "text-slate-600"}`}>
+                    Contact
+                  </button>
+                </>
+              )}
             </nav>
 
             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
@@ -244,9 +274,14 @@ export default function App() {
                             <DropdownItem icon={LayoutDashboard} label="My Dashboard" onClick={() => { navigate(userRole === "broker" ? "/broker-dashboard" : "/seller-dashboard"); setProfileDropdownOpen(false); }} />
                           )}
                           {userRole === "admin" && (
-                            <DropdownItem icon={LayoutDashboard} label="Admin Panel" onClick={() => { navigate("/admin"); setProfileDropdownOpen(false); }} />
+                            <>
+                              <DropdownItem icon={LayoutDashboard} label="Admin Panel" onClick={() => { navigate("/admin"); setProfileDropdownOpen(false); }} />
+                              <DropdownItem icon={UserCircle} label="Admin Profile" onClick={() => { navigate("/admin/profile"); setProfileDropdownOpen(false); }} />
+                            </>
                           )}
-                          <DropdownItem icon={UserCircle} label="Profile Settings" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
+                          {userRole !== "admin" && (
+                            <DropdownItem icon={UserCircle} label="Profile Settings" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
+                          )}
                         </div>
                         <div className="border-t border-slate-100 pt-1">
                           <DropdownItem icon={LogOut} label="Sign Out" onClick={() => { handleLogout(); setProfileDropdownOpen(false); }} danger />
@@ -345,32 +380,61 @@ export default function App() {
                     )}
 
                     <div className="space-y-1">
-                      <p className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Marketplace</p>
-                      {[
-                        { to: "/", label: "Home", icon: Home },
-                        { to: "/browse", label: "Showroom Inventory", icon: LayoutGrid },
-                        { to: "/compare", label: "Compare Vehicles", icon: GitCompare },
-                        { to: "/trust-safety", label: "Trust & Safety Verification", icon: ShieldCheck },
-                        { to: "/about", label: "About Our Marketplace", icon: Info },
-                        { to: "/contact", label: "Contact Broker Support", icon: Phone },
-                      ].map(item => {
-                        const Icon = item.icon;
-                        const active = location.pathname === item.to;
-                        return (
-                          <button
-                            key={item.to}
-                            onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                              active
-                                ? "bg-blue-50 text-[#0F4C81]"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                            }`}
-                          >
-                            <Icon size={16} className={active ? "text-[#0F4C81]" : "text-slate-400"} />
-                            {item.label}
-                          </button>
-                        );
-                      })}
+                      {userRole !== "admin" ? (
+                        <>
+                          <p className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Marketplace</p>
+                          {[
+                            { to: "/", label: "Home", icon: Home },
+                            { to: "/browse", label: "Showroom Inventory", icon: LayoutGrid },
+                            { to: "/compare", label: "Compare Vehicles", icon: GitCompare },
+                            { to: "/about", label: "About Our Marketplace", icon: Info },
+                            { to: "/contact", label: "Contact Broker Support", icon: Phone },
+                          ].map(item => {
+                            const Icon = item.icon;
+                            const active = location.pathname === item.to;
+                            return (
+                              <button
+                                key={item.to}
+                                onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                                  active
+                                    ? "bg-blue-50 text-[#0F4C81]"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                }`}
+                              >
+                                <Icon size={16} className={active ? "text-[#0F4C81]" : "text-slate-400"} />
+                                {item.label}
+                              </button>
+                            );
+                          })}
+                        </>
+                      ) : (
+                        <>
+                          <p className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Administration</p>
+                          {[
+                            { to: "/admin", label: "Admin Control Panel", icon: ShieldCheck },
+                            { to: "/admin/profile", label: "Admin Profile", icon: UserCircle },
+                            { to: "/admin/notifications", label: "Notifications & Alerts", icon: Info },
+                          ].map(item => {
+                            const Icon = item.icon;
+                            const active = location.pathname === item.to;
+                            return (
+                              <button
+                                key={item.to}
+                                onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                                  active
+                                    ? "bg-blue-50 text-[#0F4C81]"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                }`}
+                              >
+                                <Icon size={16} className={active ? "text-[#0F4C81]" : "text-slate-400"} />
+                                {item.label}
+                              </button>
+                            );
+                          })}
+                        </>
+                      )}
                     </div>
 
                     <div className="space-y-1 pt-2 border-t border-slate-100">
@@ -433,38 +497,41 @@ export default function App() {
       )}
 
       <main className={`${fullScreen ? "h-screen" : "flex-grow min-h-0"} flex flex-col pb-16 sm:pb-0`}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className={`w-full ${fullScreen ? "h-full flex-1" : "flex-grow"} flex flex-col`}
-          >
-            <Routes>
-              <Route path="/" element={<HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller") navigate("/seller-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} />} />
-              <Route path="/choose-role" element={<ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => { setAuthModalRole("buyer"); setShowAuthModal(true); }} />} />
-              <Route path="/browse" element={<div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div>} />
-              <Route path="/vehicles/:id" element={<VehicleDetail vehicle={selectedVehicle} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} />} />
-              <Route path="/broker-dashboard" element={<ProtectedRoute allowedRoles={["broker", "admin"]}><BrokerDashboard onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
-              <Route path="/seller-dashboard" element={<ProtectedRoute allowedRoles={["seller", "admin"]}><SellerDashboard currentUser={user} onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} /></ProtectedRoute>} />
-              <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} /></ProtectedRoute>} />
-              <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationsPage onBack={() => navigate("/admin")} /></ProtectedRoute>} />
-              <Route path="/profile" element={user ? user.role === "buyer" ? <BuyerProfilePage user={user} onNotify={addToast} onViewDetails={handleViewDetails} /> : <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>} />
-              <Route path="/about" element={<AboutPage onNotify={addToast} />} />
-              <Route path="/contact" element={<ContactPage onNotify={addToast} />} />
-              <Route path="/terms" element={<TermsPage onBack={() => navigate("/")} />} />
-              <Route path="/privacy" element={<PrivacyPage onBack={() => navigate("/")} />} />
-              <Route path="/help" element={<HelpPage onNotify={addToast} />} />
-              <Route path="/trust-safety" element={<TrustSafetyPage onBack={() => navigate("/")} />} />
-              <Route path="/brokers/:id" element={<BrokerProfilePage brokerId={location.pathname.split("/").pop()!} onBack={() => navigate("/")} onViewDetails={handleViewDetails} />} />
-              <Route path="/my-account" element={<Navigate to="/profile" replace />} />
-              <Route path="/compare" element={<VehicleComparison onNotify={addToast} onViewDetails={handleViewDetails} />} />
-            </Routes>
-          </motion.div>
-        </AnimatePresence>
+        <Suspense fallback={<PageLoader />}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className={`w-full ${fullScreen ? "h-full flex-1" : "flex-grow"} flex flex-col`}
+            >
+              <Routes>
+                <Route path="/" element={<UserRoute><HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller") navigate("/seller-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} /></UserRoute>} />
+                <Route path="/choose-role" element={<UserRoute><ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => { setAuthModalRole("buyer"); setShowAuthModal(true); }} /></UserRoute>} />
+                <Route path="/browse" element={<UserRoute><div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div></UserRoute>} />
+                <Route path="/vehicles/:id" element={<UserRoute><VehicleDetail vehicle={selectedVehicle} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} /></UserRoute>} />
+                <Route path="/broker-dashboard" element={<ProtectedRoute allowedRoles={["broker"]}><BrokerDashboard onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
+                <Route path="/seller-dashboard" element={<ProtectedRoute allowedRoles={["seller"]}><SellerDashboard currentUser={user} onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} /></ProtectedRoute>} />
+                <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} /></ProtectedRoute>} />
+                <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationsPage onBack={() => navigate("/admin")} /></ProtectedRoute>} />
+                <Route path="/profile" element={<UserRoute>{user ? user.role === "buyer" ? <BuyerProfilePage user={user} onNotify={addToast} onViewDetails={handleViewDetails} /> : <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>}</UserRoute>} />
+                <Route path="/about" element={<UserRoute><AboutPage onNotify={addToast} /></UserRoute>} />
+                <Route path="/contact" element={<UserRoute><ContactPage onNotify={addToast} /></UserRoute>} />
+                <Route path="/terms" element={<UserRoute><TermsPage onBack={() => navigate("/")} /></UserRoute>} />
+                <Route path="/privacy" element={<UserRoute><PrivacyPage onBack={() => navigate("/")} /></UserRoute>} />
+                <Route path="/help" element={<UserRoute><HelpPage onNotify={addToast} /></UserRoute>} />
+                <Route path="/trust-safety" element={<Navigate to="/about" replace />} />
+                <Route path="/brokers/:id" element={<UserRoute><BrokerProfilePage brokerId={location.pathname.split("/").pop()!} onBack={() => navigate("/")} onViewDetails={handleViewDetails} /></UserRoute>} />
+                <Route path="/my-account" element={<Navigate to={user?.role === "admin" ? "/admin" : "/profile"} replace />} />
+                <Route path="/compare" element={<UserRoute><VehicleComparison onNotify={addToast} onViewDetails={handleViewDetails} /></UserRoute>} />
+                <Route path="*" element={<Navigate to={user?.role === "admin" ? "/admin" : "/"} replace />} />
+              </Routes>
+            </motion.div>
+          </AnimatePresence>
+        </Suspense>
       </main>
 
       {!fullScreen && userRole !== "admin" && (
@@ -472,7 +539,7 @@ export default function App() {
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-16">
             <div className="md:col-span-1 space-y-6">
               <Logo size="md" />
-              <p className="text-xs text-slate-500 leading-relaxed font-semibold">The leading digital marketplace for high-quality verified vehicles in Ethiopia.</p>
+              <p className="text-xs text-slate-500 leading-relaxed font-semibold">The leading digital marketplace for high-quality verified vehicles.</p>
             </div>
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Quick Links</h4>
@@ -481,7 +548,6 @@ export default function App() {
                 <li><button onClick={() => navigate("/contact")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Contact</button></li>
                 <li><button onClick={() => navigate("/terms")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Terms of Service</button></li>
                 <li><button onClick={() => navigate("/privacy")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Privacy Policy</button></li>
-                <li><button onClick={() => navigate("/trust-safety")} className="text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-300" /> Trust & Safety</button></li>
               </ul>
             </div>
             <div className="space-y-6">

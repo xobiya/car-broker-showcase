@@ -508,7 +508,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
             {similarVehicles.map(car => (
               <div key={car.id} onClick={() => onViewDetails(car)} className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden cursor-pointer group">
                 <div className="h-32 md:h-40 relative bg-slate-100 overflow-hidden">
-                  <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103" />
+                  <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103" />
                 </div>
                 <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
                   <div className="space-y-1">

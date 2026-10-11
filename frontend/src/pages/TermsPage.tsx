@@ -26,7 +26,7 @@ export default function TermsPage({ onBack }: TermsPageProps) {
           </Section>
 
           <Section title="2. Platform Description">
-            Arif Car Sell is a digital marketplace connecting vehicle buyers with verified brokers in Ethiopia. We facilitate listings, inquiries, and transaction management but are not a party to any sale agreement.
+            Arif Car Sell is a digital marketplace connecting vehicle buyers with verified brokers. We facilitate listings, inquiries, and transaction management but are not a party to any sale agreement.
           </Section>
 
           <Section title="3. Broker Obligations">

@@ -136,12 +136,12 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight drop-shadow-md">
                 {currentUser.role === "broker" ? "Brokerage Control Center" :
                  currentUser.role === "admin" ? "Administrative Portal" :
-                 "Ethiopia's Verified Automotive Exchange"}
+                 "Verified Automotive Exchange"}
               </h1>
               <p className="text-xs sm:text-sm md:text-base text-slate-200/90 max-w-xl mx-auto font-medium leading-relaxed">
                 {currentUser.role === "broker" ? "Manage listings, track buyer inquiries, and finalize sales." :
                  currentUser.role === "admin" ? "Oversee listings, verify brokers, and monitor platform health." :
-                 "Browse certified pre-owned and new vehicles verified by licensed brokers in Addis Ababa."}
+                 "Browse certified pre-owned and new vehicles verified by licensed brokers."}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                 {currentUser.role === "buyer" && (
@@ -171,13 +171,13 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             <>
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-slate-200">
                 <ShieldCheck size={14} className="text-emerald-400" />
-                Verified Automotive Marketplace in Ethiopia
+                Verified Automotive Marketplace
               </div>
               <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight drop-shadow-md leading-tight">
                 Find Your Next Car with Absolute Confidence
               </h1>
               <p className="text-xs sm:text-sm md:text-base text-slate-200/90 max-w-xl mx-auto font-medium leading-relaxed">
-                Connecting genuine car buyers directly with verified, licensed automotive brokers across Addis Ababa and regional hubs.
+                Connecting genuine car buyers directly with verified, licensed automotive brokers across central and regional hubs.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
                 <button onClick={() => onBrowse()}
@@ -306,6 +306,8 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
                 <img 
                   src={car.imageUrl} 
                   alt={`${car.brand} ${car.model}`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[9px] font-black tracking-widest py-0.5 px-2 rounded-md flex items-center gap-1 shadow-sm uppercase">
@@ -354,7 +356,7 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
       <section className="bg-slate-100/70 py-12 sm:py-16 border-y border-slate-200/80">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-10 sm:space-y-12 text-center">
           <div className="space-y-2 max-w-2xl mx-auto">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Built for Trust in Ethiopian Auto Trade</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Built for Trust & Transparency in Auto Trade</h2>
             <p className="text-slate-500 text-xs sm:text-sm">We eliminate market uncertainty through physical vehicle verification and licensed broker accountability.</p>
           </div>
 
@@ -388,7 +390,7 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
               </div>
               <h3 className="font-bold text-sm sm:text-base text-slate-900">Transparent Pricing & Records</h3>
               <p className="text-slate-500 text-xs leading-relaxed max-w-xs">
-                No duplicate or ghost listings. Real asking prices in Ethiopian Birr with verifiable broker commission caps.
+                No duplicate or ghost listings. Real asking prices with verifiable broker commission caps.
               </p>
             </div>
           </div>
@@ -426,7 +428,7 @@ export default function HomePage({ currentUser, onViewDetails, onBrowse, onBecom
             <>
               <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight">Are You a Car Seller or Automotive Broker?</h2>
               <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-                Join Ethiopia's verified automotive exchange. List your inventory to thousands of active buyers with transparent commission tracking.
+                Join our verified automotive exchange. List your inventory to thousands of active buyers with transparent commission tracking.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <button onClick={onBecomeBroker}
