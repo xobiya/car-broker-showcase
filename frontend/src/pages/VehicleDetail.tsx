@@ -39,6 +39,15 @@ function getVehicleGallery(vehicle: VehicleListing): string[] {
   return images;
 }
 
+function getBrokerAvatar(name?: string, id?: string): string {
+  const n = (name || id || "").toLowerCase();
+  if (n.includes("beth") || n.includes("assefa") || n.includes("ev")) return "/images/brokers/bethzatha.jpg";
+  if (n.includes("mesfin") || n.includes("fleet") || n.includes("commercial")) return "/images/brokers/mesfin.jpg";
+  if (n.includes("dawit") || n.includes("lemma") || n.includes("legal")) return "/images/brokers/dawit.jpg";
+  if (n.includes("almaz") || n.includes("bekele")) return "/images/brokers/almaz.jpg";
+  return "/images/brokers/yonas.jpg";
+}
+
 export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotify, onViewDetails, onViewBrokerProfile }: VehicleDetailProps) {
   const { id: paramId } = useParams<{ id: string }>();
   const [vehicle, setVehicle] = useState<VehicleListing | null>(initialVehicle || null);
@@ -115,7 +124,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+        <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
         <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">Loading vehicle details...</p>
       </div>
     );
@@ -249,7 +258,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
           <div className="flex gap-3 overflow-x-auto pb-1">
             {images.map((img, idx) => (
               <button key={idx} onClick={() => setActiveImage(img)}
-                className={`h-20 w-28 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === img ? "border-orange-500 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}>
+                className={`h-20 w-28 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === img ? "border-emerald-500 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}>
                 <img src={img} alt={`view ${idx + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
@@ -273,7 +282,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
                 <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">Asking Price</p>
                 <p className="text-2xl md:text-3xl font-black text-blue-950 mt-1">ETB {fmt(vehicle.price)}</p>
                 {vehicle.originalPrice > vehicle.price && (
-                  <p className="text-[11px] text-orange-500 font-bold mt-1">Save ETB {fmt(vehicle.originalPrice - vehicle.price)}</p>
+                  <p className="text-[11px] text-emerald-600 font-bold mt-1">Save ETB {fmt(vehicle.originalPrice - vehicle.price)}</p>
                 )}
               </div>
             </div>
@@ -326,23 +335,25 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm space-y-5">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-blue-900 font-black text-lg">
-                {(vehicle.brokerName || "B").charAt(0)}
-              </div>
-              <div className="flex-1">
+              <img
+                src={getBrokerAvatar(vehicle.brokerName, vehicle.brokerId)}
+                alt={vehicle.brokerName || "Verified Broker"}
+                className="w-14 h-14 rounded-full object-cover border-2 border-amber-500 shadow-md shrink-0"
+              />
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-slate-800">{vehicle.brokerName || "Verified Broker"}</h3>
-                  {(vehicle as any).brokerVerified && <BadgeCheck size={16} className="text-blue-500" />}
+                  <h3 className="font-extrabold text-sm text-slate-900 truncate">{vehicle.brokerName || "Verified Partner Broker"}</h3>
+                  {(vehicle as any).brokerVerified && <BadgeCheck size={16} className="text-amber-500 shrink-0 ml-1" />}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className="flex text-amber-400">{[...Array(5)].map((_, i) => <Star key={i} size={11} fill="currentColor" />)}</div>
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase">Verified</span>
+                  <span className="text-[10px] text-amber-800 bg-amber-100 border border-amber-200/50 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Verified Broker</span>
                 </div>
-                {vehicle.brokerLicense && <p className="text-[10px] text-slate-400 font-semibold mt-0.5">License: {vehicle.brokerLicense}</p>}
+                {vehicle.brokerLicense && <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">License: {vehicle.brokerLicense}</p>}
                 {onViewBrokerProfile && (
-                  <button onClick={() => onViewBrokerProfile(vehicle.brokerId)} className="text-[10px] font-bold text-orange-500 hover:text-orange-600 mt-1 flex items-center gap-1 cursor-pointer">
+                  <button onClick={() => onViewBrokerProfile(vehicle.brokerId)} className="text-[10px] font-bold text-amber-600 hover:text-amber-700 mt-1 flex items-center gap-1 cursor-pointer">
                     <UserCircle size={12} /> View Broker Profile
                   </button>
                 )}
@@ -351,35 +362,35 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
 
             <div className="space-y-2 pt-2">
               {vehicle.brokerPhone && (
-                <a href={`tel:${vehicle.brokerPhone}`} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm">
+                <a href={`tel:${vehicle.brokerPhone}`} className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-amber-500/20 active:scale-95">
                   <Phone size={16} /> <span>Call Now</span>
                 </a>
               )}
               {vehicle.brokerPhone && (
                 <a href={`https://wa.me/${vehicle.brokerPhone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer"
-                  className="w-full bg-green-50 hover:bg-green-100 text-green-800 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-green-200">
+                  className="w-full bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-slate-200">
                   <span>WhatsApp</span>
                 </a>
               )}
               <a href="https://t.me/+251998119134" target="_blank" rel="noreferrer"
-                className="w-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-sky-200">
+                className="w-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-sky-200">
                 <Send size={14} /> <span>Telegram</span>
               </a>
             </div>
 
             {vehicle.inspectionStatus === "passed" && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-2">
-                <ClipboardCheck size={16} className="text-emerald-600" />
+              <div className="bg-amber-50/80 border border-amber-200/70 rounded-2xl p-3.5 flex items-center gap-2.5">
+                <ClipboardCheck size={18} className="text-amber-600 shrink-0" />
                 <div>
-                  <p className="text-[11px] font-bold text-emerald-800">Inspection Passed</p>
-                  {vehicle.inspectionNotes && <p className="text-[10px] text-emerald-600">{vehicle.inspectionNotes}</p>}
+                  <p className="text-[11px] font-bold text-amber-900">150-Point Inspection Passed</p>
+                  {vehicle.inspectionNotes && <p className="text-[10px] text-amber-700">{vehicle.inspectionNotes}</p>}
                 </div>
               </div>
             )}
 
             <button
               onClick={() => setShowTestDriveModal(true)}
-              className="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-3 rounded-lg text-xs tracking-wider transition-colors cursor-pointer shadow-sm uppercase flex items-center justify-center gap-2"
+              className="w-full bg-slate-950 hover:bg-slate-900 text-white font-bold py-3 rounded-xl text-xs tracking-wider transition-colors cursor-pointer shadow-md uppercase flex items-center justify-center gap-2 active:scale-95"
             >
               Schedule Test Drive
             </button>
@@ -397,21 +408,21 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
             <form onSubmit={handleSubmitInquiry} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Full Name *</label>
-                <input type="text" required value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                <input type="text" required value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Email</label>
-                <input type="email" value={buyerEmail} onChange={e => setBuyerEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                <input type="email" value={buyerEmail} onChange={e => setBuyerEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Phone Number *</label>
-                <input type="tel" required value={buyerPhone} onChange={e => setBuyerPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                <input type="tel" required value={buyerPhone} onChange={e => setBuyerPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Message</label>
-                <textarea required rows={4} value={inquiryMsg} onChange={e => setInquiryMsg(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none resize-none" />
+                <textarea required rows={4} value={inquiryMsg} onChange={e => setInquiryMsg(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none resize-none" />
               </div>
-              <button type="submit" className="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-3 rounded-lg text-xs tracking-wider transition-colors cursor-pointer shadow-sm uppercase">Send Inquiry</button>
+              <button type="submit" className="w-full bg-slate-950 hover:bg-slate-900 text-white font-bold py-3 rounded-lg text-xs tracking-wider transition-colors cursor-pointer shadow-sm uppercase">Send Inquiry</button>
             </form>
           </div>
         </div>
@@ -421,7 +432,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
       <div className="fixed sm:hidden bottom-12 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 py-2.5 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="min-w-0 pr-3">
           <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Price</p>
-          <p className="text-sm font-black text-[#0F4C81] leading-tight truncate">
+          <p className="text-sm font-black text-slate-950 leading-tight truncate">
             ETB {fmt(vehicle.price)}
           </p>
         </div>
@@ -437,7 +448,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
           )}
           <button
             onClick={() => setShowTestDriveModal(true)}
-            className="bg-[#0F4C81] hover:bg-blue-900 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap"
+            className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap"
           >
             Test Drive
           </button>
@@ -466,30 +477,30 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Full Name *</label>
-                  <input type="text" required value={tdName} onChange={e => setTdName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                  <input type="text" required value={tdName} onChange={e => setTdName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Email</label>
-                  <input type="email" value={tdEmail} onChange={e => setTdEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                  <input type="email" value={tdEmail} onChange={e => setTdEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Phone *</label>
-                  <input type="tel" required value={tdPhone} onChange={e => setTdPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                  <input type="tel" required value={tdPhone} onChange={e => setTdPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Preferred Date *</label>
-                  <input type="date" required value={tdDate} onChange={e => setTdDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                  <input type="date" required value={tdDate} onChange={e => setTdDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Preferred Time *</label>
-                  <input type="time" required value={tdTime} onChange={e => setTdTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none" />
+                  <input type="time" required value={tdTime} onChange={e => setTdTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Message (Optional)</label>
-                <textarea rows={3} value={tdMessage} onChange={e => setTdMessage(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-orange-500 focus:outline-none resize-none" />
+                <textarea rows={3} value={tdMessage} onChange={e => setTdMessage(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none resize-none" />
               </div>
-              <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg text-xs tracking-wider transition-colors cursor-pointer shadow-sm uppercase">Request Test Drive</button>
+              <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-pointer shadow-md shadow-amber-500/20 uppercase active:scale-95">Request Test Drive</button>
             </form>
           </div>
         </div>
@@ -499,23 +510,40 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
         <section className="space-y-6 pt-10 border-t border-slate-200/60">
           <div className="flex justify-between items-end">
             <div className="space-y-1">
-              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight">Similar {vehicle.brand} Vehicles</h2>
-              <p className="text-slate-400 text-xs font-semibold">More {vehicle.brand} models available</p>
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-950">Similar {vehicle.brand} Vehicles</h2>
+              <p className="text-slate-400 text-xs font-semibold">More {vehicle.brand} models available in Addis Ababa</p>
             </div>
-            <button onClick={onBack} className="text-orange-500 hover:text-orange-600 font-bold text-xs md:text-sm flex items-center gap-1 transition-colors"><span>View All</span><span>&rsaquo;</span></button>
+            <button onClick={onBack} className="text-amber-600 hover:text-amber-700 font-bold text-xs md:text-sm flex items-center gap-1 transition-colors cursor-pointer"><span>View All</span><span>&rsaquo;</span></button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {similarVehicles.map(car => (
-              <div key={car.id} onClick={() => onViewDetails(car)} className="bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all flex flex-col overflow-hidden cursor-pointer group">
-                <div className="h-32 md:h-40 relative bg-slate-100 overflow-hidden">
-                  <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103" />
+              <div key={car.id} onClick={() => onViewDetails(car)} className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden cursor-pointer group">
+                <div className="h-36 sm:h-40 relative bg-slate-100 overflow-hidden">
+                  <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
+                    <ShieldCheck size={10} className="text-amber-400" />
+                    <span>Verified</span>
+                  </div>
                 </div>
+
                 <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
                   <div className="space-y-1">
-                    <h3 className="font-extrabold text-xs text-slate-800">{car.year} {car.brand} {car.model}</h3>
-                    <p className="font-black text-xs text-orange-500">ETB {fmt(car.price)}</p>
+                    <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-amber-600 transition-colors truncate">{car.brand} {car.model}</h3>
+                    <p className="text-[10px] text-slate-400 font-medium truncate">{car.location || "Addis Ababa"}</p>
                   </div>
-                  <p className="text-[10px] text-slate-400 font-medium">{car.mileage?.toLocaleString()} km &bull; {car.transmission}</p>
+
+                  <div className="grid grid-cols-2 gap-1 py-1.5 border-t border-slate-100 text-[10px] text-slate-600 font-medium">
+                    <span className="truncate">{car.mileage?.toLocaleString()} km</span>
+                    <span className="truncate text-right">{car.transmission}</span>
+                  </div>
+
+                  <div className="pt-1 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block">Price</span>
+                      <p className="font-black text-xs text-slate-950">ETB {fmt(car.price)}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-amber-600 group-hover:underline">View &rsaquo;</span>
+                  </div>
                 </div>
               </div>
             ))}

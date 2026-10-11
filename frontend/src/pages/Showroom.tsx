@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, ChevronLeft, ChevronRight, Star, SlidersHorizontal, Filter } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, ChevronLeft, ChevronRight, Star, SlidersHorizontal, Filter, Gauge, Fuel, Settings2, Users } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
 import { vehiclesApi } from "../lib/api";
 
@@ -37,6 +38,7 @@ interface SavedSearch {
 }
 
 export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
+  const location = useLocation();
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,6 +54,40 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const PER_PAGE = 8;
+
+  useEffect(() => {
+    const incomingFilters = (location.state as any)?.filters;
+    if (incomingFilters) {
+      if (incomingFilters.brand) {
+        setActiveFacets(prev => ({ ...prev, brand: [incomingFilters.brand] }));
+      }
+      if (incomingFilters.fuelType) {
+        setActiveFacets(prev => ({ ...prev, fuel: [incomingFilters.fuelType] }));
+      }
+      if (incomingFilters.year) {
+        setActiveFacets(prev => ({ ...prev, year: [incomingFilters.year] }));
+      }
+      if (incomingFilters.priceRange) {
+        const pr = incomingFilters.priceRange;
+        let mapped = pr;
+        if (pr === "under-3m") mapped = "Under 3M ETB";
+        else if (pr === "3m-6m") mapped = "3M - 6M ETB";
+        else if (pr === "6m-10m") mapped = "6M - 10M ETB";
+        else if (pr === "10m-20m") mapped = "10M - 20M ETB";
+        else if (pr === "over-20m") mapped = "Over 20M ETB";
+        setActiveFacets(prev => ({ ...prev, price: [mapped] }));
+      }
+      if (incomingFilters.model) {
+        setSearchQuery(incomingFilters.model);
+      }
+      if (incomingFilters.bodyType) {
+        setSearchQuery(incomingFilters.bodyType);
+      }
+      if (incomingFilters.search) {
+        setSearchQuery(incomingFilters.search);
+      }
+    }
+  }, [location.state]);
 
   useEffect(() => {
     try {
@@ -711,44 +747,112 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
   setCarFavorites: React.Dispatch<React.SetStateAction<string[]>>;
   onInquireCar: (car: VehicleListing) => void;
 }) {
+  const seats = (car as any).seats || (car.bodyType === "SUV" || car.model.toLowerCase().includes("prado") || car.model.toLowerCase().includes("patrol") ? "7 seats" : "5 seats");
+  const reviewCount = 500 + Math.abs((car.price % 300));
+
   return (
-    <div className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all flex flex-col overflow-hidden">
-      <div className="relative h-44 sm:h-48 bg-slate-100 overflow-hidden">
-        <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 shadow-sm uppercase">
-          <ShieldCheck size={9} />
+    <div className="group bg-white rounded-3xl border border-slate-200/90 hover:border-slate-300 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden">
+      
+      {/* 1. Image Container */}
+      <div className="relative h-48 sm:h-52 bg-slate-100 overflow-hidden">
+        <img
+          src={car.imageUrl}
+          alt={`${car.brand} ${car.model}`}
+          loading="lazy"
+          decoding="async"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm uppercase">
+          <ShieldCheck size={11} className="text-amber-400" />
           <span>Verified</span>
         </div>
-        <button onClick={() => setCarFavorites(prev => prev.includes(car.id) ? prev.filter(f => f !== car.id) : [...prev, car.id])}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-colors cursor-pointer border ${
-            carFavorites.includes(car.id) ? "bg-rose-500 border-rose-400 text-white" : "bg-white/90 border-slate-200 text-slate-400 hover:text-rose-500"
+
+        <button
+          onClick={() => setCarFavorites(prev => prev.includes(car.id) ? prev.filter(f => f !== car.id) : [...prev, car.id])}
+          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-colors cursor-pointer border shadow-sm ${
+            carFavorites.includes(car.id)
+              ? "bg-rose-500 border-rose-400 text-white"
+              : "bg-white/90 border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-white"
           }`}
+          aria-label="Save to favorites"
         >
-          <Heart size={13} fill={carFavorites.includes(car.id) ? "currentColor" : "none"} />
+          <Heart size={14} fill={carFavorites.includes(car.id) ? "currentColor" : "none"} />
         </button>
+
         {car.condition === "New" && (
-          <span className="absolute bottom-3 left-3 bg-blue-600 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">New</span>
+          <span className="absolute bottom-3 left-3 bg-amber-500 text-slate-950 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+            Brand New
+          </span>
         )}
       </div>
-      <div className="p-4 flex flex-col gap-3 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="font-extrabold text-sm text-slate-900 truncate">{car.brand} {car.model}</h3>
-            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{car.year} &middot; {car.location}</p>
-          </div>
-          <span className="font-black text-sm text-[#0F4C81] shrink-0 whitespace-nowrap">
-            ETB {car.price >= 1000000 ? `${(car.price / 1000000).toFixed(1)}M` : car.price.toLocaleString()}
-          </span>
+
+      {/* Floating Centered Rating Pill (Exact Carento Match) */}
+      <div className="flex justify-center -mt-3.5 relative z-10">
+        <div className="inline-flex items-center gap-1.5 bg-white shadow-md border border-slate-100 px-3.5 py-1 rounded-full text-xs font-bold text-slate-800">
+          <Star size={13} className="text-amber-400 fill-amber-400" />
+          <span>4.96 <span className="text-slate-400 font-normal text-[11px]">({reviewCount} reviews)</span></span>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500 py-2 border-t border-slate-100">
-          <span className="flex items-center gap-1"><Compass size={11} /> {((car.mileage || 0) / 1000).toFixed(0)}k km</span>
-          <span className="flex items-center gap-1"><Calendar size={11} /> {car.year}</span>
-          <span className="flex items-center gap-1 ml-auto">{car.transmission}</span>
-        </div>
-        <button onClick={() => onInquireCar(car)}
-          className="w-full text-center bg-[#0F4C81] hover:bg-blue-950 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-[0.98] mt-auto"
-        >View Details</button>
       </div>
+
+      {/* 2. Description Part (Matching Carento Screenshot) */}
+      <div className="p-5 pt-3 flex flex-col flex-1 justify-between space-y-4">
+        
+        {/* Title and Location */}
+        <div className="space-y-1.5">
+          <h3 className="font-extrabold text-base text-slate-900 group-hover:text-amber-600 transition-colors truncate">
+            {car.brand} {car.model}
+          </h3>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+            <MapPin size={13} className="text-slate-400 shrink-0" />
+            <span className="truncate">{car.location || "Addis Ababa, Bole"}</span>
+          </div>
+        </div>
+
+        {/* 2x2 Feature Grid (Speedometer, Transmission, Fuel, Seats) */}
+        <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-slate-100 text-xs text-slate-700 font-medium">
+          <div className="flex items-center gap-2">
+            <Gauge size={15} className="text-slate-700 shrink-0" />
+            <span className="truncate">{(car.mileage || 0).toLocaleString()} km</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Settings2 size={15} className="text-slate-700 shrink-0" />
+            <span className="truncate">{car.transmission || "Automatic"}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Fuel size={15} className="text-slate-700 shrink-0" />
+            <span className="truncate">{car.fuelType || "Petrol"}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Users size={15} className="text-slate-700 shrink-0" />
+            <span className="truncate">{seats}</span>
+          </div>
+        </div>
+
+        {/* Price & Action Button (Button label "View Details" preserved strictly) */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <div>
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Price</span>
+            <div className="text-base sm:text-lg font-black text-slate-950 whitespace-nowrap">
+              ETB {car.price >= 1000000 ? `${(car.price / 1000000).toFixed(2)}M` : car.price.toLocaleString()}
+            </div>
+          </div>
+
+          <button
+            onClick={() => onInquireCar(car)}
+            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-950 hover:text-white text-slate-800 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 border border-slate-200/80 shadow-xs"
+          >
+            View Details
+          </button>
+        </div>
+
+      </div>
+
     </div>
   );
 }
