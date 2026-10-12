@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, Phone, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User as UserIcon, Phone, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, CheckCircle2, UserPlus, LogIn } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useStore } from "../store";
 
@@ -53,16 +53,35 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 md:px-8 bg-slate-50/50">
+    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 md:px-8 bg-slate-50/60">
       <div className="w-full max-w-md mx-auto">
         
         {/* Main Carento Style Register Card */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.07)] p-7 sm:p-10 space-y-6">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] p-7 sm:p-10 space-y-6">
           
+          {/* Sign In & Sign Up Navigation Bar Switcher */}
+          <div className="flex items-center p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80">
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900"
+            >
+              <LogIn size={15} />
+              <span>Sign In</span>
+            </button>
+            <button
+              type="button"
+              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center justify-center gap-2 bg-[#0B0F19] text-[#22c55e] shadow-sm"
+            >
+              <UserPlus size={15} />
+              <span>Sign Up</span>
+            </button>
+          </div>
+
           {/* Header */}
           <div className="text-center space-y-2">
-            <span className="bg-amber-100 text-amber-900 border border-amber-200/50 text-xs font-bold px-3.5 py-1 rounded-full inline-block">
-              Register
+            <span className="bg-emerald-500/10 text-[#16a34a] border border-emerald-500/25 text-xs font-black px-3.5 py-1 rounded-full inline-block">
+              New Account Registration
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
               Create an account
@@ -95,7 +114,7 @@ export default function RegisterPage() {
                   onClick={() => setRole(r.id as any)}
                   className={`py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
                     role === r.id
-                      ? "bg-slate-950 text-amber-400 shadow-xs font-black"
+                      ? "bg-[#0B0F19] text-[#22c55e] shadow-xs font-black"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -120,7 +139,7 @@ export default function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Dawit Lemma"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
               </div>
@@ -138,7 +157,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
               </div>
@@ -156,7 +175,7 @@ export default function RegisterPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+251 91 123 4567"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                 />
               </div>
             </div>
@@ -173,7 +192,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
                 <button
@@ -192,19 +211,19 @@ export default function RegisterPage() {
                 type="checkbox"
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded text-amber-500 focus:ring-amber-400 accent-amber-500 cursor-pointer"
+                className="w-4 h-4 mt-0.5 rounded text-emerald-600 focus:ring-emerald-400 accent-[#22c55e] cursor-pointer"
                 id="terms-check"
               />
               <label htmlFor="terms-check" className="cursor-pointer leading-snug">
-                I agree to the <Link to="/terms" className="text-amber-600 underline font-semibold">Terms</Link> and <Link to="/privacy" className="text-amber-600 underline font-semibold">Privacy Policy</Link>.
+                I agree to the <Link to="/terms" className="text-[#16a34a] underline font-semibold">Terms</Link> and <Link to="/privacy" className="text-[#16a34a] underline font-semibold">Privacy Policy</Link>.
               </label>
             </div>
 
-            {/* Dark Luxury Amber Gold Submit Button */}
+            {/* Carento Signature Green Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/25 active:scale-95 disabled:opacity-50 mt-2"
+              className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50 mt-2"
             >
               {loading ? (
                 <>
@@ -223,7 +242,7 @@ export default function RegisterPage() {
           {/* Link to Login */}
           <div className="text-center pt-2 border-t border-slate-100 text-xs text-slate-600">
             Already have an account?{" "}
-            <Link to="/login" className="font-bold text-amber-600 hover:text-amber-700 underline">
+            <Link to="/login" className="font-bold text-[#16a34a] hover:text-emerald-700 underline">
               Sign in here
             </Link>
           </div>

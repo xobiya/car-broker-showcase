@@ -98,15 +98,15 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
             </p>
           </div>
 
-          <div className="flex bg-slate-100 rounded-lg p-0.5 mb-4 sm:mb-5">
+          <div className="flex bg-slate-100/90 rounded-2xl p-1.5 mb-4 sm:mb-5 border border-slate-200/80">
             {(["login", "register"] as AuthTab[]).map(t => (
               <button
                 key={t}
                 onClick={() => switchTab(t)}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   tab === t
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-[#0B0F19] text-[#22c55e] shadow-sm font-black"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 {t === "login" ? "Sign In" : "Create Account"}

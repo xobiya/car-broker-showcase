@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, lazy, Suspense, type ReactNode } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown, Menu, X, GitCompare, Phone, Loader2, Sparkles, Plus, MapPin, Car, Zap, FileCheck2, Users } from "lucide-react";
+import { ShieldCheck, Home, LayoutGrid, UserCircle, Info, LogOut, LayoutDashboard, ChevronDown, Menu, X, GitCompare, Phone, Loader2, Sparkles, Plus, MapPin, Car, Zap, FileCheck2, Users, Mail, Sun, Moon, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -90,6 +90,8 @@ export default function App() {
   const location = useLocation();
   const user = useStore(s => s.user);
   const isAuthenticated = useStore(s => s.isAuthenticated);
+  const theme = useStore(s => s.theme);
+  const toggleTheme = useStore(s => s.toggleTheme);
   const setUser = useStore(s => s.setUser);
   const addToast = useStore(s => s.addToast);
   const selectedVehicle = useStore(s => s.selectedVehicle);
@@ -164,7 +166,7 @@ export default function App() {
   }, [logout, addToast, navigate]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased transition-colors duration-200">
       <div className="fixed top-5 right-5 z-[100] space-y-2 pointer-events-none w-80 max-w-full">
         <AnimatePresence>
           {toasts.map(toast => (
@@ -175,9 +177,9 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
               onClick={() => removeToast(toast.id)}
               className={`pointer-events-auto cursor-pointer p-4 rounded-xl border flex items-start space-x-3 shadow-lg backdrop-blur-md transition-all duration-150 active:scale-[0.99] ${
-                toast.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-800" :
-                toast.type === "error" ? "bg-rose-50 border-rose-200 text-rose-800" :
-                "bg-white border-slate-200 text-slate-800"
+                toast.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/80 dark:border-emerald-800 dark:text-emerald-200" :
+                toast.type === "error" ? "bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/80 dark:border-rose-800 dark:text-rose-200" :
+                "bg-white border-slate-200 text-slate-800 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100"
               }`}
             >
               <div className="flex-1 text-[12px] font-semibold leading-relaxed select-text">{toast.text}</div>
@@ -188,96 +190,181 @@ export default function App() {
 
       {!fullScreen && (
         <>
-          <header className="shrink-0 bg-white/95 border-b border-slate-200/80 text-slate-900 h-16 sm:h-20 px-4 sm:px-6 md:px-8 flex items-center justify-between backdrop-blur-xl sticky top-0 z-35 shadow-sm transition-colors duration-200">
+          {/* Carento Top Utility Strip */}
+          <div className="bg-[#0B0F19] text-slate-300 text-[11px] border-b border-slate-800/80 px-4 sm:px-6 md:px-8 py-2.5 hidden sm:flex items-center justify-between z-40 relative">
+            <div className="flex items-center gap-6">
+              <a href="tel:+251911234567" className="flex items-center gap-2 hover:text-[#22c55e] transition-colors cursor-pointer">
+                <Phone size={13} className="text-[#22c55e]" />
+                <span className="font-semibold">+251 91 123 4567</span>
+              </a>
+              <a href="mailto:concierge@arifcarsell.com" className="flex items-center gap-2 hover:text-[#22c55e] transition-colors cursor-pointer">
+                <Mail size={13} className="text-[#22c55e]" />
+                <span className="font-semibold">concierge@arifcarsell.com</span>
+              </a>
+            </div>
+
+            {/* Middle Summer / Inventory Promo Badge */}
+            <div className="hidden lg:inline-flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3.5 py-1 rounded-full text-[11px] font-semibold text-slate-300">
+              <Car size={13} className="text-[#22c55e]" />
+              <span>More than <strong className="text-[#22c55e] font-black">500+</strong> verified inspected cars in Addis Ababa</span>
+              <button
+                onClick={() => navigate("/browse")}
+                className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[10px] ml-1 transition cursor-pointer flex items-center gap-1 shadow-xs active:scale-95"
+              >
+                <span>Access Now</span>
+                <ArrowRight size={10} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Right: Language / Currency / Dark Mode & Light Mode Toggle */}
+            <div className="flex items-center gap-4 text-slate-400 font-bold">
+              <span className="text-xs font-semibold text-slate-300 tracking-wide">EN</span>
+              <span className="text-xs font-semibold text-slate-300 tracking-wide">ETB</span>
+              <button
+                onClick={toggleTheme}
+                className="text-slate-400 hover:text-white transition cursor-pointer p-1.5 rounded-lg hover:bg-slate-800/80 flex items-center justify-center"
+                title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                aria-label="Toggle theme mode"
+              >
+                {theme === "dark" ? (
+                  <Sun size={15} className="text-amber-400 hover:rotate-45 transition-transform" />
+                ) : (
+                  <Moon size={15} className="text-slate-300 hover:-rotate-12 transition-transform" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Clean White Signature Header with Emerald Accents */}
+          <header className="shrink-0 bg-white/95 border-b border-slate-200/90 text-slate-900 h-20 px-4 sm:px-6 md:px-8 flex items-center justify-between backdrop-blur-xl sticky top-0 z-40 transition-colors duration-200 shadow-sm shadow-slate-950/5">
             <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 -ml-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                className="md:hidden p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
                 aria-label="Open mobile menu"
               >
                 <Menu size={22} />
               </button>
               <div onClick={() => navigate(userRole === "admin" ? "/admin" : "/")} className="cursor-pointer shrink-0">
-                <Logo />
+                <Logo size="md" />
               </div>
             </div>
 
+            {/* Actual Pages Navigation: Clean, Professional, Emerald Accents */}
             <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
               {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
-                <button onClick={() => navigate("/")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                <button
+                  onClick={() => navigate("/")}
+                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                    location.pathname === "/" ? "text-[#22c55e]" : "text-slate-700"
+                  }`}
+                >
                   Home
                 </button>
               )}
               {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
-                <button onClick={() => navigate("/browse")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/browse" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
-                  Showroom
+                <button
+                  onClick={() => navigate("/browse")}
+                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                    location.pathname === "/browse" ? "text-[#22c55e]" : "text-slate-700"
+                  }`}
+                >
+                  Vehicles
                 </button>
               )}
               {userRole !== "admin" && (
-                <button onClick={() => navigate("/services")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/services" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                <button
+                  onClick={() => navigate("/services")}
+                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                    location.pathname === "/services" ? "text-[#22c55e]" : "text-slate-700"
+                  }`}
+                >
                   Services
                 </button>
               )}
               {userRole !== "admin" && (
-                <button onClick={() => navigate("/compare")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/compare" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                <button
+                  onClick={() => navigate("/compare")}
+                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                    location.pathname === "/compare" ? "text-[#22c55e]" : "text-slate-700"
+                  }`}
+                >
                   Compare
                 </button>
               )}
               {userRole === "broker" && (
-                <button onClick={() => navigate("/broker-dashboard")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/broker-dashboard" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                <button
+                  onClick={() => navigate("/broker-dashboard")}
+                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                    location.pathname === "/broker-dashboard" ? "text-[#22c55e]" : "text-slate-700"
+                  }`}
+                >
                   Broker Portal
                 </button>
               )}
               {userRole === "seller" && (
-                <button onClick={() => navigate("/seller-dashboard")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/seller-dashboard" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                <button
+                  onClick={() => navigate("/seller-dashboard")}
+                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                    location.pathname === "/seller-dashboard" ? "text-[#22c55e]" : "text-slate-700"
+                  }`}
+                >
                   Seller Hub
                 </button>
               )}
               {userRole === "admin" && (
-                <button onClick={() => navigate("/admin")}
-                  className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname.startsWith("/admin") ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                <button
+                  onClick={() => navigate("/admin")}
+                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                    location.pathname.startsWith("/admin") ? "text-[#22c55e]" : "text-slate-700"
+                  }`}
+                >
                   Admin Panel
                 </button>
               )}
               {userRole !== "admin" && (
                 <>
-                  <button onClick={() => navigate("/about")}
-                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/about" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                  <button
+                    onClick={() => navigate("/about")}
+                    className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                      location.pathname === "/about" ? "text-[#22c55e]" : "text-slate-700"
+                    }`}
+                  >
                     About
                   </button>
-                  <button onClick={() => navigate("/contact")}
-                    className={`text-xs font-extrabold uppercase tracking-wider cursor-pointer hover:text-amber-500 transition-colors ${location.pathname === "/contact" ? "text-amber-500 border-b-2 border-amber-500 pb-1" : "text-slate-600"}`}>
+                  <button
+                    onClick={() => navigate("/contact")}
+                    className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
+                      location.pathname === "/contact" ? "text-[#22c55e]" : "text-slate-700"
+                    }`}
+                  >
                     Contact
                   </button>
                 </>
               )}
             </nav>
 
-            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            {/* Right: Sign in, Add Listing & Grid Icon Button */}
+            <div className="flex items-center space-x-2.5 sm:space-x-3.5 shrink-0">
               {user ? (
                 <div className="relative">
-                  <button onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl px-2.5 sm:px-3 py-1.5 shadow-sm hover:shadow transition cursor-pointer"
+                  <button
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-800 rounded-full px-3 py-1.5 shadow-xs transition cursor-pointer"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 flex items-center justify-center text-[10px] font-black">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center text-[10px] font-black">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-xs font-bold hidden sm:block">{user.name.split(" ")[0]}</span>
-                    <ChevronDown size={12} className={`text-slate-400 transition ${profileDropdownOpen ? "rotate-180" : ""}`} />
+                    <span className="text-xs font-bold hidden sm:block text-slate-800">{user.name.split(" ")[0]}</span>
+                    <ChevronDown size={12} className={`text-slate-500 transition ${profileDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
                   {profileDropdownOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 text-slate-800 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 text-slate-700 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
                         <div className="px-4 py-3 border-b border-slate-100">
                           <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 mt-0.5">{user.role}</p>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#22c55e] mt-0.5">{user.role}</p>
                         </div>
                         <div className="py-1">
                           {userRole === "buyer" && (
@@ -304,11 +391,53 @@ export default function App() {
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <button onClick={() => navigate("/login")} className="text-slate-700 hover:text-slate-900 text-xs font-bold px-2.5 py-1.5 cursor-pointer">Login</button>
-                  <button onClick={() => navigate("/register")} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer">Register</button>
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <button
+                    onClick={() => navigate("/login")}
+                    className={`flex items-center gap-1.5 text-xs sm:text-[13px] font-bold transition-colors cursor-pointer px-2 sm:px-3 py-1.5 rounded-full ${
+                      location.pathname === "/login"
+                        ? "text-[#22c55e] bg-emerald-50 border border-emerald-200/80"
+                        : "text-slate-700 hover:text-[#22c55e]"
+                    }`}
+                  >
+                    <UserCircle size={16} className={location.pathname === "/login" ? "text-[#22c55e]" : "text-slate-600"} />
+                    <span>Sign in</span>
+                  </button>
+                  <button
+                    onClick={() => navigate("/register")}
+                    className={`hidden sm:inline-flex items-center gap-1 text-xs sm:text-[13px] font-bold transition-colors cursor-pointer px-2.5 py-1.5 rounded-full ${
+                      location.pathname === "/register"
+                        ? "text-[#22c55e] bg-emerald-50 border border-emerald-200/80"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>Sign up</span>
+                  </button>
                 </div>
               )}
+
+              {/* Add Listing Pill Button */}
+              <button
+                onClick={() => {
+                  if (!user) navigate("/choose-role");
+                  else if (userRole === "seller") navigate("/seller-dashboard");
+                  else if (userRole === "broker") navigate("/broker-dashboard");
+                  else navigate("/choose-role");
+                }}
+                className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-extrabold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs transition cursor-pointer shadow-sm hover:shadow-emerald-500/20 tracking-tight active:scale-95 whitespace-nowrap"
+              >
+                Add Listing
+              </button>
+
+              {/* Green Grid 4-Squares Icon Button */}
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 transition cursor-pointer shadow-xs flex items-center justify-center active:scale-95 shrink-0"
+                aria-label="Navigation drawer"
+                title="Navigation & Categories"
+              >
+                <LayoutGrid size={18} strokeWidth={2.2} className="text-slate-700" />
+              </button>
             </div>
           </header>
 
@@ -328,13 +457,13 @@ export default function App() {
                   animate={{ x: 0 }}
                   exit={{ x: "-100%" }}
                   transition={{ type: "spring", damping: 25, stiffness: 240 }}
-                  className="fixed inset-y-0 left-0 z-50 w-[84%] max-w-sm bg-white shadow-2xl flex flex-col md:hidden border-r border-slate-200 overflow-hidden"
+                  className="fixed inset-y-0 left-0 z-50 w-[84%] max-w-sm bg-white text-slate-900 shadow-2xl flex flex-col md:hidden border-r border-slate-200 overflow-hidden"
                 >
                   <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
                     <Logo size="sm" />
                     <button
                       onClick={() => setMobileMenuOpen(false)}
-                      className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
                       aria-label="Close menu"
                     >
                       <X size={20} />
@@ -343,14 +472,14 @@ export default function App() {
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-5">
                     {user ? (
-                      <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 text-white space-y-3">
+                      <div className="p-4 rounded-2xl bg-slate-50 text-slate-900 space-y-3 border border-slate-200">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-sm font-black border border-white/20">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center text-sm font-black shadow-xs">
                             {user.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold truncate">{user.name}</p>
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            <p className="text-sm font-bold truncate text-slate-900">{user.name}</p>
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-[#16a34a] border border-emerald-200/80">
                               {user.role}
                             </span>
                           </div>
@@ -363,28 +492,28 @@ export default function App() {
                             else navigate("/profile");
                             setMobileMenuOpen(false);
                           }}
-                          className="w-full text-center bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                         >
                           <LayoutDashboard size={14} />
                           Go to Dashboard
                         </button>
                       </div>
                     ) : (
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                         <div>
-                          <p className="text-xs font-bold text-slate-800">Welcome to Arif Car Sell</p>
+                          <p className="text-xs font-bold text-slate-900">Welcome to Arif Car Sell</p>
                           <p className="text-[11px] text-slate-500">Sign in to contact brokers, schedule test drives, and save cars.</p>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => { navigate("/login"); setMobileMenuOpen(false); }}
-                            className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                            className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition cursor-pointer shadow-xs"
                           >
                             Sign In
                           </button>
                           <button
                             onClick={() => { navigate("/register"); setMobileMenuOpen(false); }}
-                            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-amber-500/20"
+                            className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs font-black py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-emerald-500/20"
                           >
                             Register
                           </button>
@@ -412,11 +541,11 @@ export default function App() {
                                 onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                                   active
-                                    ? "bg-amber-50 text-amber-800 font-extrabold"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                    ? "bg-emerald-50 text-[#16a34a] font-extrabold"
+                                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                 }`}
                               >
-                                <Icon size={16} className={active ? "text-amber-600" : "text-slate-400"} />
+                                <Icon size={16} className={active ? "text-[#16a34a]" : "text-slate-400"} />
                                 {item.label}
                               </button>
                             );
@@ -438,11 +567,11 @@ export default function App() {
                                 onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                                   active
-                                    ? "bg-amber-50 text-amber-800 font-extrabold"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                    ? "bg-emerald-50 text-[#16a34a] font-extrabold"
+                                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                 }`}
                               >
-                                <Icon size={16} className={active ? "text-amber-600" : "text-slate-400"} />
+                                <Icon size={16} className={active ? "text-[#16a34a]" : "text-slate-400"} />
                                 {item.label}
                               </button>
                             );
@@ -483,7 +612,7 @@ export default function App() {
                       {!user && (
                         <button
                           onClick={() => { navigate("/choose-role"); setMobileMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-900 hover:text-white cursor-pointer"
                         >
                           <UserCircle size={16} className="text-slate-400" />
                           Join as Broker or Seller
@@ -491,11 +620,27 @@ export default function App() {
                       )}
                     </div>
 
+                    {/* Mobile Theme Mode Switcher */}
+                    <div className="pt-2 border-t border-slate-800">
+                      <button
+                        onClick={toggleTheme}
+                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white cursor-pointer transition"
+                      >
+                        <span className="flex items-center gap-2">
+                          {theme === "dark" ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-slate-300" />}
+                          <span>Appearance</span>
+                        </span>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-800 text-[#22c55e]">
+                          {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                        </span>
+                      </button>
+                    </div>
+
                     {user && (
-                      <div className="pt-2 border-t border-slate-100">
+                      <div className="pt-2 border-t border-slate-800">
                         <button
                           onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-950/30 transition cursor-pointer"
                         >
                           <LogOut size={16} />
                           Sign Out
@@ -565,54 +710,54 @@ export default function App() {
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Quick Links</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => navigate("/about")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> About Us</button></li>
-                <li><button onClick={() => navigate("/services")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Broker Services</button></li>
-                <li><button onClick={() => navigate("/contact")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Contact</button></li>
-                <li><button onClick={() => navigate("/terms")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Terms of Service</button></li>
-                <li><button onClick={() => navigate("/privacy")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Privacy Policy</button></li>
+                <li><button onClick={() => navigate("/about")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> About Us</button></li>
+                <li><button onClick={() => navigate("/services")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Broker Services</button></li>
+                <li><button onClick={() => navigate("/contact")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Contact</button></li>
+                <li><button onClick={() => navigate("/terms")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Terms of Service</button></li>
+                <li><button onClick={() => navigate("/privacy")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Privacy Policy</button></li>
               </ul>
             </div>
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">For Sellers</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => user ? navigate("/seller-dashboard") : navigate("/choose-role")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Sell Your Car</button></li>
+                <li><button onClick={() => user ? navigate("/seller-dashboard") : navigate("/choose-role")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Sell Your Car</button></li>
                 {['Pricing Guide', 'Listing Tips'].map(link => (
                   <li key={link}>
-                    <button onClick={() => addToast("Coming soon!", "info")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer">
+                    <button onClick={() => addToast("Coming soon!", "info")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer">
                       <span className="w-1 h-1 rounded-full bg-slate-600" /> {link}
                     </button>
                   </li>
                 ))}
-                <li><button onClick={() => navigate("/help")} className="text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Help Center</button></li>
+                <li><button onClick={() => navigate("/help")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Help Center</button></li>
               </ul>
             </div>
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Newsletter</h4>
               <p className="text-xs text-slate-400 font-semibold leading-relaxed">Get the latest car deals and market updates.</p>
               <div className="flex gap-2">
-                <input type="email" placeholder="Email address" className="w-full text-xs p-2.5 bg-slate-900 text-white border border-slate-800 rounded-lg focus:outline-none focus:border-amber-400 placeholder:text-slate-500" />
-                <button onClick={() => addToast("Newsletter registration active!", "success")} className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-lg text-xs cursor-pointer transition-colors shadow-sm shadow-amber-500/20">Join</button>
+                <input type="email" placeholder="Email address" className="w-full text-xs p-2.5 bg-slate-900 text-white border border-slate-800 rounded-lg focus:outline-none focus:border-[#22c55e] placeholder:text-slate-500" />
+                <button onClick={() => addToast("Newsletter registration active!", "success")} className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-black px-4 py-2.5 rounded-lg text-xs cursor-pointer transition-colors shadow-sm shadow-[#22c55e]/20">Join</button>
               </div>
             </div>
           </div>
           <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-800/80 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">© {new Date().getFullYear()} Arif Car Sell. All rights reserved.</p>
             <div className="flex items-center space-x-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-              <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-amber-400" /> Secured Platform</span>
+              <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-[#22c55e]" /> Secured Platform</span>
             </div>
           </div>
         </footer>
       )}
 
       {!fullScreen && userRole !== "admin" && (
-        <div className="fixed sm:hidden bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 flex items-center justify-around px-1 py-1 shadow-[0_-3px_16px_rgba(0,0,0,0.06)]">
-          <button onClick={() => navigate("/")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/" ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+        <div className="fixed sm:hidden bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 flex items-center justify-around px-1 py-1 shadow-[0_-3px_16px_rgba(0,0,0,0.06)]">
+          <button onClick={() => navigate("/")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/" ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
             <Home size={20} /><span className="text-[10px]">Home</span>
           </button>
-          <button onClick={() => navigate("/browse")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/browse" ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+          <button onClick={() => navigate("/browse")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/browse" ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
             <LayoutGrid size={20} /><span className="text-[10px]">Showroom</span>
           </button>
-          <button onClick={() => navigate("/compare")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/compare" ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+          <button onClick={() => navigate("/compare")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/compare" ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
             <GitCompare size={20} /><span className="text-[10px]">Compare</span>
           </button>
           <button onClick={() => {
@@ -620,7 +765,7 @@ export default function App() {
             else if (userRole === "broker") navigate("/broker-dashboard");
             else if (userRole === "seller") navigate("/seller-dashboard");
             else navigate("/profile");
-          }} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${(location.pathname === "/profile" || location.pathname.includes("dashboard")) ? "text-amber-600 font-bold" : "text-slate-400 hover:text-slate-600"}`}>
+          }} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${(location.pathname === "/profile" || location.pathname.includes("dashboard")) ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
             <UserCircle size={20} /><span className="text-[10px]">{user ? (userRole === "broker" ? "Broker" : userRole === "seller" ? "Seller" : "Saved") : "Sign In"}</span>
           </button>
         </div>
@@ -645,10 +790,10 @@ function DropdownItem({ icon: Icon, label, onClick, danger }: { icon: any; label
   return (
     <button onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
-        danger ? "text-rose-500 hover:bg-rose-50" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+        danger ? "text-rose-600 hover:bg-rose-50" : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
       }`}
     >
-      <Icon size={15} />
+      <Icon size={15} className={danger ? "text-rose-500" : "text-slate-500"} />
       {label}
     </button>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User as UserIcon, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, CheckCircle2, UserPlus, LogIn } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useStore } from "../store";
 
@@ -54,16 +54,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 md:px-8 bg-slate-50/50">
+    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 md:px-8 bg-slate-50/60">
       <div className="w-full max-w-md mx-auto">
         
         {/* Main Carento Style Login Card */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.07)] p-7 sm:p-10 space-y-7">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] p-7 sm:p-10 space-y-6">
           
+          {/* Sign In & Sign Up Navigation Bar Switcher */}
+          <div className="flex items-center p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80">
+            <button
+              type="button"
+              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center justify-center gap-2 bg-[#0B0F19] text-[#22c55e] shadow-sm"
+            >
+              <LogIn size={15} />
+              <span>Sign In</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900"
+            >
+              <UserPlus size={15} />
+              <span>Sign Up</span>
+            </button>
+          </div>
+
           {/* Header */}
           <div className="text-center space-y-2">
-            <span className="bg-amber-100 text-amber-900 border border-amber-200/50 text-xs font-bold px-3.5 py-1 rounded-full inline-block">
-              Sign in
+            <span className="bg-emerald-500/10 text-[#16a34a] border border-emerald-500/25 text-xs font-black px-3.5 py-1 rounded-full inline-block">
+              Arif Car Sell Account
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
               Welcome back
@@ -94,7 +113,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
               </div>
@@ -112,7 +131,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-400 transition"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
                 <button
@@ -132,24 +151,24 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 accent-amber-500 cursor-pointer"
+                  className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-400 accent-[#22c55e] cursor-pointer"
                 />
                 <span>Remember me</span>
               </label>
               <button
                 type="button"
                 onClick={() => addToast("Password reset link sent to registered email.", "info")}
-                className="text-slate-500 hover:text-amber-600 font-semibold cursor-pointer transition"
+                className="text-slate-500 hover:text-[#16a34a] font-semibold cursor-pointer transition"
               >
                 Forgot password?
               </button>
             </div>
 
-            {/* Dark Luxury Amber Gold Submit Button */}
+            {/* Carento Signature Green Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/25 active:scale-95 disabled:opacity-50"
+              className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -158,7 +177,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <span>Sign in</span>
+                  <span>Sign In</span>
                   <ArrowRight size={16} />
                 </>
               )}
@@ -225,9 +244,9 @@ export default function LoginPage() {
                   key={acc.label}
                   type="button"
                   onClick={() => fillDemoAccount(acc.email)}
-                  className="p-1.5 px-2 bg-slate-50 hover:bg-amber-50 hover:border-amber-300 border border-slate-200 rounded-lg text-[11px] text-slate-700 font-semibold transition cursor-pointer text-left truncate flex items-center gap-1.5"
+                  className="p-1.5 px-2 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 border border-slate-200 rounded-lg text-[11px] text-slate-700 font-semibold transition cursor-pointer text-left truncate flex items-center gap-1.5"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] shrink-0" />
                   <span className="truncate">{acc.label}</span>
                 </button>
               ))}
@@ -237,7 +256,7 @@ export default function LoginPage() {
           {/* Link to Register */}
           <div className="text-center pt-1 text-xs text-slate-600">
             Don't have an account?{" "}
-            <Link to="/register" className="font-bold text-amber-600 hover:text-amber-700 underline">
+            <Link to="/register" className="font-bold text-[#16a34a] hover:text-emerald-700 underline">
               Create an account
             </Link>
           </div>
