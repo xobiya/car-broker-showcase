@@ -1,5 +1,5 @@
 import React from "react";
-import { Shield, FileText, ArrowLeft } from "lucide-react";
+import { FileText, ArrowLeft } from "lucide-react";
 
 interface TermsPageProps {
   onBack: () => void;
@@ -8,18 +8,23 @@ interface TermsPageProps {
 export default function TermsPage({ onBack }: TermsPageProps) {
   return (
     <div className="max-w-3xl mx-auto w-full p-6 md:p-8 flex-grow">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 mb-6 transition cursor-pointer">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 mb-6 transition cursor-pointer">
         <ArrowLeft size={14} /> Back
       </button>
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-900 to-blue-800 p-6 md:p-8 text-white">
-          <div className="flex items-center gap-3">
-            <FileText size={24} />
-            <h1 className="text-xl md:text-2xl font-black text-white">Terms of Service</h1>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
+        <div className="bg-slate-950 p-6 md:p-8 text-white border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#22c55e]/15 border border-[#22c55e]/30 flex items-center justify-center text-[#22c55e]">
+              <FileText size={22} />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-black text-white">Terms of Service</h1>
+              <p className="text-xs text-slate-400 font-medium">Clear marketplace rules and broker standards</p>
+            </div>
           </div>
         </div>
-        <div className="p-6 md:p-8 space-y-6 text-sm text-slate-600 leading-relaxed">
-          <p className="font-semibold text-slate-800">Last updated: January 2026</p>
+        <div className="p-6 md:p-8 space-y-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="font-semibold text-slate-800 dark:text-slate-200">Last updated: January 2026</p>
           
           <Section title="1. Acceptance of Terms">
             By accessing and using Arif Car Sell, you agree to be bound by these Terms of Service. If you do not agree, please do not use our platform.
@@ -69,7 +74,7 @@ export default function TermsPage({ onBack }: TermsPageProps) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-base font-bold text-slate-800 mb-2">{title}</h2>
+      <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{title}</h2>
       <p>{children}</p>
     </div>
   );

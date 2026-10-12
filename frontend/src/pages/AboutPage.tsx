@@ -107,7 +107,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
   };
 
   return (
-    <div className="w-full bg-white text-slate-900 pb-20">
+    <div className="w-full bg-white dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 pb-20 transition-colors">
       
       {/* 1. Showroom Top Hero Banner */}
       <section className="relative overflow-hidden bg-slate-950 text-white pt-16 pb-20 px-4 sm:px-6 md:px-8 border-b border-slate-800">
@@ -120,13 +120,13 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/60 pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center space-y-5 relative z-10">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-400">
+          <div className="inline-flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#22c55e]">
             <Sparkles size={14} />
             <span>Pioneering Trust & Institutional Standards</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight text-white">
-            About <span className="text-amber-400">Arif Car Sell</span>
+            About <span className="text-[#22c55e]">Arif Car Sell</span>
           </h1>
 
           <p className="text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto font-medium leading-relaxed">
@@ -141,16 +141,16 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
           
           {/* Left Text Column */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="inline-block bg-amber-100 text-amber-900 font-extrabold text-xs px-3.5 py-1.5 rounded-full uppercase tracking-wider">
+            <div className="inline-block bg-[#22c55e]/10 dark:bg-[#22c55e]/20 text-[#16a34a] dark:text-[#4ade80] border border-[#22c55e]/30 font-extrabold text-xs px-3.5 py-1.5 rounded-full uppercase tracking-wider">
               Our Mission
             </div>
 
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">
               Sell your car at a fair price. <br className="hidden sm:inline" />
               Get started with us today.
             </h2>
 
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
               Our mission is to make vehicle buying and selling easy, accessible, and transparent for everyone across Ethiopia. We believe that dealing in automobiles should be a hassle-free, secure experience, and we're dedicated to ensuring that every customer finds the perfect verified vehicle for their journey.
             </p>
 
@@ -162,10 +162,10 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
                 "24/7 dedicated broker concierge support for assistance anytime, anywhere"
               ].map((text, idx) => (
                 <div key={idx} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#22c55e] border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
                     <Check size={12} strokeWidth={3} />
                   </div>
-                  <span className="text-xs sm:text-sm font-semibold text-slate-800 leading-tight">
+                  <span className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 leading-tight">
                     {text}
                   </span>
                 </div>
@@ -175,7 +175,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
             <div className="pt-4">
               <button
                 onClick={() => navigate("/browse")}
-                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black px-7 py-3.5 rounded-xl text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-lg shadow-amber-500/25 flex items-center gap-2 active:scale-95"
+                className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-black px-7 py-3.5 rounded-xl text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-lg shadow-[#22c55e]/25 flex items-center gap-2 active:scale-95"
               >
                 <span>Get Started Now</span>
                 <ArrowRight size={16} />
@@ -188,14 +188,14 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
             <div className="grid grid-cols-2 gap-4 sm:gap-6">
               {/* Column 1 */}
               <div className="space-y-4 sm:space-y-6">
-                <div className="rounded-3xl overflow-hidden aspect-[4/5] bg-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="rounded-3xl overflow-hidden aspect-[4/5] bg-slate-100 dark:bg-slate-800 shadow-sm hover:shadow-lg transition-shadow border border-transparent dark:border-slate-800">
                   <img 
                     src="/images/about/customer_handover.jpg" 
                     alt="Happy Ethiopian car buyers with keys in Addis Ababa" 
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <div className="rounded-3xl overflow-hidden aspect-[4/3] bg-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="rounded-3xl overflow-hidden aspect-[4/3] bg-slate-100 dark:bg-slate-800 shadow-sm hover:shadow-lg transition-shadow border border-transparent dark:border-slate-800">
                   <img 
                     src="/images/brokers/bethzatha.jpg" 
                     alt="Dedicated automotive advisor" 
@@ -206,14 +206,14 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
 
               {/* Column 2 */}
               <div className="space-y-4 sm:space-y-6 pt-6 sm:pt-10">
-                <div className="rounded-3xl overflow-hidden aspect-[4/3] bg-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="rounded-3xl overflow-hidden aspect-[4/3] bg-slate-100 dark:bg-slate-800 shadow-sm hover:shadow-lg transition-shadow border border-transparent dark:border-slate-800">
                   <img 
                     src="/images/about/mechanic_inspection.jpg" 
                     alt="Certified mechanic and client during 150-point diagnostic check in Addis Ababa" 
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <div className="rounded-3xl overflow-hidden aspect-[4/5] bg-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="rounded-3xl overflow-hidden aspect-[4/5] bg-slate-100 dark:bg-slate-800 shadow-sm hover:shadow-lg transition-shadow border border-transparent dark:border-slate-800">
                   <img 
                     src="/images/brokers/dawit.jpg" 
                     alt="Transport Bureau title transfer and escrow consultation" 
@@ -228,17 +228,17 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
       </section>
 
       {/* 3. Carento-Style "Meet Our Brokers" Section */}
-      <section className="bg-slate-50/80 border-y border-slate-200/80 py-16 sm:py-24">
+      <section className="bg-slate-50/80 dark:bg-[#0B0F19]/60 border-y border-slate-200/80 dark:border-slate-800 py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 space-y-12">
           
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-black uppercase tracking-widest text-[#16a34a] dark:text-[#4ade80]">
               Awesome Teams
             </p>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white tracking-tight">
               Meet Our Brokers
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
               Licensed, certified automotive specialists across Addis Ababa dedicated to transparent negotiations and verified vehicle history.
             </p>
           </div>
@@ -247,42 +247,42 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
             {BROKERS.map((broker) => (
               <div 
                 key={broker.id}
-                className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 group flex flex-col justify-between"
+                className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs hover:shadow-xl dark:hover:border-[#22c55e]/40 transition-all duration-300 group flex flex-col justify-between"
               >
                 <div>
                   {/* Portrait photo */}
-                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                     <img 
                       src={broker.image} 
                       alt={broker.name} 
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-black text-amber-800 shadow-sm flex items-center gap-1 border border-amber-200">
-                      <BadgeCheck size={12} className="text-amber-600" />
+                    <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-black text-slate-900 dark:text-slate-100 shadow-sm flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+                      <BadgeCheck size={12} className="text-[#22c55e]" />
                       <span>{broker.license}</span>
                     </div>
                   </div>
 
                   {/* Broker info */}
                   <div className="p-5 space-y-1.5">
-                    <h3 className="text-lg font-black text-slate-950 group-hover:text-amber-600 transition-colors">
+                    <h3 className="text-lg font-black text-slate-950 dark:text-white group-hover:text-[#22c55e] transition-colors">
                       {broker.name}
                     </h3>
-                    <p className="text-xs font-bold text-slate-500">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
                       {broker.role}
                     </p>
-                    <p className="text-[11px] font-semibold text-amber-800 bg-amber-50 inline-block px-2.5 py-0.5 rounded-md border border-amber-200/60">
+                    <p className="text-[11px] font-semibold text-[#16a34a] dark:text-[#4ade80] bg-emerald-50 dark:bg-emerald-950/60 inline-block px-2.5 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40">
                       {broker.specialty}
                     </p>
                   </div>
                 </div>
 
                 {/* Bottom Action / Social Icons */}
-                <div className="px-5 pb-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div className="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleBrokerContact(broker, "phone")}
-                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-600 flex items-center justify-center transition cursor-pointer"
+                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-[#22c55e] text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
                       title="Call Broker"
                       aria-label={`Call ${broker.name}`}
                     >
@@ -290,7 +290,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
                     </button>
                     <button
                       onClick={() => handleBrokerContact(broker, "telegram")}
-                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-600 flex items-center justify-center transition cursor-pointer"
+                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-[#22c55e] text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
                       title="Telegram"
                       aria-label={`Message ${broker.name}`}
                     >
@@ -298,7 +298,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
                     </button>
                     <button
                       onClick={() => handleBrokerContact(broker, "email")}
-                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-600 flex items-center justify-center transition cursor-pointer"
+                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-[#22c55e] text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
                       title="Email Broker"
                       aria-label={`Email ${broker.name}`}
                     >
@@ -311,7 +311,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
                       setSelectedBroker(broker);
                       onNotify(`Selected ${broker.name} — ${broker.role}`, "success");
                     }}
-                    className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-500 group-hover:text-slate-950 text-slate-600 flex items-center justify-center transition-all cursor-pointer shadow-xs"
+                    className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-[#22c55e] group-hover:text-white text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-xs"
                     title="View & Inquire"
                     aria-label={`Inquire with ${broker.name}`}
                   >
@@ -329,10 +329,10 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
       {/* 4. Verified Standards & Market Impact */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-20 space-y-10">
         <div className="text-center space-y-2 max-w-xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
             Institutional Trust in Numbers
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Real performance across Addis Ababa showroom hubs
           </p>
         </div>
@@ -344,10 +344,10 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
             { label: "Successful Handovers", value: "98.4%", desc: "Zero title dispute rate" },
             { label: "Average Buyer Savings", value: "350k ETB", desc: "Saved vs roadside markups" }
           ].map((stat, idx) => (
-            <div key={idx} className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 text-center space-y-1.5 shadow-2xs">
-              <span className="text-2xl sm:text-3xl font-black text-amber-600 block">{stat.value}</span>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-900">{stat.label}</h4>
-              <p className="text-[11px] text-slate-400">{stat.desc}</p>
+            <div key={idx} className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 text-center space-y-1.5 shadow-2xs">
+              <span className="text-2xl sm:text-3xl font-black text-[#22c55e] block">{stat.value}</span>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">{stat.label}</h4>
+              <p className="text-[11px] text-slate-400 dark:text-slate-400">{stat.desc}</p>
             </div>
           ))}
         </div>
@@ -355,7 +355,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
 
       {/* 5. Call To Action Banner */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6">
-        <div className="bg-slate-950 text-white rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
+        <div className="bg-slate-950 text-white rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden border border-slate-800">
           <div className="space-y-2 text-center md:text-left relative z-10">
             <h3 className="text-2xl sm:text-3xl font-black text-white">Experience Fair Car Trading Today</h3>
             <p className="text-xs sm:text-sm text-slate-300">
@@ -365,7 +365,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
           <div className="flex items-center gap-3 shrink-0 relative z-10">
             <button
               onClick={() => navigate("/browse")}
-              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95"
+              className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#22c55e]/25 active:scale-95"
             >
               Browse Showroom
             </button>

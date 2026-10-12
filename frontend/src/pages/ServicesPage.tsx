@@ -166,7 +166,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
   };
 
   return (
-    <div className="w-full bg-white text-slate-900 pb-20">
+    <div className="w-full bg-white dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 pb-20 transition-colors">
       
       {/* 1. Header Hero (Carento Dark Showroom Style) */}
       <section className="relative bg-slate-950 text-white overflow-hidden py-16 sm:py-24 px-4 sm:px-6 md:px-8 border-b border-slate-800">
@@ -179,13 +179,13 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/60 pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10 text-center space-y-5">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-400">
+          <div className="inline-flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#22c55e]">
             <Sparkles size={14} />
             <span>Comprehensive Automotive Solutions</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-            Services Built on <span className="text-amber-400">Trust & Transparency</span>
+            Services Built on <span className="text-[#22c55e]">Trust & Transparency</span>
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
@@ -197,13 +197,13 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
       {/* 2. Services Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-24 space-y-12">
         <div className="text-center space-y-2 max-w-xl mx-auto">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+          <p className="text-xs font-black uppercase tracking-widest text-[#16a34a] dark:text-[#4ade80]">
             Professional Assistance
           </p>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
             Our Core Automotive Services
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Every service is engineered to guarantee security, fairness, and speed in Addis Ababa
           </p>
         </div>
@@ -214,41 +214,41 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
             return (
               <div
                 key={s.id}
-                className="bg-white border border-slate-200/90 hover:border-amber-500/60 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xs hover:shadow-xl transition-all duration-300 group"
+                className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-[#22c55e]/60 dark:hover:border-[#22c55e]/60 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xs hover:shadow-xl dark:hover:shadow-black/40 transition-all duration-300 group"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#22c55e] border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                       <Icon size={24} />
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 bg-amber-100/90 border border-amber-200/50 px-3 py-1 rounded-full">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#16a34a] dark:text-[#4ade80] bg-[#22c55e]/10 border border-[#22c55e]/30 px-3 py-1 rounded-full">
                       {s.tag}
                     </span>
                   </div>
 
                   <div className="space-y-1">
-                    <h3 className="text-lg font-black text-slate-950 group-hover:text-amber-600 transition-colors">
+                    <h3 className="text-lg font-black text-slate-950 dark:text-white group-hover:text-[#22c55e] transition-colors">
                       {s.title}
                     </h3>
-                    <p className="text-xs font-semibold text-amber-700">
+                    <p className="text-xs font-semibold text-[#16a34a] dark:text-[#4ade80]">
                       {s.subtitle}
                     </p>
                   </div>
 
-                  <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                     {s.desc}
                   </p>
 
-                  <div className="pt-3 border-t border-slate-100 space-y-2">
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                     {s.highlights.map((h, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 font-medium">
-                        <CheckCircle2 size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                      <div key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                        <CheckCircle2 size={14} className="text-[#22c55e] shrink-0 mt-0.5" />
                         <span>{h}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="bg-slate-50 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-600 border border-slate-100">
+                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800">
                     <span className="text-slate-400 font-medium block text-[9px] uppercase tracking-wider">Fee Structure:</span>
                     <span>{s.priceEstimate}</span>
                   </div>
@@ -257,7 +257,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                 <div className="pt-2">
                   <button
                     onClick={() => handleOpenBooking(s)}
-                    className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95"
+                    className="w-full py-3 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-[#22c55e]/20 active:scale-95"
                   >
                     <span>Book or Inquire Service</span>
                     <ArrowRight size={14} />
@@ -270,13 +270,13 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
       </section>
 
       {/* 3. The 4-Step Process */}
-      <section className="bg-slate-50/70 border-y border-slate-200/80 py-16 sm:py-24">
+      <section className="bg-slate-50/70 dark:bg-[#0B0F19]/60 border-y border-slate-200/80 dark:border-slate-800 py-16 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 space-y-10">
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               How We Work With You
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
               Clear, structured steps from first consultation to key handover
             </p>
           </div>
@@ -288,10 +288,10 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
               { step: "03", title: "Libre Verification", desc: "Official title check at the Transport Bureau to confirm lien-free and customs clearance." },
               { step: "04", title: "Safe Handover", desc: "Transparent contract signing, title transfer, and secure key exchange at capped fees." }
             ].map((st, idx) => (
-              <div key={idx} className="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-2.5 shadow-xs">
-                <span className="text-3xl font-black text-amber-500 block">{st.step}</span>
-                <h4 className="text-sm font-black text-slate-900">{st.title}</h4>
-                <p className="text-xs text-slate-600 leading-relaxed font-normal">{st.desc}</p>
+              <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 space-y-2.5 shadow-xs">
+                <span className="text-3xl font-black text-[#22c55e] block">{st.step}</span>
+                <h4 className="text-sm font-black text-slate-900 dark:text-white">{st.title}</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">{st.desc}</p>
               </div>
             ))}
           </div>
@@ -300,7 +300,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
 
       {/* 4. Call to Action Banner */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-16">
-        <div className="bg-gradient-to-r from-slate-950 to-slate-900 text-white rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden border border-slate-800">
+        <div className="bg-slate-950 text-white rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden border border-slate-800">
           <div className="space-y-2 max-w-xl text-center md:text-left">
             <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Ready to Buy or Sell with Confidence?
@@ -313,13 +313,13 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               onClick={() => navigate("/browse")}
-              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95"
+              className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#22c55e]/25 active:scale-95"
             >
               Browse Showroom
             </button>
             <button
               onClick={() => navigate("/contact")}
-              className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer border border-slate-700 active:scale-95"
+              className="bg-white hover:bg-slate-100 text-slate-900 font-bold px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer active:scale-95"
             >
               Contact Concierge
             </button>
@@ -330,30 +330,30 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
       {/* Interactive Booking Modal */}
       {selectedService && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 relative overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 relative overflow-hidden text-slate-900 dark:text-white">
             <button
               onClick={handleCloseBooking}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition cursor-pointer"
             >
               <X size={16} />
             </button>
 
             <div className="space-y-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-200/50 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#16a34a] dark:text-[#4ade80] bg-[#22c55e]/10 border border-[#22c55e]/30 px-2.5 py-0.5 rounded-full inline-block mb-1">
                   {selectedService.tag}
                 </span>
-                <h3 className="text-xl font-black text-slate-950">
+                <h3 className="text-xl font-black text-slate-950 dark:text-white">
                   {selectedService.title}
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Schedule your service appointment with our certified concierge team.
                 </p>
               </div>
 
               <form onSubmit={handleSubmitBooking} className="space-y-3 pt-2">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
                     Your Full Name
                   </label>
                   <input
@@ -362,13 +362,13 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="e.g. Abebe Kebede"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
                       Phone Number
                     </label>
                     <input
@@ -377,12 +377,12 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
                       placeholder="+251 91 123 4567"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
                       Preferred Date
                     </label>
                     <input
@@ -391,14 +391,14 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                       value={preferredDate}
                       min={new Date().toISOString().split("T")[0]}
                       onChange={(e) => setPreferredDate(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
                       Vehicle Model (if known)
                     </label>
                     <input
@@ -406,18 +406,18 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                       value={vehicleModel}
                       onChange={(e) => setVehicleModel(e.target.value)}
                       placeholder="e.g. Toyota RAV4 2021"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
                       Addis Ababa Area
                     </label>
                     <select
                       value={locationArea}
                       onChange={(e) => setLocationArea(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition cursor-pointer"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition cursor-pointer"
                     >
                       <option value="Bole / Kazanchis">Bole / Kazanchis</option>
                       <option value="CMC / Ayat">CMC / Ayat</option>
@@ -430,7 +430,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
                     Special Notes or Vehicle Plate
                   </label>
                   <textarea
@@ -438,7 +438,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any specific requests or requirements..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition resize-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition resize-none"
                   />
                 </div>
 
@@ -446,7 +446,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs transition cursor-pointer shadow-md shadow-amber-500/25 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                    className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-3 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#22c55e]/25 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                   >
                     {submitting ? (
                       <>
