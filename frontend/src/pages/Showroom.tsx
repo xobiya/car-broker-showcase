@@ -313,7 +313,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Mobile filter drawer */}
       {showMobileFilters && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -387,8 +387,8 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
 
           {/* ── Single pill bar ── */}
           <div
-            className={`flex items-center bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible transition-colors ${
-              openDropdown ? "border-[#0F4C81] ring-2 ring-blue-100" : "hover:border-slate-300"
+            className={`flex items-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-visible transition-colors ${
+              openDropdown ? "border-[#22c55e] ring-2 ring-[#22c55e]/20" : "hover:border-slate-300 dark:hover:border-slate-700"
             }`}
           >
             {/* Search icon */}
@@ -402,7 +402,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 const qf = QUICK_FILTERS.find(f => f.id === qfId);
                 if (!qf) return null;
                 return (
-                  <span key={qf.id} className="inline-flex items-center gap-1 bg-blue-50 text-[#0F4C81] border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0">
+                  <span key={qf.id} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0">
                     {qf.label}
                     <button onClick={() => toggleQuickFilter(qf.id)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={10} strokeWidth={3} /></button>
                   </span>
@@ -410,7 +410,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               })}
               {(Object.entries(facets) as [string, string[]][]).map(([key, values]) =>
                 values.map(v => (
-                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1 bg-blue-50 text-[#0F4C81] border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0">
+                  <span key={`${key}-${v}`} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0">
                     {FACET_LABELS[key]}: {v}
                     <button onClick={() => removeFacet(key, v)} className="hover:text-red-600 transition-colors cursor-pointer ml-0.5"><X size={10} strokeWidth={3} /></button>
                   </span>
@@ -429,7 +429,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                     ? "Search make, model, year, or location..."
                     : ""
                 }
-                className="flex-1 min-w-[100px] sm:min-w-[140px] bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none py-1"
+                className="flex-1 min-w-[100px] sm:min-w-[140px] bg-transparent text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none py-1"
               />
             </div>
 
@@ -437,19 +437,19 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
             <span className="hidden sm:inline-block text-[11px] text-slate-400 font-bold whitespace-nowrap shrink-0 px-2">{sorted.length} cars</span>
 
             {/* Sort */}
-            <div className="h-6 w-px bg-slate-200 shrink-0" />
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 shrink-0" />
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="text-[11px] font-bold text-slate-600 bg-transparent focus:outline-none appearance-none cursor-pointer px-2 py-3 shrink-0 max-w-[85px] sm:max-w-none"
+              className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-transparent focus:outline-none appearance-none cursor-pointer px-2 py-3 shrink-0 max-w-[85px] sm:max-w-none"
             >
-              <option>Newest</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
+              <option className="dark:bg-slate-900">Newest</option>
+              <option className="dark:bg-slate-900">Price: Low to High</option>
+              <option className="dark:bg-slate-900">Price: High to Low</option>
             </select>
 
             {/* Chevron toggle */}
             <button
               onClick={() => setOpenDropdown(openDropdown === "panel" ? null : "panel")}
-              className="px-3 py-3 border-l border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors shrink-0 cursor-pointer flex items-center gap-1"
+              className="px-3 py-3 border-l border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer flex items-center gap-1"
               title="Toggle filters panel"
             >
               <span className="hidden md:inline text-[11px] font-bold text-slate-600">Filters</span>
@@ -751,10 +751,10 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
   const reviewCount = 500 + Math.abs((car.price % 300));
 
   return (
-    <div className="group bg-white rounded-3xl border border-slate-200/90 hover:border-slate-300 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden">
+    <div className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/40 transition-all duration-300 flex flex-col overflow-hidden">
       
       {/* 1. Image Container */}
-      <div className="relative h-48 sm:h-52 bg-slate-100 overflow-hidden">
+      <div className="relative h-48 sm:h-52 bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <img
           src={car.imageUrl}
           alt={`${car.brand} ${car.model}`}
@@ -764,8 +764,8 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
         />
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm uppercase">
-          <ShieldCheck size={11} className="text-amber-400" />
+        <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md text-[#22c55e] border border-[#22c55e]/30 text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm uppercase">
+          <ShieldCheck size={11} className="text-[#22c55e]" />
           <span>Verified</span>
         </div>
 
@@ -774,7 +774,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
           className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-colors cursor-pointer border shadow-sm ${
             carFavorites.includes(car.id)
               ? "bg-rose-500 border-rose-400 text-white"
-              : "bg-white/90 border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-white"
+              : "bg-white/90 dark:bg-slate-900/90 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-800"
           }`}
           aria-label="Save to favorites"
         >
@@ -782,26 +782,26 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
         </button>
 
         {car.condition === "New" && (
-          <span className="absolute bottom-3 left-3 bg-amber-500 text-slate-950 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+          <span className="absolute bottom-3 left-3 bg-[#22c55e] text-slate-950 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
             Brand New
           </span>
         )}
       </div>
 
-      {/* Floating Centered Rating Pill (Exact Carento Match) */}
+      {/* Floating Centered Rating Pill */}
       <div className="flex justify-center -mt-3.5 relative z-10">
-        <div className="inline-flex items-center gap-1.5 bg-white shadow-md border border-slate-100 px-3.5 py-1 rounded-full text-xs font-bold text-slate-800">
+        <div className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 shadow-md border border-slate-100 dark:border-slate-700 px-3.5 py-1 rounded-full text-xs font-bold text-slate-800 dark:text-slate-200">
           <Star size={13} className="text-amber-400 fill-amber-400" />
           <span>4.96 <span className="text-slate-400 font-normal text-[11px]">({reviewCount} reviews)</span></span>
         </div>
       </div>
 
-      {/* 2. Description Part (Matching Carento Screenshot) */}
+      {/* 2. Description Part */}
       <div className="p-5 pt-3 flex flex-col flex-1 justify-between space-y-4">
         
         {/* Title and Location */}
         <div className="space-y-1.5">
-          <h3 className="font-extrabold text-base text-slate-900 group-hover:text-amber-600 transition-colors truncate">
+          <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 group-hover:text-[#22c55e] transition-colors truncate">
             {car.brand} {car.model}
           </h3>
 
@@ -811,41 +811,41 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
           </div>
         </div>
 
-        {/* 2x2 Feature Grid (Speedometer, Transmission, Fuel, Seats) */}
-        <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-slate-100 text-xs text-slate-700 font-medium">
+        {/* 2x2 Feature Grid */}
+        <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-medium">
           <div className="flex items-center gap-2">
-            <Gauge size={15} className="text-slate-700 shrink-0" />
+            <Gauge size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
             <span className="truncate">{(car.mileage || 0).toLocaleString()} km</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <Settings2 size={15} className="text-slate-700 shrink-0" />
+            <Settings2 size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
             <span className="truncate">{car.transmission || "Automatic"}</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <Fuel size={15} className="text-slate-700 shrink-0" />
+            <Fuel size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
             <span className="truncate">{car.fuelType || "Petrol"}</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <Users size={15} className="text-slate-700 shrink-0" />
+            <Users size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
             <span className="truncate">{seats}</span>
           </div>
         </div>
 
-        {/* Price & Action Button (Button label "View Details" preserved strictly) */}
-        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+        {/* Price & Action Button */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
           <div>
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Price</span>
-            <div className="text-base sm:text-lg font-black text-slate-950 whitespace-nowrap">
+            <div className="text-base sm:text-lg font-black text-slate-950 dark:text-white whitespace-nowrap">
               ETB {car.price >= 1000000 ? `${(car.price / 1000000).toFixed(2)}M` : car.price.toLocaleString()}
             </div>
           </div>
 
           <button
             onClick={() => onInquireCar(car)}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-950 hover:text-white text-slate-800 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 border border-slate-200/80 shadow-xs"
+            className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] dark:hover:bg-[#22c55e] text-slate-800 dark:text-slate-200 hover:text-white dark:hover:text-slate-950 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 border border-slate-200/80 dark:border-slate-700 shadow-xs"
           >
             View Details
           </button>

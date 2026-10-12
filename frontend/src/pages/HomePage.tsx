@@ -471,63 +471,90 @@ export default function HomePage({
   const totalEstimatedCost = calcPrice + brokerFee + transferFeeEst;
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-slate-900 selection:bg-emerald-500 selection:text-white pb-20 sm:pb-8">
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 selection:bg-emerald-500 selection:text-white pb-20 sm:pb-8 transition-colors duration-200">
       
-      {/* 1. HERO SECTION (Carento Aesthetic: Dark Showroom Architectural Backdrop with Green Accents) */}
-      <section className="relative min-h-[580px] lg:min-h-[640px] flex items-center bg-slate-950 overflow-hidden px-4 sm:px-6 md:px-12 pt-14 pb-20">
+      {/* 1. HERO SECTION (Carento Signature: Clear Architectural Showroom Backdrop with Audi SUV & Green Accents) */}
+      <section className="relative min-h-[620px] lg:min-h-[700px] flex flex-col justify-center bg-slate-950 overflow-hidden px-4 sm:px-6 md:px-12 pt-10 sm:pt-14 pb-20 sm:pb-24">
         
-        {/* Background Dark Architectural Showroom Image */}
+        {/* Background Showroom Photo in Full Color Fidelity */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity scale-105 transition-transform duration-1000"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-100 transition-transform duration-1000"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80')`
+            backgroundImage: `url('https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1920&q=80')`
           }}
         />
 
-        {/* Ambient Gradient Overlays for High-Contrast Text Legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/40 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none" />
+        {/* Balanced Dark Slate Overlay (rgba(15, 23, 42, 0.6)) & Smooth Legibility Gradients */}
+        <div className="absolute inset-0 bg-slate-950/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/50 to-slate-950/25 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B0F19] to-transparent pointer-events-none" />
 
-        <div className="max-w-7xl w-full mx-auto relative z-10 space-y-8">
+        <div className="max-w-7xl w-full mx-auto relative z-10 space-y-10">
           
-          {/* Main Hero Header Content */}
-          <div className="max-w-2xl space-y-5">
+          {/* Top Grid: Headline Content on Left, Audi Luxury SUV on Right */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            {/* Green Sub-tag */}
-            <div className="inline-flex items-center gap-2 text-emerald-400 font-bold text-xs sm:text-sm tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Find Your Perfect Car</span>
+            {/* Left Content Column */}
+            <div className="lg:col-span-7 space-y-5">
+              
+              {/* Vibrant Green Sub-tag */}
+              <div className="text-[#22c55e] font-extrabold text-sm sm:text-base tracking-wide">
+                Find Your Perfect Car
+              </div>
+
+              {/* Signature Headline */}
+              <h1 className="text-3xl sm:text-5xl lg:text-[58px] font-black text-white tracking-tight leading-[1.12]">
+                Looking for a vehicle? <br />
+                <span className="text-white">You're in the perfect spot.</span>
+              </h1>
+
+              {/* 3 Solid Green Circle Checkmarks */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2 text-xs sm:text-sm font-semibold text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
+                    <Check size={12} strokeWidth={3.5} className="text-slate-950" />
+                  </div>
+                  <span>High quality at a low cost.</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
+                    <Check size={12} strokeWidth={3.5} className="text-slate-950" />
+                  </div>
+                  <span>Premium services</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
+                    <Check size={12} strokeWidth={3.5} className="text-slate-950" />
+                  </div>
+                  <span>24/7 roadside support.</span>
+                </div>
+              </div>
+
             </div>
 
-            {/* Carento Signature Headline */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
-              Looking for a vehicle? <br />
-              <span className="text-white">You're in the perfect spot.</span>
-            </h1>
-
-            {/* 3 Checkmark Bullet Points (Clean Lucide Icons, NO EMOJIS) */}
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2.5 pt-2 text-xs sm:text-sm font-semibold text-slate-200">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-400 fill-emerald-400/20 shrink-0" />
-                <span>High quality at a low cost.</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-400 fill-emerald-400/20 shrink-0" />
-                <span>Audited Libre & inspections</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-400 fill-emerald-400/20 shrink-0" />
-                <span>Capped 1.5% broker fee</span>
+            {/* Right Column: Audi Dark Luxury SUV Foreground */}
+            <div className="hidden lg:flex lg:col-span-5 justify-end relative">
+              <div className="relative w-full max-w-lg">
+                <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 via-transparent to-transparent rounded-full blur-2xl pointer-events-none" />
+                <img
+                  src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=1200&q=80"
+                  alt="Audi Luxury Showroom SUV"
+                  className="w-full h-auto object-cover rounded-3xl border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.8)] filter brightness-95 contrast-105 transition-transform duration-700 hover:scale-[1.02]"
+                />
+                <div className="absolute bottom-3 left-3 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1.5 shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+                  <span>Inspected Audi Q-Series &middot; Available in Addis</span>
+                </div>
               </div>
             </div>
 
           </div>
 
           {/* Floating Search Pod (Carento Clean Rounded Card Layout) */}
-          <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl border border-slate-200/80 max-w-4xl space-y-4">
+          <div className="bg-white dark:bg-[#111827] rounded-3xl p-4 sm:p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 max-w-4xl space-y-4">
             
             {/* Search Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-slate-100 dark:border-slate-800 pb-3">
               {[
                 { label: "All Vehicles", val: undefined, icon: Car },
                 { label: "Electric & Hybrid", val: "Electric", icon: Zap },
@@ -540,9 +567,9 @@ export default function HomePage({
                   <button
                     key={idx}
                     onClick={() => onBrowse(tab.val ? { bodyType: tab.val } : undefined)}
-                    className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 text-xs font-semibold cursor-pointer transition whitespace-nowrap flex items-center gap-1.5 shrink-0"
+                    className="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-400 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer transition whitespace-nowrap flex items-center gap-1.5 shrink-0"
                   >
-                    <Icon size={13} className="text-emerald-600" />
+                    <Icon size={13} className="text-emerald-600 dark:text-[#22c55e]" />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -554,7 +581,7 @@ export default function HomePage({
               
               {/* Keyword / Search Text Input */}
               <div className="relative">
-                <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider mb-1">
+                <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block tracking-wider mb-1">
                   Search
                 </label>
                 <div className="relative">
@@ -565,25 +592,25 @@ export default function HomePage({
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     placeholder="Keyword, model or tag..."
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#22c55e]"
                   />
                 </div>
               </div>
 
               {/* Brand Select */}
               <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider mb-1">
+                <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block tracking-wider mb-1">
                   Brand / Make
                 </label>
                 <div className="relative">
                   <select
                     value={selectedBrand}
                     onChange={(e) => setSelectedBrand(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer appearance-none pr-8"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#22c55e] cursor-pointer appearance-none pr-8"
                   >
-                    <option value="Any Brand">All Brands</option>
+                    <option value="Any Brand" className="dark:bg-slate-800">All Brands</option>
                     {brands.map((b) => (
-                      <option key={b} value={b}>{b}</option>
+                      <option key={b} value={b} className="dark:bg-slate-800">{b}</option>
                     ))}
                   </select>
                   <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -592,7 +619,7 @@ export default function HomePage({
 
               {/* Model Select */}
               <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider mb-1">
+                <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block tracking-wider mb-1">
                   Model
                 </label>
                 <div className="relative">
@@ -600,11 +627,11 @@ export default function HomePage({
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
                     disabled={selectedBrand === "Any Brand"}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer appearance-none pr-8 disabled:opacity-40"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#22c55e] cursor-pointer appearance-none pr-8 disabled:opacity-40"
                   >
-                    <option value="Any Model">All Models</option>
+                    <option value="Any Model" className="dark:bg-slate-800">All Models</option>
                     {models.map((m) => (
-                      <option key={m} value={m}>{m}</option>
+                      <option key={m} value={m} className="dark:bg-slate-800">{m}</option>
                     ))}
                   </select>
                   <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -615,7 +642,7 @@ export default function HomePage({
               <div className="flex flex-col justify-end">
                 <button
                   onClick={handleSearch}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-md shadow-emerald-500/25 active:scale-95 h-[38px] mt-auto"
+                  className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-md shadow-emerald-500/25 active:scale-95 h-[38px] mt-auto"
                 >
                   <Search size={15} />
                   <span>Search Vehicles</span>
@@ -625,35 +652,35 @@ export default function HomePage({
             </div>
 
             {/* Quick Trending Searches */}
-            <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-500">
-              <span className="font-bold text-slate-700 flex items-center gap-1">
-                <TrendingUp size={12} className="text-emerald-600" /> Popular:
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <TrendingUp size={12} className="text-[#22c55e]" /> Popular:
               </span>
               <button
                 onClick={() => handleQuickTagSearch({ brand: "Toyota", model: "RAV4" })}
-                className="hover:text-emerald-600 underline decoration-slate-300 cursor-pointer"
+                className="hover:text-[#22c55e] underline decoration-slate-300 dark:decoration-slate-700 cursor-pointer"
               >
                 Toyota RAV4 Hybrid
               </button>
               <span>•</span>
               <button
                 onClick={() => handleQuickTagSearch({ fuelType: "Electric" })}
-                className="hover:text-emerald-600 underline decoration-emerald-200 cursor-pointer font-semibold text-emerald-700 flex items-center gap-1"
+                className="hover:text-[#22c55e] underline decoration-emerald-200 dark:decoration-emerald-800 cursor-pointer font-semibold text-[#16a34a] dark:text-[#22c55e] flex items-center gap-1"
               >
-                <Zap size={11} className="text-emerald-600" />
+                <Zap size={11} className="text-[#22c55e]" />
                 VW ID.4 (0% Duty)
               </button>
               <span>•</span>
               <button
                 onClick={() => handleQuickTagSearch({ brand: "Hyundai", model: "Tucson" })}
-                className="hover:text-emerald-600 underline decoration-slate-300 cursor-pointer"
+                className="hover:text-[#22c55e] underline decoration-slate-300 dark:decoration-slate-700 cursor-pointer"
               >
                 Hyundai Tucson
               </button>
               <span>•</span>
               <button
                 onClick={() => handleQuickTagSearch({ brand: "Mercedes-Benz" })}
-                className="hover:text-emerald-600 underline decoration-slate-300 cursor-pointer"
+                className="hover:text-[#22c55e] underline decoration-slate-300 dark:decoration-slate-700 cursor-pointer"
               >
                 Mercedes C-Class
               </button>
@@ -666,39 +693,39 @@ export default function HomePage({
 
 
       {/* 2. PREMIUM BRANDS SECTION (Carento Signature Logo Strip: No Emojis, Clean SVG Marks) */}
-      <section className="py-14 sm:py-20 bg-slate-50/70 border-b border-slate-200/80">
+      <section className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
                 Premium Brands
               </h2>
-              <p className="text-slate-500 text-xs sm:text-sm mt-1">
+              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">
                 Unveil the Finest Selection of High-End Vehicles
               </p>
             </div>
             <button
               onClick={() => onBrowse()}
-              className="text-xs sm:text-sm font-bold text-slate-900 hover:text-emerald-600 transition flex items-center gap-1.5 cursor-pointer self-start sm:self-auto group"
+              className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-200 hover:text-[#22c55e] transition flex items-center gap-1.5 cursor-pointer self-start sm:self-auto group"
             >
               <span>Show All Brands</span>
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
 
-          {/* Clean White Rounded Logo Cards (Identical to Carento) */}
+          {/* Clean Rounded Logo Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
             {PREMIUM_BRANDS.map((b) => (
               <button
                 key={b.name}
                 onClick={() => onBrowse({ brand: b.name })}
-                className="group bg-white hover:bg-white border border-slate-200/90 hover:border-emerald-500 rounded-2xl p-4 h-24 flex flex-col items-center justify-center gap-2 shadow-xs hover:shadow-lg transition-all duration-200 cursor-pointer"
+                className="group bg-white dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 rounded-2xl p-4 h-24 flex flex-col items-center justify-center gap-2 shadow-xs hover:shadow-lg transition-all duration-200 cursor-pointer"
               >
-                <div className="shrink-0 flex items-center justify-center">
+                <div className="shrink-0 flex items-center justify-center text-slate-800 dark:text-slate-200 group-hover:text-[#22c55e]">
                   {b.svg}
                 </div>
-                <span className="text-[11px] font-bold text-slate-700 group-hover:text-emerald-600 transition-colors">
+                <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 group-hover:text-[#22c55e] transition-colors">
                   {b.name}
                 </span>
               </button>
@@ -710,15 +737,15 @@ export default function HomePage({
 
 
       {/* 3. MOST SEARCHED VEHICLES (Carento Signature Featured Section) */}
-      <section className="py-14 sm:py-20 bg-white border-b border-slate-200/80">
+      <section className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
                 Most Searched Vehicles
               </h2>
-              <p className="text-slate-500 text-xs sm:text-sm mt-1">
+              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">
                 The world's leading car brands inspected and available in Addis Ababa
               </p>
             </div>
@@ -739,11 +766,11 @@ export default function HomePage({
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`px-3.5 py-2 rounded-full font-bold transition-all cursor-pointer text-xs whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
                       activeTab === tab.id
-                        ? "bg-slate-950 text-white shadow-md"
-                        : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        ? "bg-slate-950 dark:bg-[#22c55e] text-white dark:text-slate-950 shadow-md font-black"
+                        : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
                     }`}
                   >
-                    <Icon size={13} className={activeTab === tab.id ? "text-emerald-400" : "text-slate-500"} />
+                    <Icon size={13} className={activeTab === tab.id ? "text-emerald-400 dark:text-slate-950" : "text-slate-500 dark:text-slate-400"} />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -765,10 +792,10 @@ export default function HomePage({
                 <div
                   key={car.id}
                   onClick={() => onViewDetails(car)}
-                  className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+                  className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
                 >
                   {/* Image Container */}
-                  <div className="h-52 sm:h-56 relative bg-slate-100 overflow-hidden">
+                  <div className="h-52 sm:h-56 relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <img
                       src={car.imageUrl}
                       alt={`${car.brand} ${car.model}`}
@@ -799,11 +826,11 @@ export default function HomePage({
                     <button
                       onClick={(e) => toggleFavorite(car.id, e)}
                       aria-label="Save vehicle"
-                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md text-slate-700 hover:text-rose-500 flex items-center justify-center shadow-sm transition active:scale-90 cursor-pointer z-10 border border-slate-200"
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-700 dark:text-slate-200 hover:text-rose-500 flex items-center justify-center shadow-sm transition active:scale-90 cursor-pointer z-10 border border-slate-200 dark:border-slate-700"
                     >
                       <Heart
                         size={15}
-                        className={isFavorited ? "fill-rose-500 text-rose-500" : "text-slate-600"}
+                        className={isFavorited ? "fill-rose-500 text-rose-500" : "text-slate-600 dark:text-slate-300"}
                       />
                     </button>
 
@@ -815,9 +842,9 @@ export default function HomePage({
                     )}
                   </div>
 
-                  {/* Floating Centered Rating Pill (Exact Carento Match) */}
+                  {/* Floating Centered Rating Pill */}
                   <div className="flex justify-center -mt-3.5 relative z-10">
-                    <div className="inline-flex items-center gap-1.5 bg-white shadow-md border border-slate-100 px-3.5 py-1 rounded-full text-xs font-bold text-slate-800">
+                    <div className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 shadow-md border border-slate-100 dark:border-slate-700 px-3.5 py-1 rounded-full text-xs font-bold text-slate-800 dark:text-slate-200">
                       <Star size={13} className="text-amber-400 fill-amber-400" />
                       <span>4.96 <span className="text-slate-400 font-normal text-[11px]">({reviewCount} reviews)</span></span>
                     </div>
@@ -828,53 +855,53 @@ export default function HomePage({
                     
                     <div className="space-y-2">
                       {/* Title */}
-                      <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-amber-600 transition-colors truncate">
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors truncate">
                         {car.brand} {car.model}
                       </h3>
 
                       {/* Location */}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-400 font-medium">
                         <MapPin size={13} className="text-slate-400 shrink-0" />
                         <span className="truncate">{car.location || "Addis Ababa, Bole"}</span>
                       </div>
 
                       {/* 2x2 Feature Grid (Speedometer, Transmission, Fuel, Seats) */}
-                      <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-slate-100 text-xs text-slate-700 font-medium">
+                      <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-medium">
                         <div className="flex items-center gap-2">
-                          <Gauge size={15} className="text-slate-700 shrink-0" />
+                          <Gauge size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
                           <span className="truncate">{car.mileage.toLocaleString()} km</span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Settings2 size={15} className="text-slate-700 shrink-0" />
+                          <Settings2 size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
                           <span className="truncate">{car.transmission || "Automatic"}</span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Fuel size={15} className="text-slate-700 shrink-0" />
+                          <Fuel size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
                           <span className="truncate">{car.fuelType || "Petrol"}</span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Users size={15} className="text-slate-700 shrink-0" />
+                          <Users size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
                           <span className="truncate">{seats}</span>
                         </div>
                       </div>
 
                       {/* Broker Attribution */}
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 pt-0.5">
-                        <BadgeCheck size={14} className="text-amber-500 shrink-0" />
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                        <BadgeCheck size={14} className="text-[#22c55e] shrink-0" />
                         <span className="truncate">
-                          Broker: <strong className="text-slate-800 font-semibold">{car.brokerName || "Verified Partner Broker"}</strong>
+                          Broker: <strong className="text-slate-800 dark:text-slate-200 font-semibold">{car.brokerName || "Verified Partner Broker"}</strong>
                         </span>
                       </div>
                     </div>
 
-                    {/* Price & Actions Row (strictly preserving "View Details" and "Inquire" button labels) */}
-                    <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    {/* Price & Actions Row */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
                         <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Price</span>
-                        <div className="text-base sm:text-lg font-black text-slate-950">
+                        <div className="text-base sm:text-lg font-black text-slate-950 dark:text-white">
                           {(car.price / 1000000).toFixed(2)}M ETB
                         </div>
                       </div>
@@ -885,7 +912,7 @@ export default function HomePage({
                             e.stopPropagation();
                             onViewDetails(car);
                           }}
-                          className="bg-slate-950 hover:bg-slate-900 text-white font-bold py-2.5 px-3.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95"
+                          className="bg-slate-950 dark:bg-[#22c55e] hover:bg-slate-900 dark:hover:bg-[#16a34a] text-white dark:text-slate-950 font-black py-2.5 px-3.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95"
                         >
                           <span>View Details</span>
                           <ArrowUpRight size={13} />
@@ -899,9 +926,9 @@ export default function HomePage({
                               onViewDetails(car);
                             }
                           }}
-                          className="border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold py-2.5 px-3.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                          className="border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-3.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
                         >
-                          <PhoneCall size={13} className="text-amber-500" />
+                          <PhoneCall size={13} className="text-[#22c55e]" />
                           <span>Inquire</span>
                         </button>
                       </div>
@@ -917,7 +944,7 @@ export default function HomePage({
           <div className="text-center pt-2">
             <button
               onClick={() => onBrowse()}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-slate-950 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold transition cursor-pointer shadow-md hover:shadow-lg active:scale-95"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-slate-950 dark:bg-[#22c55e] hover:bg-slate-900 dark:hover:bg-[#16a34a] text-white dark:text-slate-950 text-xs sm:text-sm font-black transition cursor-pointer shadow-md hover:shadow-lg active:scale-95"
             >
               <span>Explore All {vehicles.length}+ Available Listings</span>
               <ArrowRight size={16} />
@@ -929,14 +956,14 @@ export default function HomePage({
 
 
       {/* 4. CATEGORIES / BODY TYPE SECTION */}
-      <section className="py-14 sm:py-20 bg-slate-50/70 border-b border-slate-200/80">
+      <section className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               Browse by Body Type
             </h2>
-            <p className="text-slate-500 text-xs sm:text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
               From city driving across Addis to rugged regional trips
             </p>
           </div>
@@ -948,30 +975,30 @@ export default function HomePage({
                 <div
                   key={cat.id}
                   onClick={() => onBrowse(cat.filter)}
-                  className="min-w-[240px] sm:min-w-0 snap-start bg-white border border-slate-200/90 hover:border-emerald-500 rounded-2xl p-5 transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-4 shadow-xs hover:shadow-xl hover:-translate-y-1"
+                  className="min-w-[240px] sm:min-w-0 snap-start bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 rounded-2xl p-5 transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-4 shadow-xs hover:shadow-xl hover:-translate-y-1"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-[#22c55e] flex items-center justify-center shadow-xs">
                       <Icon size={20} />
                     </div>
-                    <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
                       {cat.count}
                     </span>
                   </div>
 
                   <div className="space-y-1">
-                    <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+                    <div className="text-[10px] font-bold text-[#16a34a] dark:text-[#22c55e] uppercase tracking-wider">
                       {cat.tag}
                     </div>
-                    <h3 className="font-black text-sm sm:text-base text-slate-900 group-hover:text-emerald-600 transition-colors">
+                    <h3 className="font-black text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors">
                       {cat.title}
                     </h3>
-                    <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-2">
                       {cat.subtitle}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 pt-1 border-t border-slate-100">
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-[#16a34a] dark:text-[#22c55e] pt-1 border-t border-slate-100 dark:border-slate-800">
                     <span>Browse Models</span>
                     <ArrowRight size={12} />
                   </div>
@@ -985,19 +1012,19 @@ export default function HomePage({
 
 
       {/* 5. PRICE & COMMISSION ESTIMATOR */}
-      <section className="py-14 sm:py-20 bg-white border-b border-slate-200/80">
+      <section className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               Transparent Cost Calculator
             </h2>
-            <p className="text-slate-500 text-xs sm:text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
               Calculate exact out-of-pocket acquisition costs and capped fees
             </p>
           </div>
 
-          <div className="bg-slate-50/80 border border-slate-200 rounded-3xl p-5 sm:p-8 shadow-xs space-y-6">
+          <div className="bg-slate-50/80 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-8 shadow-xs space-y-6">
             
             {/* Quick Price Preset Buttons */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -1016,8 +1043,8 @@ export default function HomePage({
                   onClick={() => setCalcPrice(p.val)}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 cursor-pointer transition ${
                     calcPrice === p.val
-                      ? "bg-slate-950 text-white font-bold shadow-xs"
-                      : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                      ? "bg-slate-950 dark:bg-[#22c55e] text-white dark:text-slate-950 font-black shadow-xs"
+                      : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                   }`}
                 >
                   {p.label}
@@ -1028,12 +1055,12 @@ export default function HomePage({
             {/* Slider Control */}
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Target Vehicle Price:
                 </label>
-                <div className="text-xl sm:text-2xl font-black text-slate-950">
+                <div className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white">
                   {(calcPrice / 1000000).toFixed(2)} Million ETB{" "}
-                  <span className="text-xs font-normal text-slate-500">({calcPrice.toLocaleString()} ETB)</span>
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400">({calcPrice.toLocaleString()} ETB)</span>
                 </div>
               </div>
               
@@ -1044,7 +1071,7 @@ export default function HomePage({
                 step="250000"
                 value={calcPrice}
                 onChange={(e) => setCalcPrice(Number(e.target.value))}
-                className="w-full accent-emerald-500 cursor-pointer h-2 bg-slate-200 rounded-lg"
+                className="w-full accent-[#22c55e] cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
               />
 
               <div className="flex justify-between text-[11px] font-semibold text-slate-400">
@@ -1055,45 +1082,45 @@ export default function HomePage({
             </div>
 
             {/* Computation Breakdown Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2 border-t border-slate-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2 border-t border-slate-200 dark:border-slate-800">
               
-              <div className="bg-white p-4.5 rounded-2xl border border-slate-200 space-y-1.5 shadow-2xs">
+              <div className="bg-white dark:bg-slate-800/90 p-4.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs">
                 <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
                   Capped Broker Fee (1.5% max)
                 </span>
-                <p className="text-xl font-black text-slate-900">
+                <p className="text-xl font-black text-slate-900 dark:text-white">
                   {brokerFee.toLocaleString()} ETB
                 </p>
-                <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                <span className="text-[10px] text-[#16a34a] dark:text-[#22c55e] font-bold flex items-center gap-1">
                   <Check size={12} /> Capped legally by contract
                 </span>
               </div>
 
-              <div className="bg-white p-4.5 rounded-2xl border border-slate-200 space-y-1.5 shadow-2xs">
+              <div className="bg-white dark:bg-slate-800/90 p-4.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5 shadow-2xs">
                 <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
                   Est. Govt Title Stamp (~1.2%)
                 </span>
-                <p className="text-xl font-black text-slate-900">
+                <p className="text-xl font-black text-slate-900 dark:text-white">
                   {transferFeeEst.toLocaleString()} ETB
                 </p>
-                <span className="text-[10px] text-slate-500">Addis Transport Bureau stamp</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400">Addis Transport Bureau stamp</span>
               </div>
 
-              <div className="bg-emerald-50/80 p-4.5 rounded-2xl border border-emerald-200 space-y-1.5">
-                <span className="text-[10px] font-bold uppercase text-emerald-800 block tracking-wider">
+              <div className="bg-emerald-50/80 dark:bg-emerald-950/40 p-4.5 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-1.5">
+                <span className="text-[10px] font-bold uppercase text-emerald-800 dark:text-emerald-300 block tracking-wider">
                   Estimated Total Acquisition
                 </span>
-                <p className="text-xl font-black text-emerald-700">
+                <p className="text-xl font-black text-emerald-700 dark:text-[#22c55e]">
                   {totalEstimatedCost.toLocaleString()} ETB
                 </p>
-                <span className="text-[10px] text-emerald-800 font-semibold">Zero surprise middleman cuts</span>
+                <span className="text-[10px] text-emerald-800 dark:text-emerald-300 font-semibold">Zero surprise middleman cuts</span>
               </div>
 
             </div>
 
             {/* Bottom Button */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <p className="text-xs text-slate-600 text-center sm:text-left">
+              <p className="text-xs text-slate-600 dark:text-slate-400 text-center sm:text-left">
                 Ready to find verified cars that match this budget?
               </p>
               <button
@@ -1105,7 +1132,7 @@ export default function HomePage({
                   else if (calcPrice >= 20000000) range = "over-20m";
                   onBrowse({ priceRange: range });
                 }}
-                className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 active:scale-95"
+                className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-6 py-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 active:scale-95"
               >
                 <span>Browse Listings Around {(calcPrice / 1000000).toFixed(1)}M ETB</span>
                 <ArrowRight size={14} />
@@ -1119,64 +1146,64 @@ export default function HomePage({
 
 
       {/* 6. WHY CHOOSE ARIF CAR SELL */}
-      <section className="py-14 sm:py-20 bg-slate-50/70 border-b border-slate-200/80">
+      <section className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-9">
           
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               Why Choose Arif Car Sell
             </h2>
-            <p className="text-slate-500 text-xs sm:text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
               We eliminated the shady practices, ghost listings, and surprise markups.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-3 shadow-xs">
-              <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-xs">
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-[#16a34a] dark:text-[#22c55e] flex items-center justify-center font-black">
                 <ShieldCheck size={22} />
               </div>
-              <h3 className="text-base font-black text-slate-900">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
                 150-Point Diagnostic Check
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Chassis alignment, OBD-II computer scans, and battery health tests on every vehicle.
               </p>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-3 shadow-xs">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-xs">
+              <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black">
                 <Users size={22} />
               </div>
-              <h3 className="text-base font-black text-slate-900">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
                 Licensed Addis Brokers
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Accredited professionals with registered tax IDs accompany you to viewings and signings.
               </p>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-3 shadow-xs">
-              <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-xs">
+              <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black">
                 <Lock size={22} />
               </div>
-              <h3 className="text-base font-black text-slate-900">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
                 Authentic Libre Audits
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Physically verified in Addis Ababa with verified ownership deeds and zero bank liens.
               </p>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-3 shadow-xs">
-              <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-black">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 space-y-3 shadow-xs">
+              <div className="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black">
                 <Percent size={22} />
               </div>
-              <h3 className="text-base font-black text-slate-900">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
                 Capped 1.5% Fee
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Transparent legal contracts with zero hidden commission splits or roadside markups.
               </p>
             </div>
@@ -1187,14 +1214,14 @@ export default function HomePage({
 
 
       {/* 7. FREQUENTLY ASKED QUESTIONS */}
-      <section className="py-14 sm:py-20 bg-white">
+      <section className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19]">
         <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               Frequently Asked Questions
             </h2>
-            <p className="text-slate-500 text-xs sm:text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
               Answers to common questions about buying and selling cars in Ethiopia.
             </p>
           </div>
@@ -1205,22 +1232,22 @@ export default function HomePage({
               return (
                 <div
                   key={idx}
-                  className="bg-slate-50/70 border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs transition"
+                  className="bg-slate-50/70 dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xs transition"
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className="w-full text-left p-4.5 sm:p-5 font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between gap-3 cursor-pointer hover:text-emerald-600 transition"
+                    className="w-full text-left p-4.5 sm:p-5 font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 flex items-center justify-between gap-3 cursor-pointer hover:text-[#22c55e] transition"
                   >
                     <span>{faq.q}</span>
                     <ChevronDown
                       size={18}
                       className={`text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? "rotate-180 text-emerald-600" : ""
+                        isOpen ? "rotate-180 text-[#22c55e]" : ""
                       }`}
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-4.5 sm:px-5 pb-5 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-200/60">
+                    <div className="px-4.5 sm:px-5 pb-5 pt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-200/60 dark:border-slate-800">
                       {faq.a}
                     </div>
                   )}
