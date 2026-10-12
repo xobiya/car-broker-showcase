@@ -3,6 +3,7 @@ interface LogoProps {
   iconOnly?: boolean;
   size?: "sm" | "md" | "lg";
   inverted?: boolean;
+  forceDarkText?: boolean;
 }
 
 const imgSizes = {
@@ -17,7 +18,7 @@ const textSizes = {
   lg: "text-base",
 };
 
-export default function Logo({ className = "", iconOnly, size = "md", inverted }: LogoProps) {
+export default function Logo({ className = "", iconOnly, size = "md", inverted, forceDarkText }: LogoProps) {
   const imgSize = imgSizes[size];
   const textSize = textSizes[size];
   return (
@@ -27,11 +28,11 @@ export default function Logo({ className = "", iconOnly, size = "md", inverted }
         alt="Arif Car Sell"
         width={imgSize}
         height={imgSize}
-        className="shrink-0 rounded-lg"
+        className="shrink-0 rounded-lg object-contain"
       />
       {!iconOnly && (
         <p className={`${textSize} font-black ${inverted ? "text-white" : "text-slate-900"} uppercase tracking-tight leading-none`}>
-          Arif Car Sell
+          Arif <span className="text-[#22c55e]">Car Sell</span>
         </p>
       )}
     </div>
