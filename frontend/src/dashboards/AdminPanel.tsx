@@ -31,16 +31,20 @@ function Combobox({ value, onChange, options, placeholder }: {
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 200)}
         placeholder={placeholder}
-        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
       />
       {open && filtered.length > 0 && (
-        <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
           {filtered.map(o => (
             <button
               key={o}
               type="button"
               onMouseDown={() => { setInput(o); onChange(o); setOpen(false); }}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 transition cursor-pointer ${o === input ? "bg-blue-50 font-semibold text-blue-900" : "text-slate-700"}`}
+              className={`w-full text-left px-3 py-2 text-sm transition cursor-pointer ${
+                o === input 
+                  ? "bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-[#22c55e]" 
+                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+              }`}
             >
               {o}
             </button>
@@ -545,10 +549,10 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
         {!sidebarCollapsed ? (
           <div>
             <Logo size="sm" inverted />
-            <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest mt-1 inline-block">Admin Panel</span>
+            <span className="text-[9px] font-black uppercase text-[#22c55e] tracking-widest mt-1 inline-block">Admin Panel</span>
           </div>
         ) : (
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 cursor-pointer" onClick={() => setSidebarCollapsed(false)}>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 cursor-pointer" onClick={() => setSidebarCollapsed(false)}>
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
               <rect x="2" y="2" width="44" height="44" rx="12" fill="white" fillOpacity="0.2" />
               <circle cx="24" cy="24" r="8" fill="white" />
@@ -577,7 +581,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               onClick={() => { setAdminTab(item.key); setSidebarOpen(false); }}
               className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-0" : "gap-3.5 px-4"} py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer group relative ${
                 isActive
-                  ? "bg-gradient-to-r from-blue-600 to-indigo-500 text-white shadow-md shadow-blue-500/10"
+                  ? "bg-[#22c55e] text-white shadow-md shadow-emerald-500/20 font-black"
                   : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
               }`}
               title={sidebarCollapsed ? item.label : undefined}
@@ -592,7 +596,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               )}
               {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
-                  isActive ? "bg-white/20 text-white" : "bg-orange-500 text-white"
+                  isActive ? "bg-white/20 text-white" : "bg-[#22c55e] text-white"
                 }`}>{item.badge}</span>
               )}
               {/* Tooltip for collapsed view */}
@@ -610,7 +614,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       <div className={`p-4 border-t border-slate-900 ${sidebarCollapsed ? "flex justify-center" : ""}`}>
         <button
           onClick={handleOpenCreate}
-          className={`bg-orange-500 hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/25 active:scale-95 text-white font-black px-4 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${sidebarCollapsed ? "w-11 h-11 p-0 rounded-xl" : "w-full"}`}
+          className={`bg-[#22c55e] hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 text-white font-black px-4 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${sidebarCollapsed ? "w-11 h-11 p-0 rounded-xl" : "w-full"}`}
           title={sidebarCollapsed ? "Add Car Listing" : undefined}
         >
           <Plus size={16} />
@@ -621,7 +625,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {/* Sidebar Footer User Card */}
       <div className="p-4 border-t border-slate-900 bg-slate-950/40">
         <div className={`flex items-center gap-3 ${sidebarCollapsed ? "justify-center" : ""}`}>
-          <div className="w-9 h-9 rounded-xl bg-blue-900/30 border border-blue-500/30 text-blue-400 flex items-center justify-center shadow-inner font-black shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[#22c55e] flex items-center justify-center shadow-inner font-black shrink-0">
             {adminUser?.name?.charAt(0).toUpperCase() || "A"}
           </div>
           {!sidebarCollapsed && (
@@ -667,7 +671,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   }
 
   return (
-    <div className="flex font-sans text-slate-800 h-screen w-screen overflow-hidden bg-slate-50 relative">
+    <div className="flex font-sans text-slate-800 dark:text-slate-100 h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] relative transition-colors">
 
       {/* Desktop sidebar */}
       <div className="hidden lg:block h-full shrink-0">
@@ -677,7 +681,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <div className="absolute left-0 top-0 h-full">
             {sidebar}
           </div>
@@ -688,23 +692,23 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       <main className="flex-1 flex flex-col h-full overflow-hidden">
 
         {/* ── Unified Top Header Bar ─────────────────────────────────────────── */}
-        <div className="shrink-0 bg-white border-b border-slate-200 px-6 py-0 flex items-center justify-between h-16 shadow-sm">
+        <div className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-0 flex items-center justify-between h-16 shadow-sm transition-colors">
           {/* Left: Mobile toggle + Breadcrumb + Page Title */}
           <div className="flex items-center gap-3 min-w-0">
             {/* Mobile sidebar toggle */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer shrink-0"
+              className="lg:hidden p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer shrink-0"
             >
               {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
 
             {/* Breadcrumb */}
-            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 shrink-0">
-              <Shield size={11} className="text-slate-300" />
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0">
+              <Shield size={11} className="text-[#22c55e]" />
               <span>Admin</span>
               <ChevronRight size={10} />
-              <span className="text-slate-600">
+              <span className="text-slate-600 dark:text-slate-300">
                 {adminTab === "overview" && "Overview"}
                 {adminTab === "notifications" && "Notifications"}
                 {adminTab === "listings" && "Listings"}
@@ -716,11 +720,11 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               </span>
             </div>
 
-            <div className="hidden sm:block w-px h-5 bg-slate-200" />
+            <div className="hidden sm:block w-px h-5 bg-slate-200 dark:bg-slate-800" />
 
             {/* Page title */}
             <div className="min-w-0">
-              <h2 className="text-sm font-black text-slate-900 tracking-tight truncate">
+              <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight truncate">
                 {adminTab === "overview" && "Dashboard Overview"}
                 {adminTab === "notifications" && "Notification Center"}
                 {adminTab === "listings" && "Vehicle Listings"}
@@ -730,7 +734,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 {adminTab === "reports" && "Trust & Safety Reports"}
                 {adminTab === "users" && "Member Management"}
               </h2>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest hidden sm:block">
+              <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest hidden sm:block">
                 {adminTab === "overview" && "Analytics and recent activity"}
                 {adminTab === "notifications" && "System alerts, updates, and activity notifications"}
                 {adminTab === "listings" && "Approve, edit, and manage all vehicles"}
@@ -749,7 +753,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             {adminTab === "listings" && (
               <button
                 onClick={handleOpenCreate}
-                className="hidden sm:flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
+                className="hidden sm:flex items-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
               >
                 <Plus size={13} /> Add Listing
               </button>
@@ -758,7 +762,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             {/* Refresh */}
             <button
               onClick={fetchData}
-              className="p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer text-slate-400 hover:text-slate-600"
+              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               title="Refresh data"
             >
               <RefreshCw size={15} />

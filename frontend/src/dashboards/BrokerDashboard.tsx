@@ -29,19 +29,19 @@ const fmt = (n: number) => n.toLocaleString("en-ET", { maximumFractionDigits: 0 
 const StatCard = ({ icon, label, value, trend, trendUp, sub }: {
   icon: React.ReactNode; label: string; value: string; trend?: string; trendUp?: boolean; sub?: string;
 }) => (
-  <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm">
+  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 flex flex-col gap-3 shadow-sm transition-colors">
     <div className="flex justify-between items-start">
-      <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">{icon}</div>
+      <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-[#22c55e]">{icon}</div>
       {trend && (
-        <span className={`text-xs font-semibold flex items-center gap-0.5 ${trendUp ? "text-emerald-600" : "text-red-500"}`}>
+        <span className={`text-xs font-semibold flex items-center gap-0.5 ${trendUp ? "text-[#22c55e]" : "text-rose-500"}`}>
           {trendUp ? <TrendingUp size={13} /> : <AlertTriangle size={13} />} {trend}
         </span>
       )}
     </div>
     <div>
-      <p className="text-xs text-slate-500 font-medium">{label}</p>
-      <p className="text-xl font-bold text-slate-900 mt-0.5">{value}</p>
-      {sub && <p className="text-[11px] text-slate-400 mt-0.5">{sub}</p>}
+      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</p>
+      <p className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">{value}</p>
+      {sub && <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{sub}</p>}
     </div>
   </div>
 );
@@ -699,11 +699,11 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
   }
 
   return (
-    <div className="flex h-full bg-slate-50">
-      <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 bg-white border-r border-slate-200 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
-        <div className={`flex items-center ${sidebarCollapsed ? "justify-center p-3" : "justify-between p-4"} border-b border-slate-100`}>
+    <div className="flex h-full bg-slate-50 dark:bg-[#0B0F19] transition-colors">
+      <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
+        <div className={`flex items-center ${sidebarCollapsed ? "justify-center p-3" : "justify-between p-4"} border-b border-slate-100 dark:border-slate-800`}>
           {sidebarCollapsed ? (
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shrink-0">
+            <div className="w-8 h-8 bg-[#22c55e] rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm">
               <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
                 <circle cx="24" cy="24" r="8" fill="white" />
                 <path d="M24 18C28.4183 18 32 20.6863 32 24C32 27.3137 28.4183 30 24 30C19.5817 30 16 27.3137 16 24C16 20.6863 19.5817 18 24 18Z" fill="white" fillOpacity="0.3" />
@@ -712,12 +712,12 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
           ) : (
             <div>
               <Logo size="sm" />
-              <p className="text-[9px] font-semibold tracking-wider text-indigo-600 uppercase mt-0.5">Broker Portal</p>
+              <p className="text-[9px] font-semibold tracking-wider text-[#22c55e] uppercase mt-0.5">Broker Portal</p>
             </div>
           )}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-white border border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50 cursor-pointer shrink-0"
+            className="hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer shrink-0 transition"
             title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {sidebarCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
@@ -728,7 +728,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
           {NAV_ITEMS.map(({ id, label, icon }) => (
             <button key={id} onClick={() => { setTab(id); setSidebarOpen(false); }}
               className={`w-full flex items-center ${sidebarCollapsed ? "justify-center" : "gap-2.5 px-3"} py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                tab === id ? "bg-indigo-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                tab === id ? "bg-[#22c55e] text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-white"
               }`}
               title={sidebarCollapsed ? label : undefined}>
               <span className="relative">
@@ -743,7 +743,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                 <span className="flex items-center gap-2 flex-1 min-w-0">
                   <span className="truncate">{label}</span>
                   {id === "notifications" && unreadNotifCount > 0 && (
-                    <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tab === id ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
+                    <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tab === id ? "bg-white/20 text-white" : "bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400"}`}>
                       {unreadNotifCount}
                     </span>
                   )}
@@ -753,9 +753,9 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
           ))}
         </nav>
 
-        <div className={`${sidebarCollapsed ? "p-2 flex justify-center" : "p-3"} border-t border-slate-100`}>
+        <div className={`${sidebarCollapsed ? "p-2 flex justify-center" : "p-3"} border-t border-slate-100 dark:border-slate-800`}>
           <button onClick={() => { setEditingVehicle(null); setShowForm(true); }}
-            className={`flex items-center ${sidebarCollapsed ? "justify-center w-10 h-10" : "justify-center gap-1.5 w-full"} bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2.5 rounded-lg transition cursor-pointer`}
+            className={`flex items-center ${sidebarCollapsed ? "justify-center w-10 h-10" : "justify-center gap-1.5 w-full"} bg-[#22c55e] hover:bg-emerald-600 text-white text-sm font-semibold py-2.5 rounded-lg transition cursor-pointer shadow-sm`}
             title={sidebarCollapsed ? "Add Listing" : undefined}>
             <Plus size={15} />
             {!sidebarCollapsed && "Add Listing"}
@@ -764,22 +764,22 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
       </aside>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-slate-200 px-3 md:px-6 h-14 md:h-16 flex items-center justify-between shrink-0">
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 md:px-6 h-14 md:h-16 flex items-center justify-between shrink-0 transition-colors">
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer -ml-1 shrink-0">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer -ml-1 shrink-0">
               <Menu size={20} />
             </button>
-            <h1 className="text-sm md:text-base font-bold text-slate-900 truncate">
+            <h1 className="text-sm md:text-base font-bold text-slate-900 dark:text-white truncate">
               {NAV_ITEMS.find(n => n.id === tab)?.label || "Dashboard"}
             </h1>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+              <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                 <Bell size={18} />
                 {unreadNotifCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
@@ -790,47 +790,47 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl z-20 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100">
-                      <p className="text-xs font-bold text-slate-800">Notifications</p>
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-20 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">Notifications</p>
                     </div>
-                    <div className="max-h-60 overflow-y-auto divide-y divide-slate-50">
+                    <div className="max-h-60 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
                       {newLeads.length > 0 ? newLeads.slice(0, 5).map(l => (
-                        <div key={l.id} className="px-4 py-3 text-xs text-slate-600">
-                          <span className="font-semibold text-slate-800">{l.buyerName}</span> sent an inquiry about <span className="font-semibold">{l.vehicleBrand} {l.vehicleModel}</span>
+                        <div key={l.id} className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
+                          <span className="font-semibold text-slate-800 dark:text-white">{l.buyerName}</span> sent an inquiry about <span className="font-semibold">{l.vehicleBrand} {l.vehicleModel}</span>
                         </div>
                       )) : (
-                        <div className="px-4 py-8 text-center text-xs text-slate-400">No new notifications</div>
+                        <div className="px-4 py-8 text-center text-xs text-slate-400 dark:text-slate-500">No new notifications</div>
                       )}
                     </div>
-                    <div className="px-4 py-2 border-t border-slate-100 bg-slate-50 text-center">
-                      <button onClick={() => { setNotifOpen(false); setTab("notifications"); }} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer">View All</button>
+                    <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-center">
+                      <button onClick={() => { setNotifOpen(false); setTab("notifications"); }} className="text-xs font-semibold text-[#22c55e] hover:text-emerald-400 cursor-pointer">View All</button>
                     </div>
                   </div>
                 </>
               )}
             </div>
             <div className="relative">
-              <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+              <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+                <div className="w-8 h-8 rounded-lg bg-[#22c55e] text-white flex items-center justify-center text-xs font-bold shadow-sm">
                   {(brokerInfo?.name || "B").split(" ").map(w => w[0]).join("")}
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-xs font-semibold text-slate-800 leading-none">{brokerInfo?.name || "Loading..."}</p>
-                  <p className="text-[10px] text-slate-400 leading-none mt-0.5">Licensed Broker</p>
+                  <p className="text-xs font-semibold text-slate-800 dark:text-white leading-none">{brokerInfo?.name || "Loading..."}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mt-0.5">Licensed Broker</p>
                 </div>
                 <ChevronDown size={14} className="text-slate-400 hidden sm:block" />
               </button>
               {profileOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-1">
-                    <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                      <p className="text-xs font-bold text-slate-800">{brokerInfo?.name || "Unknown"}</p>
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-indigo-600">Licensed Broker</p>
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-20 py-1">
+                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">{brokerInfo?.name || "Unknown"}</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-[#22c55e]">Licensed Broker</p>
                     </div>
-                    <button onClick={() => { setProfileOpen(false); setTab("profile"); }} className="w-full text-left px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition cursor-pointer">Profile</button>
-                    <button onClick={() => { setProfileOpen(false); onLogout?.(); }} className="w-full text-left px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition cursor-pointer">Logout</button>
+                    <button onClick={() => { setProfileOpen(false); setTab("profile"); }} className="w-full text-left px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer">Profile</button>
+                    <button onClick={() => { setProfileOpen(false); onLogout?.(); }} className="w-full text-left px-4 py-2 text-xs font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer">Logout</button>
                   </div>
                 </>
               )}

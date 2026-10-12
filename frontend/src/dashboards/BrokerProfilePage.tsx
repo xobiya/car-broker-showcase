@@ -52,7 +52,7 @@ export default function BrokerProfilePage({ brokerId, onBack, onViewDetails }: B
   return (
     <div className="max-w-4xl mx-auto w-full p-6 md:p-8 flex-grow">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition cursor-pointer">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition cursor-pointer">
           <ArrowLeft size={14} /> Back
         </button>
         <button onClick={() => setShowReportModal(true)} className="flex items-center gap-1.5 text-xs font-bold text-amber-500 hover:text-amber-600 transition cursor-pointer">
@@ -60,19 +60,20 @@ export default function BrokerProfilePage({ brokerId, onBack, onViewDetails }: B
         </button>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-900 to-blue-800 p-6 md:p-8 text-white">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-black shrink-0">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-6 md:p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#22c55e]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex items-center gap-5 relative z-10">
+            <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-[#22c55e]/40 flex items-center justify-center text-3xl font-black shrink-0 text-[#22c55e]">
               {broker.name?.charAt(0)?.toUpperCase() || "B"}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl md:text-2xl font-bold text-white">{broker.name}</h1>
-                {broker.verified && <BadgeCheck size={20} className="text-blue-300" />}
+                {broker.verified && <BadgeCheck size={20} className="text-[#22c55e]" />}
               </div>
-              <p className="text-sm text-blue-200">Licensed Broker · {broker.licenseNumber || "N/A"}</p>
-              <div className="flex items-center gap-4 text-xs text-blue-200/80 mt-2">
+              <p className="text-sm text-slate-300">Licensed Broker · {broker.licenseNumber || "N/A"}</p>
+              <div className="flex items-center gap-4 text-xs text-slate-400 mt-2">
                 <span className="flex items-center gap-1"><Phone size={12} /> {broker.phone}</span>
                 <span className="flex items-center gap-1"><Mail size={12} /> {broker.email}</span>
               </div>
@@ -83,45 +84,45 @@ export default function BrokerProfilePage({ brokerId, onBack, onViewDetails }: B
         <div className="p-6 md:p-8 space-y-6">
           {broker.bio && (
             <div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">About</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">{broker.bio}</p>
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">About</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{broker.bio}</p>
             </div>
           )}
 
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-slate-50 rounded-xl p-4 text-center">
-              <Car size={18} className="mx-auto text-blue-900 mb-1" />
-              <p className="text-lg font-bold text-slate-800">{vehicles.length}</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Listings</p>
+            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 text-center border border-slate-100 dark:border-slate-800/80">
+              <Car size={18} className="mx-auto text-[#22c55e] mb-1" />
+              <p className="text-lg font-bold text-slate-800 dark:text-white">{vehicles.length}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">Listings</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-4 text-center">
-              <Award size={18} className="mx-auto text-blue-900 mb-1" />
-              <p className="text-lg font-bold text-slate-800">{broker.totalSales || 0}</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Sales</p>
+            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 text-center border border-slate-100 dark:border-slate-800/80">
+              <Award size={18} className="mx-auto text-[#22c55e] mb-1" />
+              <p className="text-lg font-bold text-slate-800 dark:text-white">{broker.totalSales || 0}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">Sales</p>
             </div>
-            <div className="bg-slate-50 rounded-xl p-4 text-center">
-              <BadgeCheck size={18} className="mx-auto text-blue-900 mb-1" />
-              <p className="text-lg font-bold text-emerald-600">{broker.verified ? "Verified" : "Pending"}</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Status</p>
+            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 text-center border border-slate-100 dark:border-slate-800/80">
+              <BadgeCheck size={18} className="mx-auto text-[#22c55e] mb-1" />
+              <p className="text-lg font-bold text-[#22c55e]">{broker.verified ? "Verified" : "Pending"}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">Status</p>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-slate-800 mb-4">Active Listings ({vehicles.length})</h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">Active Listings ({vehicles.length})</h3>
             {vehicles.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-8">No active listings.</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">No active listings.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {vehicles.map(v => (
-                  <div key={v.id} className="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition cursor-pointer" onClick={() => onViewDetails(v)}>
-                    <div className="h-36 bg-slate-100 overflow-hidden">
-                      <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
+                  <div key={v.id} className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850/60 rounded-xl overflow-hidden hover:shadow-md transition cursor-pointer group" onClick={() => onViewDetails(v)}>
+                    <div className="h-36 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <img src={v.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
                     </div>
                     <div className="p-3 space-y-1">
                       <p className="text-xs text-slate-400 font-semibold">{v.year}</p>
-                      <h4 className="text-sm font-bold text-slate-800">{v.brand} {v.model}</h4>
-                      <p className="text-xs text-blue-900 font-bold">{fmt(v.price)} ETB</p>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate">{v.brand} {v.model}</h4>
+                      <p className="text-xs text-[#22c55e] font-black">{fmt(v.price)} ETB</p>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
                         <span>{v.fuelType}</span><span>•</span><span>{v.transmission}</span><span>•</span><span>{v.mileage.toLocaleString()} km</span>
                       </div>
                     </div>
@@ -133,18 +134,18 @@ export default function BrokerProfilePage({ brokerId, onBack, onViewDetails }: B
         </div>
       </div>
 
-        {showReportModal && (
-          <ReportModal
-            targetType="broker"
-            targetId={broker.id}
-            targetLabel={broker.name}
-            onClose={() => setShowReportModal(false)}
-            onNotify={(msg, type) => {
-              console.log(`[${type}] ${msg}`);
-              setShowReportModal(false);
-            }}
-          />
-        )}
+      {showReportModal && (
+        <ReportModal
+          targetType="broker"
+          targetId={broker.id}
+          targetLabel={broker.name}
+          onClose={() => setShowReportModal(false)}
+          onNotify={(msg, type) => {
+            console.log(`[${type}] ${msg}`);
+            setShowReportModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -232,21 +232,21 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
   const currentTabLabel = navItems.find(n => n.key === tab)?.label || "";
 
   return (
-    <div className="flex font-sans text-slate-800 h-screen w-screen overflow-hidden bg-slate-50">
+    <div className="flex font-sans text-slate-800 dark:text-slate-100 h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] transition-colors">
       
       {/* ── Desktop Sidebar (lg+) ── */}
       <aside className="hidden lg:flex w-64 shrink-0 bg-slate-950 border-r border-slate-900/60 h-full flex-col text-slate-300 shadow-2xl relative z-20">
         {/* Glow effect in sidebar */}
-        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-orange-500/10 to-transparent pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#22c55e]/15 to-transparent pointer-events-none" />
         
         <div className="h-20 border-b border-slate-900/60 flex items-center px-6 shrink-0 relative">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
               <Store size={18} />
             </div>
             <div>
               <span className="text-sm font-black text-white tracking-tight uppercase">Seller Hub</span>
-              <span className="text-[9px] font-black uppercase text-orange-400 tracking-widest block mt-0.5 leading-none">Dashboard</span>
+              <span className="text-[9px] font-black uppercase text-[#22c55e] tracking-widest block mt-0.5 leading-none">Dashboard</span>
             </div>
           </div>
         </div>
@@ -258,7 +258,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
               <button key={item.key} onClick={() => setTab(item.key)}
                 className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer group relative ${
                   isActive
-                    ? "bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-lg shadow-orange-500/15"
+                    ? "bg-[#22c55e] text-white shadow-lg shadow-emerald-500/20 font-black"
                     : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
                 }`}
               >
@@ -267,7 +267,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                 <span className="flex-1 text-left">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
                   <span className={`text-[9px] font-black px-2 py-0.5 rounded-full min-w-[20px] text-center ${
-                    isActive ? "bg-white/20 text-white" : "bg-orange-500 text-white"
+                    isActive ? "bg-white/20 text-white" : "bg-[#22c55e] text-white"
                   }`}>{item.badge}</span>
                 )}
               </button>
@@ -277,7 +277,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
 
         <div className="p-4 border-t border-slate-900/60 shrink-0">
           <button onClick={() => setShowAddModal(true)}
-            className="w-full bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 hover:shadow-xl hover:shadow-orange-500/15 active:scale-[0.98] text-white font-black px-4 py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md uppercase tracking-wider"
+            className="w-full bg-[#22c55e] hover:bg-emerald-600 hover:shadow-xl hover:shadow-emerald-500/20 active:scale-[0.98] text-white font-black px-4 py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md uppercase tracking-wider"
           >
             <Plus size={16} /> Add Listing
           </button>
@@ -285,12 +285,12 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
 
         <div className="p-4 border-t border-slate-900/60 bg-slate-950/60 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center font-black shrink-0 shadow-inner">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#22c55e] flex items-center justify-center font-black shrink-0 shadow-inner">
               {currentUser?.name?.charAt(0).toUpperCase() || "S"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-white truncate leading-none">{currentUser?.name || "Seller"}</p>
-              <span className="text-[9px] font-black uppercase text-orange-400 mt-1.5 inline-flex items-center gap-1">
+              <span className="text-[9px] font-black uppercase text-[#22c55e] mt-1.5 inline-flex items-center gap-1">
                 <ShieldCheck size={9} /> Seller Account
               </span>
             </div>
@@ -319,11 +319,11 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="relative w-72 bg-slate-950 border-r border-slate-900/60 h-full flex flex-col text-slate-355 text-slate-300 shadow-2xl"
+              className="relative w-72 bg-slate-950 border-r border-slate-900/60 h-full flex flex-col text-slate-300 shadow-2xl"
             >
               <div className="h-20 border-b border-slate-900/60 flex items-center px-6 shrink-0 justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 flex items-center justify-center text-white shadow-lg">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg">
                     <Store size={16} />
                   </div>
                   <span className="text-sm font-black text-white uppercase tracking-tight">Seller Hub</span>
@@ -340,7 +340,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                     <button key={item.key} onClick={() => { setTab(item.key); setSidebarOpen(false); }}
                       className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                         isActive
-                          ? "bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-md"
+                          ? "bg-[#22c55e] text-white shadow-md font-black"
                           : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
                       }`}
                     >
@@ -348,7 +348,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
                       <span className="flex-1 text-left">{item.label}</span>
                       {item.badge !== undefined && item.badge > 0 && (
                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-full min-w-[20px] text-center ${
-                          isActive ? "bg-white/20 text-white" : "bg-orange-500 text-white"
+                          isActive ? "bg-white/20 text-white" : "bg-[#22c55e] text-white"
                         }`}>{item.badge}</span>
                       )}
                     </button>
@@ -358,12 +358,12 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
 
               <div className="p-4 border-t border-slate-900/60 bg-slate-950/60 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center font-black shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#22c55e] flex items-center justify-center font-black shrink-0">
                     {currentUser?.name?.charAt(0).toUpperCase() || "S"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-white truncate leading-none">{currentUser?.name || "Seller"}</p>
-                    <span className="text-[9px] font-black uppercase text-orange-400 mt-1 block">Seller</span>
+                    <span className="text-[9px] font-black uppercase text-[#22c55e] mt-1 block">Seller</span>
                   </div>
                   <button onClick={onLogout} className="p-2 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer" title="Logout">
                     <LogOut size={16} />
@@ -378,36 +378,36 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
       {/* ── Main Panel ── */}
       <main className="flex-grow flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="shrink-0 bg-white border-b border-slate-200/80 px-4 sm:px-6 h-16 flex items-center justify-between shadow-sm relative z-10">
+        <header className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 h-16 flex items-center justify-between shadow-sm relative z-10 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
             <button onClick={() => setSidebarOpen(true)}
-              className="lg:hidden flex items-center justify-center w-10 h-10 -ml-1 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition cursor-pointer shrink-0"
+              className="lg:hidden flex items-center justify-center w-10 h-10 -ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer shrink-0"
               aria-label="Open menu"
             >
               <Menu size={20} />
             </button>
-            <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 shrink-0 select-none">
-              <Store size={12} className="text-orange-500" />
+            <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0 select-none">
+              <Store size={12} className="text-[#22c55e]" />
               <span>Seller Panel</span>
               <ChevronRight size={10} />
-              <span className="text-slate-700">{currentTabLabel}</span>
+              <span className="text-slate-700 dark:text-slate-300">{currentTabLabel}</span>
             </div>
-            <h1 className="sm:hidden text-sm font-black text-slate-900 truncate">
+            <h1 className="sm:hidden text-sm font-black text-slate-900 dark:text-white truncate">
               {currentTabLabel}
             </h1>
           </div>
           
           <div className="flex items-center gap-2 shrink-0">
             {tab === "listings" && (
-              <div className="flex items-center bg-slate-100 rounded-xl p-0.5 border border-slate-200/60">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 border border-slate-200/60 dark:border-slate-700">
                 <button onClick={() => setViewMode("grid")}
-                  className={`flex items-center justify-center w-8 h-8 rounded-lg transition cursor-pointer ${viewMode === "grid" ? "bg-white text-orange-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                  className={`flex items-center justify-center w-8 h-8 rounded-lg transition cursor-pointer ${viewMode === "grid" ? "bg-white dark:bg-slate-900 text-[#22c55e] shadow-sm" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}
                   title="Grid View"
                 >
                   <LayoutGrid size={15} />
                 </button>
                 <button onClick={() => setViewMode("list")}
-                  className={`flex items-center justify-center w-8 h-8 rounded-lg transition cursor-pointer ${viewMode === "list" ? "bg-white text-orange-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                  className={`flex items-center justify-center w-8 h-8 rounded-lg transition cursor-pointer ${viewMode === "list" ? "bg-white dark:bg-slate-900 text-[#22c55e] shadow-sm" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}
                   title="List View"
                 >
                   <ListIcon size={15} />
@@ -415,7 +415,7 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
               </div>
             )}
             <button onClick={fetchData}
-              className="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-100 transition border border-transparent hover:border-slate-200 cursor-pointer text-slate-400 hover:text-slate-700 bg-slate-50/50"
+              className="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-transparent hover:border-slate-200 dark:hover:border-slate-700 cursor-pointer text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-50/50 dark:bg-slate-800/60"
               title="Refresh"
             >
               <RefreshCw size={14} />
@@ -429,22 +429,22 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
           {/* Stats Bar */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-7">
             {[
-              { label: "Active", count: approvedListings.length, icon: Eye, color: "text-emerald-500 bg-emerald-50 border-emerald-100", sub: "Marketplace Live" },
-              { label: "Pending", count: pendingListings.length, icon: Clock, color: "text-amber-500 bg-amber-50 border-amber-100", sub: "SLA Under Review" },
-              { label: "Inquiries", count: inquiries.length, icon: MessageCircle, color: "text-blue-500 bg-blue-50 border-blue-100", sub: `${inquiries.filter(i => i.status === "new").length} New Received` },
-              { label: "Sold", count: soldListings.length, icon: Sparkles, color: "text-orange-500 bg-orange-50 border-orange-100", sub: "Completed Sales" }
+              { label: "Active", count: approvedListings.length, icon: Eye, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-900/50", sub: "Marketplace Live" },
+              { label: "Pending", count: pendingListings.length, icon: Clock, color: "text-amber-500 bg-amber-50 dark:bg-amber-950/40 border-amber-100 dark:border-amber-900/50", sub: "SLA Under Review" },
+              { label: "Inquiries", count: inquiries.length, icon: MessageCircle, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/40 border-blue-100 dark:border-blue-900/50", sub: `${inquiries.filter(i => i.status === "new").length} New Received` },
+              { label: "Sold", count: soldListings.length, icon: Sparkles, color: "text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-900/50", sub: "Completed Sales" }
             ].map((stat, i) => (
               <motion.div 
                 key={stat.label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:shadow-md transition-shadow group"
+                className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:shadow-md transition-all group"
               >
                 <div className="min-w-0">
-                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block">{stat.label}</span>
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 block mt-1 tracking-tight leading-none">{stat.count}</span>
-                  <span className="text-[9px] text-slate-400 font-medium block mt-1.5 truncate group-hover:text-slate-500 transition-colors">{stat.sub}</span>
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider block">{stat.label}</span>
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white block mt-1 tracking-tight leading-none">{stat.count}</span>
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium block mt-1.5 truncate group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors">{stat.sub}</span>
                 </div>
                 <div className={`w-10 sm:w-11 h-10 sm:h-11 rounded-xl border flex items-center justify-center shrink-0 shadow-sm ${stat.color}`}>
                   <stat.icon size={18} />
@@ -465,12 +465,12 @@ export default function SellerDashboard({ currentUser, onNotify, onLogout }: Sel
               {tab === "listings" && (
                 <div className="space-y-4">
                   {/* Search and Filters */}
-                  <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-4 transition-colors">
                     <div className="relative">
                       <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                       <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Search vehicle brand, model, location..."
-                        className="w-full text-xs pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:border-orange-400 focus:bg-white transition"
+                        className="w-full text-xs pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
                       />
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">

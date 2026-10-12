@@ -30,27 +30,27 @@ export default function NotificationsPage({ onBack }: NotificationsPageProps) {
   const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+    <div className="h-full flex flex-col bg-white dark:bg-[#0B0F19] transition-colors">
+      <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-xl transition cursor-pointer">
-            <ArrowLeft size={18} className="text-slate-500" />
+          <button onClick={onBack} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer text-slate-500 dark:text-slate-400">
+            <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-lg font-black text-slate-900">Notifications</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+            <h1 className="text-lg font-black text-slate-900 dark:text-white">Notifications</h1>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
               {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <button onClick={markAllRead} className="text-xs font-bold text-blue-900 hover:text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition cursor-pointer flex items-center gap-1.5">
+            <button onClick={markAllRead} className="text-xs font-bold text-[#22c55e] hover:text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/10 transition cursor-pointer flex items-center gap-1.5">
               <Check size={14} /> Mark All Read
             </button>
           )}
           {notifications.length > 0 && (
-            <button onClick={clearAll} className="text-xs font-bold text-rose-500 hover:text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer flex items-center gap-1.5">
+            <button onClick={clearAll} className="text-xs font-bold text-rose-500 hover:text-rose-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/10 transition cursor-pointer flex items-center gap-1.5">
               <X size={14} /> Clear All
             </button>
           )}
@@ -60,23 +60,23 @@ export default function NotificationsPage({ onBack }: NotificationsPageProps) {
       <div className="flex-1 overflow-y-auto">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
-            <Bell size={40} className="text-slate-300 mb-4" />
-            <p className="text-sm font-bold text-slate-400">No notifications</p>
-            <p className="text-xs text-slate-300 mt-1">You're all caught up!</p>
+            <Bell size={40} className="text-slate-300 dark:text-slate-700 mb-4" />
+            <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No notifications</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">You're all caught up!</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-850">
             {notifications.map(n => (
               <div
                 key={n.id}
-                className={`px-6 py-4 flex items-start gap-3 hover:bg-slate-50 transition cursor-pointer ${n.unread ? "bg-blue-50/40" : ""}`}
+                className={`px-6 py-4 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-850/60 transition cursor-pointer ${n.unread ? "bg-emerald-500/5 dark:bg-emerald-500/10" : ""}`}
               >
-                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-blue-900" : "bg-transparent"}`} />
+                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-[#22c55e]" : "bg-transparent"}`} />
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${n.unread ? "font-bold text-slate-900" : "font-medium text-slate-600"}`}>
+                  <p className={`text-sm ${n.unread ? "font-bold text-slate-900 dark:text-white" : "font-medium text-slate-600 dark:text-slate-300"}`}>
                     {n.text}
                   </p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">{n.time}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-0.5">{n.time}</p>
                 </div>
               </div>
             ))}
