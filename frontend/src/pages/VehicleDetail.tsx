@@ -123,24 +123,24 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-        <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-        <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">Loading vehicle details...</p>
+      <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex flex-col items-center justify-center min-h-[50vh] space-y-4 text-slate-900 dark:text-slate-100">
+        <Loader2 className="w-10 h-10 text-[#22c55e] animate-spin" />
+        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Loading vehicle details...</p>
       </div>
     );
   }
 
   if (error || !vehicle) {
     return (
-      <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-        <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center">
+      <div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex flex-col items-center justify-center min-h-[50vh] space-y-4 text-slate-900 dark:text-slate-100">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 flex items-center justify-center">
           <AlertTriangle size={24} />
         </div>
-        <h2 className="text-lg font-black text-slate-800 tracking-tight">Vehicle Not Found</h2>
-        <p className="text-xs text-slate-500 max-w-md text-center">{error || "This vehicle listing may have been sold or removed."}</p>
+        <h2 className="text-lg font-black text-slate-950 dark:text-white tracking-tight">Vehicle Not Found</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md text-center">{error || "This vehicle listing may have been sold or removed."}</p>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-slate-800 transition cursor-pointer"
+          className="flex items-center gap-2 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-[#22c55e]/20"
         >
           <ArrowLeft size={14} /> Back to Showroom
         </button>
@@ -228,29 +228,29 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
   const fmt = (n: number) => n.toLocaleString("en-ET", { maximumFractionDigits: 0 });
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 sm:py-8 space-y-6 bg-slate-50 text-slate-800 pb-28 sm:pb-8">
-      <nav className="text-xs font-semibold text-slate-400 flex items-center space-x-2 overflow-x-auto whitespace-nowrap pb-1">
-        <button onClick={onBack} className="hover:text-slate-600 transition-colors cursor-pointer">Home</button>
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 sm:py-8 space-y-6 bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 pb-28 sm:pb-8 transition-colors">
+      <nav className="text-xs font-semibold text-slate-400 dark:text-slate-500 flex items-center space-x-2 overflow-x-auto whitespace-nowrap pb-1">
+        <button onClick={onBack} className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">Home</button>
         <span>&rsaquo;</span>
-        <button onClick={onBack} className="hover:text-slate-600 transition-colors cursor-pointer">Showroom</button>
+        <button onClick={onBack} className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">Showroom</button>
         <span>&rsaquo;</span>
-        <span className="text-slate-700 font-bold truncate">{vehicle.brand} {vehicle.model}</span>
+        <span className="text-slate-800 dark:text-slate-200 font-bold truncate">{vehicle.brand} {vehicle.model}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         <div className="lg:col-span-8 space-y-6">
-          <div className="relative h-64 sm:h-80 md:h-[460px] bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+          <div className="relative h-64 sm:h-80 md:h-[460px] bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm group">
             <img src={activeImage} alt={`${vehicle.brand} ${vehicle.model}`} className="w-full h-full object-cover transition-transform duration-500" />
             <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-              <span className="bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded shadow-sm flex items-center gap-1">
+              <span className="bg-[#22c55e] text-slate-950 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1">
                 <ShieldCheck size={11} /> <span>Verified</span>
               </span>
-              {vehicle.condition === "New" && <span className="bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded shadow-sm">New</span>}
+              {vehicle.condition === "New" && <span className="bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-sm">New</span>}
               {inspectionBadge()}
             </div>
             {vehicle.videoUrl && (
-              <button onClick={() => setShowVideo(!showVideo)} className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-800 px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition cursor-pointer">
-                <Video size={14} /> {showVideo ? "Hide Video" : "Watch Video"}
+              <button onClick={() => setShowVideo(!showVideo)} className="absolute bottom-4 right-4 bg-white/95 dark:bg-slate-900/95 hover:bg-white text-slate-800 dark:text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition cursor-pointer">
+                <Video size={14} className="text-[#22c55e]" /> {showVideo ? "Hide Video" : "Watch Video"}
               </button>
             )}
           </div>
@@ -258,51 +258,51 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
           <div className="flex gap-3 overflow-x-auto pb-1">
             {images.map((img, idx) => (
               <button key={idx} onClick={() => setActiveImage(img)}
-                className={`h-20 w-28 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${activeImage === img ? "border-emerald-500 shadow-sm" : "border-slate-200 hover:border-slate-300"}`}>
+                className={`h-20 w-28 shrink-0 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${activeImage === img ? "border-[#22c55e] shadow-sm" : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"}`}>
                 <img src={img} alt={`view ${idx + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
 
           {showVideo && vehicle.videoUrl && (
-            <div className="bg-black rounded-2xl overflow-hidden aspect-video">
+            <div className="bg-black rounded-3xl overflow-hidden aspect-video border border-slate-800">
               <video src={vehicle.videoUrl} controls className="w-full h-full" />
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 md:p-8 space-y-6 shadow-sm">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">{vehicle.brand} {vehicle.model}</h1>
-                <p className="text-slate-400 text-xs font-bold mt-1 flex items-center gap-1 uppercase tracking-wider">
-                  <MapPin size={12} /> {vehicle.location || "Addis Ababa"}
+                <h1 className="text-2xl md:text-3xl font-black text-slate-950 dark:text-white tracking-tight">{vehicle.brand} {vehicle.model}</h1>
+                <p className="text-slate-400 dark:text-slate-400 text-xs font-bold mt-1 flex items-center gap-1 uppercase tracking-wider">
+                  <MapPin size={12} className="text-[#22c55e]" /> {vehicle.location || "Addis Ababa"}
                 </p>
               </div>
               <div className="text-left md:text-right">
                 <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">Asking Price</p>
-                <p className="text-2xl md:text-3xl font-black text-blue-950 mt-1">ETB {fmt(vehicle.price)}</p>
+                <p className="text-2xl md:text-3xl font-black text-[#16a34a] dark:text-[#4ade80] mt-1">ETB {fmt(vehicle.price)}</p>
                 {vehicle.originalPrice > vehicle.price && (
-                  <p className="text-[11px] text-emerald-600 font-bold mt-1">Save ETB {fmt(vehicle.originalPrice - vehicle.price)}</p>
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">Save ETB {fmt(vehicle.originalPrice - vehicle.price)}</p>
                 )}
               </div>
             </div>
 
             {vehicle.status !== "approved" && (
-              <div className={`text-xs font-bold px-3 py-2 rounded-lg ${vehicle.status === "sold" ? "bg-blue-50 text-blue-700" : vehicle.status === "pending" ? "bg-amber-50 text-amber-700" : vehicle.status === "rejected" ? "bg-rose-50 text-rose-700" : "bg-slate-50 text-slate-500"}`}>
+              <div className={`text-xs font-bold px-3 py-2 rounded-xl border ${vehicle.status === "sold" ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800" : vehicle.status === "pending" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" : vehicle.status === "rejected" ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" : "bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700"}`}>
                 Status: {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
                 {vehicle.rejectionReason && <span className="ml-2 font-normal">— {vehicle.rejectionReason}</span>}
               </div>
             )}
 
             <div className="space-y-4">
-              <h3 className="font-extrabold text-sm border-b border-slate-100 pb-2 text-slate-800">Specifications</h3>
+              <h3 className="font-extrabold text-sm border-b border-slate-100 dark:border-slate-800 pb-2 text-slate-900 dark:text-white">Specifications</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                 {visibleSpecs.map(spec => (
                   <div key={spec.label} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">{spec.icon}</div>
+                    <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0">{spec.icon}</div>
                     <div>
                       <p className="text-[9px] uppercase font-bold text-slate-400">{spec.label}</p>
-                      <p className="text-xs font-bold text-slate-700">{spec.value}</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{spec.value}</p>
                     </div>
                   </div>
                 ))}
@@ -312,19 +312,19 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
             {vehicle.chassisNumber && <div className="text-[11px] text-slate-400 font-mono font-medium">Chassis / VIN: {vehicle.chassisNumber}</div>}
 
             <div className="space-y-3 pt-2">
-              <h3 className="font-extrabold text-sm border-b border-slate-100 pb-2 text-slate-800">Description</h3>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">{vehicle.description || "Full option premium vehicle available for immediate sale."}</p>
+              <h3 className="font-extrabold text-sm border-b border-slate-100 dark:border-slate-800 pb-2 text-slate-900 dark:text-white">Description</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">{vehicle.description || "Full option premium vehicle available for immediate sale."}</p>
             </div>
 
             {documents.length > 0 && (
               <div className="space-y-3 pt-2">
-                <h3 className="font-extrabold text-sm border-b border-slate-100 pb-2 text-slate-800 flex items-center gap-2">
-                  <FileText size={14} /> Documents
+                <h3 className="font-extrabold text-sm border-b border-slate-100 dark:border-slate-800 pb-2 text-slate-900 dark:text-white flex items-center gap-2">
+                  <FileText size={14} className="text-[#22c55e]" /> Documents
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {documents.map(doc => (
                     <a key={doc.id} href={doc.fileUrl} target="_blank" rel="noreferrer"
-                      className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                      className="flex items-center gap-1.5 text-xs font-bold text-[#16a34a] dark:text-[#4ade80] bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 hover:bg-emerald-100 transition">
                       <FileText size={12} /> {doc.name}
                     </a>
                   ))}
@@ -335,25 +335,25 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-sm space-y-5">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-5">
             <div className="flex items-center gap-4">
               <img
                 src={getBrokerAvatar(vehicle.brokerName, vehicle.brokerId)}
                 alt={vehicle.brokerName || "Verified Broker"}
-                className="w-14 h-14 rounded-full object-cover border-2 border-amber-500 shadow-md shrink-0"
+                className="w-14 h-14 rounded-full object-cover border-2 border-[#22c55e] shadow-md shrink-0"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-extrabold text-sm text-slate-900 truncate">{vehicle.brokerName || "Verified Partner Broker"}</h3>
-                  {(vehicle as any).brokerVerified && <BadgeCheck size={16} className="text-amber-500 shrink-0 ml-1" />}
+                  <h3 className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{vehicle.brokerName || "Verified Partner Broker"}</h3>
+                  {(vehicle as any).brokerVerified && <BadgeCheck size={16} className="text-[#22c55e] shrink-0 ml-1" />}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className="flex text-amber-400">{[...Array(5)].map((_, i) => <Star key={i} size={11} fill="currentColor" />)}</div>
-                  <span className="text-[10px] text-amber-800 bg-amber-100 border border-amber-200/50 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Verified Broker</span>
+                  <span className="text-[10px] text-[#16a34a] dark:text-[#4ade80] bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/50 dark:border-emerald-800/40 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Verified Broker</span>
                 </div>
                 {vehicle.brokerLicense && <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">License: {vehicle.brokerLicense}</p>}
                 {onViewBrokerProfile && (
-                  <button onClick={() => onViewBrokerProfile(vehicle.brokerId)} className="text-[10px] font-bold text-amber-600 hover:text-amber-700 mt-1 flex items-center gap-1 cursor-pointer">
+                  <button onClick={() => onViewBrokerProfile(vehicle.brokerId)} className="text-[10px] font-bold text-[#16a34a] dark:text-[#4ade80] hover:underline mt-1 flex items-center gap-1 cursor-pointer">
                     <UserCircle size={12} /> View Broker Profile
                   </button>
                 )}
@@ -362,77 +362,77 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
 
             <div className="space-y-2 pt-2">
               {vehicle.brokerPhone && (
-                <a href={`tel:${vehicle.brokerPhone}`} className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-amber-500/20 active:scale-95">
+                <a href={`tel:${vehicle.brokerPhone}`} className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-[#22c55e]/20 active:scale-95">
                   <Phone size={16} /> <span>Call Now</span>
                 </a>
               )}
               {vehicle.brokerPhone && (
                 <a href={`https://wa.me/${vehicle.brokerPhone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer"
-                  className="w-full bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-slate-200">
+                  className="w-full bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-slate-200 dark:border-slate-700">
                   <span>WhatsApp</span>
                 </a>
               )}
               <a href="https://t.me/+251998119134" target="_blank" rel="noreferrer"
-                className="w-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-sky-200">
+                className="w-full bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-800 dark:text-sky-300 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-sky-200 dark:border-sky-800">
                 <Send size={14} /> <span>Telegram</span>
               </a>
             </div>
 
             {vehicle.inspectionStatus === "passed" && (
-              <div className="bg-amber-50/80 border border-amber-200/70 rounded-2xl p-3.5 flex items-center gap-2.5">
-                <ClipboardCheck size={18} className="text-amber-600 shrink-0" />
+              <div className="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/50 rounded-2xl p-3.5 flex items-center gap-2.5">
+                <ClipboardCheck size={18} className="text-[#22c55e] shrink-0" />
                 <div>
-                  <p className="text-[11px] font-bold text-amber-900">150-Point Inspection Passed</p>
-                  {vehicle.inspectionNotes && <p className="text-[10px] text-amber-700">{vehicle.inspectionNotes}</p>}
+                  <p className="text-[11px] font-bold text-emerald-900 dark:text-emerald-300">150-Point Inspection Passed</p>
+                  {vehicle.inspectionNotes && <p className="text-[10px] text-emerald-700 dark:text-emerald-400">{vehicle.inspectionNotes}</p>}
                 </div>
               </div>
             )}
 
             <button
               onClick={() => setShowTestDriveModal(true)}
-              className="w-full bg-slate-950 hover:bg-slate-900 text-white font-bold py-3 rounded-xl text-xs tracking-wider transition-colors cursor-pointer shadow-md uppercase flex items-center justify-center gap-2 active:scale-95"
+              className="w-full bg-slate-950 dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-xs tracking-wider transition-colors cursor-pointer shadow-md uppercase flex items-center justify-center gap-2 active:scale-95 border border-transparent dark:border-slate-700"
             >
               Schedule Test Drive
             </button>
 
             <button
               onClick={() => setShowReportModal(true)}
-              className="w-full text-slate-400 hover:text-amber-600 border border-slate-200 hover:border-amber-300 font-semibold py-2.5 rounded-lg text-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+              className="w-full text-slate-400 hover:text-rose-500 border border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-800 font-semibold py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
             >
               <Flag size={12} /> Report Listing
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h3 className="font-extrabold text-sm text-slate-800 border-b border-slate-100 pb-2">Send Inquiry</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Send Inquiry</h3>
             <form onSubmit={handleSubmitInquiry} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Full Name *</label>
-                <input type="text" required value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                <input type="text" required value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Email</label>
-                <input type="email" value={buyerEmail} onChange={e => setBuyerEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                <input type="email" value={buyerEmail} onChange={e => setBuyerEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Phone Number *</label>
-                <input type="tel" required value={buyerPhone} onChange={e => setBuyerPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                <input type="tel" required value={buyerPhone} onChange={e => setBuyerPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Message</label>
-                <textarea required rows={4} value={inquiryMsg} onChange={e => setInquiryMsg(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none resize-none" />
+                <textarea required rows={4} value={inquiryMsg} onChange={e => setInquiryMsg(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl p-2.5 text-xs focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none resize-none" />
               </div>
-              <button type="submit" className="w-full bg-slate-950 hover:bg-slate-900 text-white font-bold py-3 rounded-lg text-xs tracking-wider transition-colors cursor-pointer shadow-sm uppercase">Send Inquiry</button>
+              <button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider transition-colors cursor-pointer shadow-md shadow-[#22c55e]/20 uppercase">Send Inquiry</button>
             </form>
           </div>
         </div>
       </div>
 
       {/* Mobile Sticky Bottom Action Bar */}
-      <div className="fixed sm:hidden bottom-12 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 py-2.5 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="fixed sm:hidden bottom-12 left-0 right-0 z-40 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="min-w-0 pr-3">
           <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Price</p>
-          <p className="text-sm font-black text-slate-950 leading-tight truncate">
+          <p className="text-sm font-black text-slate-950 dark:text-white leading-tight truncate">
             ETB {fmt(vehicle.price)}
           </p>
         </div>
@@ -440,7 +440,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
           {vehicle.brokerPhone && (
             <a
               href={`tel:${vehicle.brokerPhone}`}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl transition shadow-sm flex items-center justify-center cursor-pointer"
+              className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black p-2.5 rounded-xl transition shadow-sm flex items-center justify-center cursor-pointer"
               title="Call Broker"
             >
               <Phone size={16} />
@@ -448,7 +448,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
           )}
           <button
             onClick={() => setShowTestDriveModal(true)}
-            className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap"
+            className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs px-3.5 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap"
           >
             Test Drive
           </button>
@@ -466,83 +466,83 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
       )}
 
       {showTestDriveModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-100 overflow-hidden">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50">
-              <h3 className="text-sm font-bold text-slate-800">Schedule Test Drive</h3>
-              <button onClick={() => setShowTestDriveModal(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg border border-slate-100 dark:border-slate-800 overflow-hidden text-slate-900 dark:text-white">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">Schedule Test Drive</h3>
+              <button onClick={() => setShowTestDriveModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer p-1"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmitTestDrive} className="p-6 space-y-4">
-              <p className="text-xs text-slate-500 font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Full Name *</label>
-                  <input type="text" required value={tdName} onChange={e => setTdName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                  <input type="text" required value={tdName} onChange={e => setTdName(e.target.value)} placeholder="Your name" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Email</label>
-                  <input type="email" value={tdEmail} onChange={e => setTdEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                  <input type="email" value={tdEmail} onChange={e => setTdEmail(e.target.value)} placeholder="your@email.com" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Phone *</label>
-                  <input type="tel" required value={tdPhone} onChange={e => setTdPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                  <input type="tel" required value={tdPhone} onChange={e => setTdPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Preferred Date *</label>
-                  <input type="date" required value={tdDate} onChange={e => setTdDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                  <input type="date" required value={tdDate} onChange={e => setTdDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Preferred Time *</label>
-                  <input type="time" required value={tdTime} onChange={e => setTdTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" />
+                  <input type="time" required value={tdTime} onChange={e => setTdTime(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Message (Optional)</label>
-                <textarea rows={3} value={tdMessage} onChange={e => setTdMessage(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:outline-none resize-none" />
+                <textarea rows={3} value={tdMessage} onChange={e => setTdMessage(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:border-[#22c55e] focus:outline-none resize-none" />
               </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-pointer shadow-md shadow-amber-500/20 uppercase active:scale-95">Request Test Drive</button>
+              <button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-pointer shadow-md shadow-[#22c55e]/20 uppercase active:scale-95">Request Test Drive</button>
             </form>
           </div>
         </div>
       )}
 
       {similarVehicles.length > 0 && (
-        <section className="space-y-6 pt-10 border-t border-slate-200/60">
+        <section className="space-y-6 pt-10 border-t border-slate-200/60 dark:border-slate-800">
           <div className="flex justify-between items-end">
             <div className="space-y-1">
-              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-950">Similar {vehicle.brand} Vehicles</h2>
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">Similar {vehicle.brand} Vehicles</h2>
               <p className="text-slate-400 text-xs font-semibold">More {vehicle.brand} models available in Addis Ababa</p>
             </div>
-            <button onClick={onBack} className="text-amber-600 hover:text-amber-700 font-bold text-xs md:text-sm flex items-center gap-1 transition-colors cursor-pointer"><span>View All</span><span>&rsaquo;</span></button>
+            <button onClick={onBack} className="text-[#16a34a] dark:text-[#4ade80] hover:underline font-bold text-xs md:text-sm flex items-center gap-1 transition-colors cursor-pointer"><span>View All</span><span>&rsaquo;</span></button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {similarVehicles.map(car => (
-              <div key={car.id} onClick={() => onViewDetails(car)} className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden cursor-pointer group">
-                <div className="h-36 sm:h-40 relative bg-slate-100 overflow-hidden">
+              <div key={car.id} onClick={() => onViewDetails(car)} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-[#22c55e]/50 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden cursor-pointer group">
+                <div className="h-36 sm:h-40 relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
-                    <ShieldCheck size={10} className="text-amber-400" />
+                  <div className="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-md text-[#22c55e] border border-[#22c55e]/30 text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
+                    <ShieldCheck size={10} className="text-[#22c55e]" />
                     <span>Verified</span>
                   </div>
                 </div>
 
                 <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
                   <div className="space-y-1">
-                    <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-amber-600 transition-colors truncate">{car.brand} {car.model}</h3>
+                    <h3 className="font-extrabold text-xs text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors truncate">{car.brand} {car.model}</h3>
                     <p className="text-[10px] text-slate-400 font-medium truncate">{car.location || "Addis Ababa"}</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1 py-1.5 border-t border-slate-100 text-[10px] text-slate-600 font-medium">
+                  <div className="grid grid-cols-2 gap-1 py-1.5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-600 dark:text-slate-400 font-medium">
                     <span className="truncate">{car.mileage?.toLocaleString()} km</span>
                     <span className="truncate text-right">{car.transmission}</span>
                   </div>
 
-                  <div className="pt-1 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
                       <span className="text-[9px] text-slate-400 uppercase font-bold block">Price</span>
-                      <p className="font-black text-xs text-slate-950">ETB {fmt(car.price)}</p>
+                      <p className="font-black text-xs text-slate-950 dark:text-white">ETB {fmt(car.price)}</p>
                     </div>
-                    <span className="text-[10px] font-bold text-amber-600 group-hover:underline">View &rsaquo;</span>
+                    <span className="text-[10px] font-bold text-[#16a34a] dark:text-[#4ade80] group-hover:underline">View &rsaquo;</span>
                   </div>
                 </div>
               </div>

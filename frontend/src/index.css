@@ -16,12 +16,21 @@
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 3px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 /* Hide scrollbar for mobile nav */
@@ -40,13 +49,42 @@ input[type="range"] {
   border-radius: 4px;
   background: #e2e8f0;
 }
+.dark input[type="range"] {
+  background: #1e293b;
+}
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #d4af37;
+  background: #22c55e;
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+
+/* Global Form Input Utility */
+.input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+}
+.input:focus {
+  border-color: #22c55e;
+  background-color: #ffffff;
+}
+.dark .input {
+  border-color: #1e293b;
+  background-color: rgba(30, 41, 59, 0.6);
+  color: #ffffff;
+}
+.dark .input:focus {
+  border-color: #22c55e;
+  background-color: #1e293b;
 }
