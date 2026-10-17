@@ -112,6 +112,11 @@ export const usersApi = {
 
 export const statsApi = {
   get: () => api.get<{ totals: Record<string, number> }>("/api/stats"),
+  public: () => api.get<{ totalVehicles: number; totalBrokers: number; totalSales: number; totalUsers: number; clearanceRate: string }>("/api/stats/public"),
+};
+
+export const brandsApi = {
+  list: () => api.get<Array<{ name: string; count: string; tagline: string }>>("/api/brands"),
 };
 
 export const auditApi = {

@@ -125,9 +125,9 @@ export async function initDB() {
       console.log("SEED_DB flag detected. Running database seeder...");
       await seedDatabase();
     } else {
-      const userCount = await UserModel.countDocuments();
-      if (userCount === 0) {
-        console.log("Database empty. Initializing baseline development seed data...");
+      const vehicleCount = await VehicleModel.countDocuments();
+      if (vehicleCount < 18) {
+        console.log(`Database has ${vehicleCount} vehicles. Syncing complete vehicle catalog...`);
         await seedDatabase();
       }
     }
@@ -248,6 +248,13 @@ export const db = {
       await BrokerModel.create({ id: brokerId, user_id: id, license_number: license, commission_rate: 1.00, verified: false });
     }
     return { ...u, id };
+  },
+
+  deleteUser: async (id: string): Promise<boolean> => {
+    const userRes = await UserModel.deleteOne({ id });
+    await BrokerModel.deleteOne({ user_id: id });
+    await SavedVehicleModel.deleteMany({ user_id: id });
+    return userRes.deletedCount > 0;
   },
 
   // --- Payments ---

@@ -20,7 +20,7 @@ export const vehicleSchema = z.object({
   price: z.coerce.number().positive("Price must be positive"),
   original_price: z.coerce.number().positive().optional(),
   mileage: z.coerce.number().int().min(0).default(0),
-  image_url: z.string().url().optional(),
+  image_url: z.string().optional(),
   description: z.string().optional(),
   fuel_type: z.string().optional(),
   transmission: z.string().optional(),
@@ -37,7 +37,7 @@ export const vehicleSchema = z.object({
   chassis_number: z.string().optional(),
   commission_rate: z.coerce.number().optional(),
   commission_type: z.string().optional(),
-  video_url: z.string().url().optional(),
+  video_url: z.string().optional(),
   gallery: z.array(z.string()).optional(),
   cover_photo_index: z.coerce.number().int().optional(),
 });
@@ -80,7 +80,7 @@ export const documentSchema = z.object({
   vehicle_id: z.string().min(1, "Vehicle ID is required"),
   name: z.string().min(1, "Document name is required"),
   type: z.enum(["title", "invoice", "customs", "inspection", "insurance", "other"]),
-  file_url: z.string().url("Valid file URL is required"),
+  file_url: z.string().min(1, "Valid file URL is required"),
 });
 
 export const inspectionSchema = z.object({
@@ -94,7 +94,7 @@ export const userUpdateSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
   phone: z.string().optional(),
   bio: z.string().optional(),
-  avatar: z.string().url("Avatar must be a valid URL").optional().or(z.literal("")),
+  avatar: z.string().optional().or(z.literal("")),
 });
 
 export const vehicleUpdateSchema = vehicleSchema.partial();

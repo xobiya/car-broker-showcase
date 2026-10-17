@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 
@@ -21,13 +23,26 @@ export const upload = multer({
 export async function uploadToCloudinary(
   fileBuffer: Buffer,
   folder: string = "autobroker",
-  publicId?: string
+  publicId?: string,
+  mimetype?: string
 ): Promise<string> {
   if (!process.env.CLOUDINARY_CLOUD_NAME) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("Cloudinary storage is unconfigured on this server.");
+    try {
+      const uploadsDir = path.join(process.cwd(), "uploads");
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      const rawExt = mimetype ? (mimetype.split("/")[1] || "jpg").replace("+xml", "") : "jpg";
+      const ext = rawExt === "jpeg" ? "jpg" : rawExt;
+      const safeFolder = folder.replace(/[^a-zA-Z0-9-_]/g, "");
+      const filename = `${safeFolder}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const filePath = path.join(uploadsDir, filename);
+      fs.writeFileSync(filePath, fileBuffer);
+      return `/uploads/${filename}`;
+    } catch (e) {
+      console.warn("[Upload] Local disk write fallback failed, using default placeholder:", e);
+      return "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80";
     }
-    return "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80";
   }
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(

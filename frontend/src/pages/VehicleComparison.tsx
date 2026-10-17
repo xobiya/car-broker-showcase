@@ -42,210 +42,59 @@ interface VehicleComparisonProps {
   onViewDetails: (vehicle: VehicleListing) => void;
 }
 
-// Fallback vehicle database for authentic Ethiopian market comparison
-const FALLBACK_VEHICLES: VehicleListing[] = [
-  {
-    id: "fb-1",
-    brokerId: "brk-1",
-    brokerName: "Abebe Kebede",
-    brokerPhone: "+251 91 123 4567",
-    brand: "Toyota",
-    model: "RAV4 Hybrid",
-    year: 2023,
-    mileage: 12500,
-    price: 7450000,
-    originalPrice: 8000000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80",
-    description: "Limited Edition Hybrid 2023 with Panoramic Sunroof & AWD",
-    fuelType: "Hybrid",
-    transmission: "Automatic",
-    location: "Addis Ababa (Bole)",
-    color: "Silver Metallic",
-    engineSize: "2.5L Hybrid",
-    engineType: "Hybrid Synergy",
-    horsepower: 219,
-    condition: "Like New",
-    bodyType: "SUV",
-    driveType: "AWD",
-    doors: 5,
-    seats: 5
-  },
-  {
-    id: "fb-2",
-    brokerId: "brk-2",
-    brokerName: "Dawit Automotive",
-    brokerPhone: "+251 92 234 5678",
-    brand: "Volkswagen",
-    model: "ID.4 Pro",
-    year: 2023,
-    mileage: 4000,
-    price: 8900000,
-    originalPrice: 9400000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80",
-    description: "100% Electric, Zero Ethiopian Customs Duty, 520km Range",
-    fuelType: "Electric",
-    transmission: "Automatic",
-    location: "Addis Ababa (Kazanchis)",
-    color: "Glacier White",
-    engineSize: "Electric 82kWh",
-    engineType: "Electric Motor",
-    horsepower: 204,
-    condition: "Brand New",
-    bodyType: "Electric",
-    driveType: "RWD",
-    doors: 5,
-    seats: 5
-  },
-  {
-    id: "fb-3",
-    brokerId: "brk-3",
-    brokerName: "Solomon Tadesse",
-    brokerPhone: "+251 93 345 6789",
-    brand: "Hyundai",
-    model: "Tucson SmartStream",
-    year: 2023,
-    mileage: 0,
-    price: 6200000,
-    originalPrice: 6500000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80",
-    description: "Brand New 0km, SmartSense safety suite & digital cockpit",
-    fuelType: "Hybrid",
-    transmission: "Automatic",
-    location: "Addis Ababa (Sarbet)",
-    color: "Phantom Black",
-    engineSize: "1.6L Turbo Hybrid",
-    engineType: "Turbo V4",
-    horsepower: 226,
-    condition: "Brand New",
-    bodyType: "SUV",
-    driveType: "AWD",
-    doors: 5,
-    seats: 5
-  },
-  {
-    id: "fb-4",
-    brokerId: "brk-1",
-    brokerName: "Abebe Kebede",
-    brokerPhone: "+251 91 123 4567",
-    brand: "Mercedes-Benz",
-    model: "C200 Avantgarde",
-    year: 2021,
-    mileage: 38000,
-    price: 12500000,
-    originalPrice: 13200000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80",
-    description: "Executive Sedan, Full Leather, AMG Line Styling & Ambient Lighting",
-    fuelType: "Benzine",
-    transmission: "Automatic",
-    location: "Addis Ababa (Old Airport)",
-    color: "Obsidian Black",
-    engineSize: "2.0L Turbo",
-    engineType: "Turbo V4",
-    horsepower: 204,
-    condition: "Excellent",
-    bodyType: "Sedan",
-    driveType: "RWD",
-    doors: 4,
-    seats: 5
-  },
-  {
-    id: "fb-5",
-    brokerId: "brk-4",
-    brokerName: "Addis Premier Motors",
-    brokerPhone: "+251 94 456 7890",
-    brand: "Toyota",
-    model: "Hilux Double Cabin",
-    year: 2022,
-    mileage: 29000,
-    price: 9800000,
-    originalPrice: 10400000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1559416523-140ddc3d238c?auto=format&fit=crop&w=800&q=80",
-    description: "4x4 Heavy Duty Double Cabin, 2.8L D-4D Diesel, Bullbar & Rollcage",
-    fuelType: "Diesel",
-    transmission: "Manual",
-    location: "Hawassa",
-    color: "Desert Bronze",
-    engineSize: "2.8L Diesel",
-    engineType: "Turbo Diesel",
-    horsepower: 201,
-    condition: "Certified Used",
-    bodyType: "Pickup",
-    driveType: "4WD",
-    doors: 4,
-    seats: 5
-  },
-  {
-    id: "fb-6",
-    brokerId: "brk-2",
-    brokerName: "Dawit Automotive",
-    brokerPhone: "+251 92 234 5678",
-    brand: "Suzuki",
-    model: "Dzire VXI Plus",
-    year: 2022,
-    mileage: 21000,
-    price: 2850000,
-    originalPrice: 3100000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80",
-    description: "Extremely fuel-efficient daily driver (22 km/L), Touchscreen & Camera",
-    fuelType: "Benzine",
-    transmission: "Automatic",
-    location: "Adama",
-    color: "Glacier White",
-    engineSize: "1.2L DualJet",
-    engineType: "Inline 4",
-    horsepower: 89,
-    condition: "Excellent",
-    bodyType: "Sedan",
-    driveType: "FWD",
-    doors: 4,
-    seats: 5
-  }
-];
-
-// Curated 1-click head-to-head comparison presets using Lucide icons (No Emojis)
-const POPULAR_PRESETS = [
+// Curated 1-click head-to-head comparison presets matching real database inventory
+const PRESET_DEFINITIONS = [
   {
     id: "preset-suv",
-    title: "Toyota RAV4 Hybrid vs. Hyundai Tucson",
+    titleFallback: "Toyota RAV4 Hybrid vs. Hyundai Tucson",
     category: "Family SUVs",
     tagline: "Top compact hybrid & AWD SUVs compared side-by-side",
-    ids: ["fb-1", "fb-3"],
+    findVehicles: (list: VehicleListing[]) => {
+      const suvs = list.filter((v) => (v.bodyType || "").toLowerCase() === "suv" || v.model.toLowerCase().includes("rav4") || v.model.toLowerCase().includes("tucson"));
+      return suvs.slice(0, 2);
+    },
     icon: Car,
     borderHover: "hover:border-emerald-500",
     badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-[#22c55e]"
   },
   {
     id: "preset-ev",
-    title: "VW ID.4 Pro vs. Toyota RAV4 Hybrid",
+    titleFallback: "VW ID.4 Pro vs. Toyota RAV4 Hybrid",
     category: "Electric vs. Hybrid",
     tagline: "100% Electric (0% Customs Duty) vs. Proven Hybrid Reliability",
-    ids: ["fb-2", "fb-1"],
+    findVehicles: (list: VehicleListing[]) => {
+      const ev = list.find((v) => v.fuelType === "Electric");
+      const hybrid = list.find((v) => v.fuelType === "Hybrid");
+      return [ev, hybrid].filter(Boolean) as VehicleListing[];
+    },
     icon: Zap,
     borderHover: "hover:border-sky-500",
     badgeColor: "bg-sky-500/10 text-sky-600 dark:text-sky-400"
   },
   {
     id: "preset-commute",
-    title: "Suzuki Dzire vs. Hyundai Tucson",
+    titleFallback: "Suzuki Dzire vs. Hyundai Tucson",
     category: "City Commuter vs SUV",
     tagline: "Ultra fuel-efficient city driver vs. versatile family capability",
-    ids: ["fb-6", "fb-3"],
+    findVehicles: (list: VehicleListing[]) => {
+      const sedan = list.find((v) => (v.bodyType || "").toLowerCase() === "sedan" || v.brand === "Suzuki");
+      const suv = list.find((v) => (v.bodyType || "").toLowerCase() === "suv");
+      return [sedan, suv].filter(Boolean) as VehicleListing[];
+    },
     icon: Briefcase,
     borderHover: "hover:border-amber-500",
     badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400"
   },
   {
     id: "preset-luxury",
-    title: "Mercedes-Benz C200 vs. VW ID.4 Pro",
+    titleFallback: "Mercedes-Benz vs. VW ID.4 Pro",
     category: "Executive Sedan vs Modern EV",
     tagline: "Prestige German luxury engineering vs. modern electric tech",
-    ids: ["fb-4", "fb-2"],
+    findVehicles: (list: VehicleListing[]) => {
+      const merc = list.find((v) => v.brand === "Mercedes-Benz" || v.brand === "Lexus");
+      const modern = list.find((v) => v.fuelType === "Electric" || v.brand === "Volkswagen");
+      return [merc, modern].filter(Boolean) as VehicleListing[];
+    },
     icon: Crown,
     borderHover: "hover:border-purple-500",
     badgeColor: "bg-purple-500/10 text-purple-600 dark:text-purple-400"
@@ -266,7 +115,7 @@ interface SpecSection {
 }
 
 export default function VehicleComparison({ onNotify, onViewDetails }: VehicleComparisonProps) {
-  const [allVehicles, setAllVehicles] = useState<VehicleListing[]>(FALLBACK_VEHICLES);
+  const [allVehicles, setAllVehicles] = useState<VehicleListing[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
     // 1. Try URL parameters first (?ids=id1,id2)
     try {
@@ -287,8 +136,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
       }
     } catch {}
 
-    // 3. Default to RAV4 Hybrid + Tucson
-    return ["fb-1", "fb-3"];
+    return [];
   });
 
   const [highlightDiffs, setHighlightDiffs] = useState<boolean>(false);
@@ -299,18 +147,22 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
   const [selectedFilterCategory, setSelectedFilterCategory] = useState("all");
   const [inquireVehicle, setInquireVehicle] = useState<VehicleListing | null>(null);
 
-  // Load all vehicles from API or keep fallback
+  // Load all vehicles directly from backend API
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
         const res = await vehiclesApi.list();
         if (res && res.length > 0) {
           const approved = res.filter((v: VehicleListing) => v.status === "approved");
-          if (approved.length > 0) {
-            const existingIds = new Set(approved.map((v: VehicleListing) => v.id));
-            const combined = [...approved, ...FALLBACK_VEHICLES.filter(v => !existingIds.has(v.id))];
-            setAllVehicles(combined);
-          }
+          setAllVehicles(approved);
+
+          // If no selectedIds or current selection is invalid, default to first two available vehicles
+          setSelectedIds(prev => {
+            const valid = prev.filter(id => approved.some(v => v.id === id));
+            if (valid.length >= 2) return valid;
+            if (approved.length >= 2) return [approved[0].id, approved[1].id];
+            return approved.map(v => v.id);
+          });
         }
       } catch (err) {
         console.error("Failed to fetch vehicles for comparison", err);
@@ -318,6 +170,29 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
     };
     fetchVehicles();
   }, []);
+
+  // Dynamic 1-click popular presets computed directly from loaded database inventory
+  const popularPresets = useMemo(() => {
+    return PRESET_DEFINITIONS.map(def => {
+      const matched = def.findVehicles(allVehicles);
+      const ids = matched.length >= 2 
+        ? [matched[0].id, matched[1].id] 
+        : (allVehicles.length >= 2 ? [allVehicles[0].id, allVehicles[1].id] : []);
+      const title = matched.length >= 2 
+        ? `${matched[0].brand} ${matched[0].model} vs. ${matched[1].brand} ${matched[1].model}`
+        : def.titleFallback;
+      return {
+        id: def.id,
+        title,
+        category: def.category,
+        tagline: def.tagline,
+        ids,
+        icon: def.icon,
+        borderHover: def.borderHover,
+        badgeColor: def.badgeColor
+      };
+    });
+  }, [allVehicles]);
 
   // Sync selected IDs to localStorage & URL
   const [mobileViewMode, setMobileViewMode] = useState<"dual" | "table" | "cards">("dual");
@@ -1542,7 +1417,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {POPULAR_PRESETS.map(preset => {
+          {popularPresets.map(preset => {
             const PresetIcon = preset.icon;
 
             return (

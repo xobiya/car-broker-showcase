@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { brokersApi } from "../lib/api";
 import { 
   ShieldCheck, 
   Users, 
@@ -111,6 +112,40 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
   const navigate = useNavigate();
   const [selectedBroker, setSelectedBroker] = useState<BrokerMember | null>(null);
   const [flippedBrokerId, setFlippedBrokerId] = useState<string | null>(null);
+  const [brokerList, setBrokerList] = useState<BrokerMember[]>(BROKERS);
+
+  useEffect(() => {
+    const fetchBrokers = async () => {
+      try {
+        const res = await brokersApi.list();
+        if (res && res.length > 0) {
+          const mapped: BrokerMember[] = res.map((b, idx) => {
+            const fallback = BROKERS[idx % BROKERS.length];
+            return {
+              id: b.id,
+              name: b.name || fallback.name,
+              role: "Licensed Automotive Broker",
+              specialty: fallback?.specialty || "Title Audit & Negotiation",
+              license: b.licenseNumber || fallback.license,
+              phone: b.phone || fallback.phone,
+              email: b.email || fallback.email,
+              telegram: fallback.telegram,
+              deals: fallback.deals,
+              rating: fallback.rating,
+              image: b.avatar || fallback.image,
+              bio: b.bio || fallback.bio,
+              experience: fallback.experience,
+              location: fallback.location
+            };
+          });
+          setBrokerList(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to fetch brokers", err);
+      }
+    };
+    fetchBrokers();
+  }, []);
 
   const handleBrokerContact = (broker: BrokerMember, method: "phone" | "email" | "telegram") => {
     if (method === "phone") {
@@ -249,7 +284,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
 
           {/* 3D Flip Card Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {BROKERS.map((broker) => {
+            {brokerList.map((broker) => {
               const isFlipped = flippedBrokerId === broker.id;
 
               return (

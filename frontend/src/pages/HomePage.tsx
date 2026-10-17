@@ -37,7 +37,7 @@ import {
   X
 } from "lucide-react";
 import { VehicleListing, User } from "../../../shared/types";
-import { vehiclesApi, settingsApi } from "../lib/api";
+import { vehiclesApi, settingsApi, brandsApi, statsApi } from "../lib/api";
 
 const DEFAULT_HERO_BG = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=2000&q=85";
 
@@ -58,296 +58,91 @@ interface HomePageProps {
   onChooseRole?: () => void;
 }
 
-const FALLBACK_VEHICLES: VehicleListing[] = [
-  {
-    id: "fb-1",
-    brokerId: "brk-1",
-    brokerName: "Abebe Kebede (Licensed Broker)",
-    brokerPhone: "+251 91 123 4567",
-    brand: "Toyota",
-    model: "RAV4 Hybrid",
-    year: 2023,
-    mileage: 12500,
-    price: 7450000,
-    originalPrice: 8000000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80",
-    description: "Limited Edition Hybrid 2023 with Panoramic Sunroof & AWD",
-    fuelType: "Hybrid",
-    transmission: "Automatic",
-    location: "Addis Ababa (Bole)",
-    color: "Silver Metallic",
-    engineSize: "2.5L Hybrid",
-    engineType: "Hybrid Synergy",
-    horsepower: 219,
-    condition: "Like New",
-    bodyType: "SUV"
-  },
-  {
-    id: "fb-2",
-    brokerId: "brk-2",
-    brokerName: "Dawit Automotive",
-    brokerPhone: "+251 92 234 5678",
-    brand: "Volkswagen",
-    model: "ID.4 Pro",
-    year: 2023,
-    mileage: 4000,
-    price: 8900000,
-    originalPrice: 9400000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80",
-    description: "100% Electric, Zero Ethiopian Customs Duty, 520km Range",
-    fuelType: "Electric",
-    transmission: "Automatic",
-    location: "Addis Ababa (Kazanchis)",
-    color: "Glacier White",
-    engineSize: "Electric 82kWh",
-    engineType: "Electric",
-    horsepower: 204,
-    condition: "Brand New",
-    bodyType: "Electric"
-  },
-  {
-    id: "fb-3",
-    brokerId: "brk-3",
-    brokerName: "Solomon Tadesse",
-    brokerPhone: "+251 93 345 6789",
-    brand: "Hyundai",
-    model: "Tucson SmartStream",
-    year: 2023,
-    mileage: 0,
-    price: 6200000,
-    originalPrice: 6500000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80",
-    description: "Brand New 0km, SmartSense safety suite & digital cockpit",
-    fuelType: "Hybrid",
-    transmission: "Automatic",
-    location: "Addis Ababa (Sarbet)",
-    color: "Phantom Black",
-    engineSize: "1.6L Turbo Hybrid",
-    engineType: "Turbo V4",
-    horsepower: 226,
-    condition: "Brand New",
-    bodyType: "SUV"
-  },
-  {
-    id: "fb-4",
-    brokerId: "brk-1",
-    brokerName: "Abebe Kebede",
-    brokerPhone: "+251 91 123 4567",
-    brand: "Mercedes-Benz",
-    model: "C200 Avantgarde",
-    year: 2021,
-    mileage: 38000,
-    price: 12500000,
-    originalPrice: 13200000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80",
-    description: "Executive Sedan, Full Leather, AMG Line Styling & Ambient Lighting",
-    fuelType: "Benzine",
-    transmission: "Automatic",
-    location: "Addis Ababa (Old Airport)",
-    color: "Obsidian Black",
-    engineSize: "2.0L Turbo",
-    engineType: "Turbo V4",
-    horsepower: 204,
-    condition: "Excellent",
-    bodyType: "Sedan"
-  },
-  {
-    id: "fb-5",
-    brokerId: "brk-4",
-    brokerName: "Addis Premier Motors",
-    brokerPhone: "+251 94 456 7890",
-    brand: "Toyota",
-    model: "Hilux Double Cabin",
-    year: 2022,
-    mileage: 29000,
-    price: 9800000,
-    originalPrice: 10400000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1559416523-140ddc3d238c?auto=format&fit=crop&w=800&q=80",
-    description: "4x4 Heavy Duty Double Cabin, 2.8L D-4D Diesel, Bullbar & Rollcage",
-    fuelType: "Diesel",
-    transmission: "Manual",
-    location: "Hawassa",
-    color: "Desert Bronze",
-    engineSize: "2.8L Diesel",
-    engineType: "Turbo Diesel",
-    horsepower: 201,
-    condition: "Certified Used",
-    bodyType: "Pickup"
-  },
-  {
-    id: "fb-6",
-    brokerId: "brk-2",
-    brokerName: "Dawit Automotive",
-    brokerPhone: "+251 92 234 5678",
-    brand: "Suzuki",
-    model: "Dzire VXI Plus",
-    year: 2022,
-    mileage: 21000,
-    price: 2850000,
-    originalPrice: 3100000,
-    status: "approved",
-    imageUrl: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80",
-    description: "Extremely fuel-efficient daily driver (22 km/L), Touchscreen & Camera",
-    fuelType: "Benzine",
-    transmission: "Automatic",
-    location: "Adama",
-    color: "Glacier White",
-    engineSize: "1.2L DualJet",
-    engineType: "Inline 4",
-    horsepower: 89,
-    condition: "Excellent",
-    bodyType: "Sedan"
-  }
-];
+const BRAND_LOGOS: Record<string, React.ReactNode> = {
+  Toyota: (
+    <svg viewBox="0 0 100 70" className="w-10 h-7 fill-current">
+      <path d="M50 0C22.4 0 0 13.4 0 30c0 16.5 22.4 30 50 30s50-13.5 50-30C100 13.4 77.6 0 50 0zm0 8c20.3 0 38 9.5 43.4 22H66.2C64.6 22 58 15 50 15s-14.6 7-16.2 15H6.6C12 17.5 29.7 8 50 8zm0 13c5.8 0 10.7 7.5 11.8 17H38.2C39.3 28.5 44.2 21 50 21zm-15.8 23c1.6 8 8.2 15 15.8 15s14.2-7 15.8-15h25.8C86 54.5 69.3 62 50 62S14 54.5 8.4 44h25.8z" />
+    </svg>
+  ),
+  Hyundai: (
+    <svg viewBox="0 0 100 70" className="w-10 h-7 text-current">
+      <ellipse cx="50" cy="35" rx="46" ry="30" fill="none" stroke="currentColor" strokeWidth="6" transform="rotate(-12 50 35)" />
+      <path d="M36 20 L40 50 M60 20 L64 50 M38 35 L62 35" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+    </svg>
+  ),
+  Suzuki: (
+    <svg viewBox="0 0 80 80" className="w-8 h-8 fill-current">
+      <path d="M68 12 L12 36 L40 44 L12 68 L68 44 L40 36 Z" />
+    </svg>
+  ),
+  BYD: (
+    <div className="font-black text-sm tracking-widest border-2 border-current px-2.5 py-0.5 rounded-md">
+      BYD
+    </div>
+  ),
+  Volkswagen: (
+    <svg viewBox="0 0 100 100" className="w-8 h-8 text-current">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" />
+      <path d="M30 25 L42 62 L50 38 L58 62 L70 25 M36 75 L50 38 L64 75" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Isuzu: (
+    <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md">
+      ISUZU
+    </div>
+  ),
+  "Mercedes-Benz": (
+    <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" />
+      <path d="M50 8 L50 50 L14 71 L50 50 L86 71 Z" fill="currentColor" />
+    </svg>
+  ),
+  Lexus: (
+    <svg viewBox="0 0 100 70" className="w-10 h-7 text-current">
+      <ellipse cx="50" cy="35" rx="46" ry="30" fill="none" stroke="currentColor" strokeWidth="5" />
+      <path d="M38 20 L38 48 L68 48" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Nissan: (
+    <svg viewBox="0 0 100 100" className="w-8 h-8 text-current">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" />
+      <rect x="15" y="42" width="70" height="16" rx="2" fill="currentColor" />
+    </svg>
+  ),
+  Kia: (
+    <svg viewBox="0 0 100 50" className="w-10 h-5 text-current">
+      <ellipse cx="50" cy="25" rx="48" ry="22" fill="none" stroke="currentColor" strokeWidth="4" />
+      <text x="50" y="32" fontSize="20" fontWeight="900" textAnchor="middle" fill="currentColor" fontFamily="sans-serif">KIA</text>
+    </svg>
+  ),
+  Mitsubishi: (
+    <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current">
+      <polygon points="50,15 62,38 38,38" />
+      <polygon points="62,38 88,38 75,60" />
+      <polygon points="38,38 12,38 25,60" />
+    </svg>
+  ),
+  Chery: (
+    <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md">
+      CHERY
+    </div>
+  )
+};
 
-const ETHIOPIA_TOP_BRANDS = [
-  {
-    name: "Toyota",
-    count: "120+ Cars",
-    tagline: "Corolla, RAV4, Hilux",
-    svg: (
-      <svg viewBox="0 0 100 70" className="w-10 h-7 fill-current">
-        <path d="M50 0C22.4 0 0 13.4 0 30c0 16.5 22.4 30 50 30s50-13.5 50-30C100 13.4 77.6 0 50 0zm0 8c20.3 0 38 9.5 43.4 22H66.2C64.6 22 58 15 50 15s-14.6 7-16.2 15H6.6C12 17.5 29.7 8 50 8zm0 13c5.8 0 10.7 7.5 11.8 17H38.2C39.3 28.5 44.2 21 50 21zm-15.8 23c1.6 8 8.2 15 15.8 15s14.2-7 15.8-15h25.8C86 54.5 69.3 62 50 62S14 54.5 8.4 44h25.8z" />
-      </svg>
-    )
-  },
-  {
-    name: "Hyundai",
-    count: "68+ Cars",
-    tagline: "Tucson, Elantra, Atos",
-    svg: (
-      <svg viewBox="0 0 100 70" className="w-10 h-7 text-current">
-        <ellipse cx="50" cy="35" rx="46" ry="30" fill="none" stroke="currentColor" strokeWidth="6" transform="rotate(-12 50 35)" />
-        <path d="M36 20 L40 50 M60 20 L64 50 M38 35 L62 35" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
-      </svg>
-    )
-  },
-  {
-    name: "Suzuki",
-    count: "55+ Cars",
-    tagline: "Dzire, Swift, S-Presso",
-    svg: (
-      <svg viewBox="0 0 80 80" className="w-8 h-8 fill-current">
-        <path d="M68 12 L12 36 L40 44 L12 68 L68 44 L40 36 Z" />
-      </svg>
-    )
-  },
-  {
-    name: "BYD",
-    count: "42+ Cars",
-    tagline: "Atto 3, Song Plus, Seagull",
-    svg: (
-      <div className="font-black text-sm tracking-widest border-2 border-current px-2.5 py-0.5 rounded-md">
-        BYD
-      </div>
-    )
-  },
-  {
-    name: "Volkswagen",
-    count: "38+ Cars",
-    tagline: "ID.4, ID.6, Tiguan",
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-8 h-8 text-current">
-        <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" />
-        <path d="M30 25 L42 62 L50 38 L58 62 L70 25 M36 75 L50 38 L64 75" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    )
-  },
-  {
-    name: "Isuzu",
-    count: "34+ Cars",
-    tagline: "D-Max, NPR, Forward",
-    svg: (
-      <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md">
-        ISUZU
-      </div>
-    )
-  },
-  {
-    name: "Mercedes-Benz",
-    count: "26+ Cars",
-    tagline: "C-Class, E-Class, G-Wagon",
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current">
-        <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" />
-        <path d="M50 8 L50 50 L14 71 L50 50 L86 71 Z" fill="currentColor" />
-      </svg>
-    )
-  },
-  {
-    name: "Lexus",
-    count: "22+ Cars",
-    tagline: "LX 570, LX 600, RX 350",
-    svg: (
-      <svg viewBox="0 0 100 70" className="w-10 h-7 text-current">
-        <ellipse cx="50" cy="35" rx="46" ry="30" fill="none" stroke="currentColor" strokeWidth="5" />
-        <path d="M38 20 L38 48 L68 48" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    )
-  },
-  {
-    name: "Nissan",
-    count: "20+ Cars",
-    tagline: "Patrol, X-Trail, Hardbody",
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-8 h-8 text-current">
-        <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="6" />
-        <rect x="15" y="42" width="70" height="16" rx="2" fill="currentColor" />
-      </svg>
-    )
-  },
-  {
-    name: "Kia",
-    count: "18+ Cars",
-    tagline: "Sportage, Seltos, Pegas",
-    svg: (
-      <svg viewBox="0 0 100 50" className="w-10 h-5 text-current">
-        <ellipse cx="50" cy="25" rx="48" ry="22" fill="none" stroke="currentColor" strokeWidth="4" />
-        <text x="50" y="32" fontSize="20" fontWeight="900" textAnchor="middle" fill="currentColor" fontFamily="sans-serif">KIA</text>
-      </svg>
-    )
-  },
-  {
-    name: "Mitsubishi",
-    count: "16+ Cars",
-    tagline: "Pajero, L200 Pickup",
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current">
-        <polygon points="50,15 62,38 38,38" />
-        <polygon points="62,38 88,38 75,60" />
-        <polygon points="38,38 12,38 25,60" />
-      </svg>
-    )
-  },
-  {
-    name: "Chery",
-    count: "15+ Cars",
-    tagline: "Tiggo 8, Jetour Dashing",
-    svg: (
-      <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md">
-        CHERY
-      </div>
-    )
-  }
-];
-
-const ETHIOPIAN_LOCATIONS = [
-  "Any Location",
-  "Addis Ababa (Bole)",
-  "Addis Ababa (Kazanchis)",
-  "Addis Ababa (Sarbet)",
-  "Addis Ababa (CMC / Ayat)",
-  "Addis Ababa (Gerji)",
-  "Adama (Nazret)",
-  "Hawassa",
-  "Bahir Dar",
-  "Dire Dawa"
-];
+const DEFAULT_BRAND_TAGS: Record<string, string> = {
+  Toyota: "Corolla, RAV4, Hilux",
+  Hyundai: "Tucson, Elantra, Atos",
+  Suzuki: "Dzire, Swift, S-Presso",
+  BYD: "Atto 3, Song Plus, Seagull",
+  Volkswagen: "ID.4, ID.6, Tiguan",
+  Isuzu: "D-Max, NPR, Forward",
+  "Mercedes-Benz": "C-Class, E-Class, G-Wagon",
+  Lexus: "LX 570, LX 600, RX 350",
+  Nissan: "Patrol, X-Trail, Hardbody",
+  Kia: "Sportage, Seltos, Pegas",
+  Mitsubishi: "Pajero, L200 Pickup",
+  Chery: "Tiggo 8, Jetour Dashing"
+};
 
 const CATEGORIES = [
   {
@@ -356,7 +151,6 @@ const CATEGORIES = [
     subtitle: "0% Ethiopian customs duty & low daily running costs.",
     filter: { fuelType: "Electric" },
     icon: Zap,
-    count: "45+ Cars",
     tag: "0% Customs Duty",
     color: "from-emerald-500/20 to-teal-500/5",
     accent: "text-emerald-500"
@@ -367,7 +161,6 @@ const CATEGORIES = [
     subtitle: "High ground clearance and AWD built for rough roads.",
     filter: { bodyType: "SUV" },
     icon: Car,
-    count: "120+ Cars",
     tag: "High Clearance",
     color: "from-blue-500/20 to-indigo-500/5",
     accent: "text-blue-500"
@@ -378,7 +171,6 @@ const CATEGORIES = [
     subtitle: "Pristine German & premium sedans across Bole & Kazanchis.",
     filter: { brand: "Mercedes-Benz" },
     icon: Award,
-    count: "35+ Cars",
     tag: "VIP Status",
     color: "from-purple-500/20 to-pink-500/5",
     accent: "text-purple-500"
@@ -389,7 +181,6 @@ const CATEGORIES = [
     subtitle: "Commercial & personal Double-Cabin 4x4 haulers.",
     filter: { bodyType: "Pickup" },
     icon: Gauge,
-    count: "60+ Cars",
     tag: "Tough Utility",
     color: "from-amber-500/20 to-orange-500/5",
     accent: "text-amber-500"
@@ -400,7 +191,6 @@ const CATEGORIES = [
     subtitle: "Economical runabouts with ultra-low fuel consumption.",
     filter: { priceRange: "under-3m" },
     icon: Fuel,
-    count: "80+ Cars",
     tag: "Best Value",
     color: "from-cyan-500/20 to-blue-500/5",
     accent: "text-cyan-500"
@@ -496,7 +286,9 @@ export default function HomePage({
   onBecomeBroker,
   onChooseRole
 }: HomePageProps) {
-  const [vehicles, setVehicles] = useState<VehicleListing[]>(FALLBACK_VEHICLES);
+  const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
+  const [dbBrands, setDbBrands] = useState<{ name: string; count: number; models: string[] }[]>([]);
+  const [publicStats, setPublicStats] = useState<{ totalVehicles: number; totalBrokers: number; totalSales: number; totalUsers: number; clearanceRate: number } | null>(null);
   const [brands, setBrands] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "electric" | "suv" | "luxury" | "budget">("all");
@@ -573,22 +365,118 @@ export default function HomePage({
     return () => window.removeEventListener("autobroker:hero_bg_updated", handleHeroUpdate);
   }, []);
 
+  // Fetch Database Metadata (Brands & Public Stats)
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const [brandList, stats] = await Promise.all([
+          brandsApi.list().catch(() => []),
+          statsApi.public().catch(() => null)
+        ]);
+        if (brandList && brandList.length > 0) {
+          setDbBrands(brandList);
+        }
+        if (stats) {
+          setPublicStats(stats);
+        }
+      } catch (err) {
+        console.error("Failed to load metadata", err);
+      }
+    };
+    fetchMetadata();
+  }, []);
+
+  // Fetch Vehicles directly from Backend Database
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
         const res = await vehiclesApi.list();
         if (res && res.length > 0) {
           const approved = res.filter((v: VehicleListing) => v.status === "approved");
-          if (approved.length > 0) {
-            setVehicles(approved);
-          }
+          setVehicles(approved);
+        } else {
+          setVehicles([]);
         }
       } catch (err) {
         console.error("Failed to load vehicles for homepage", err);
+        setVehicles([]);
       }
     };
     fetchVehicles();
   }, []);
+
+  // Compute Dynamic Brands from Backend
+  const dynamicBrands = useMemo(() => {
+    if (dbBrands.length > 0) {
+      return dbBrands.map((b) => ({
+        name: b.name,
+        count: `${b.count} ${b.count === 1 ? "Car" : "Cars"}`,
+        tagline: b.models.slice(0, 3).join(", ") || DEFAULT_BRAND_TAGS[b.name] || "Available in Ethiopia",
+        svg: BRAND_LOGOS[b.name] || (
+          <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md uppercase">
+            {b.name.slice(0, 4)}
+          </div>
+        )
+      }));
+    }
+    const counts: Record<string, number> = {};
+    const modelsMap: Record<string, Set<string>> = {};
+    vehicles.forEach((v) => {
+      if (!v.brand) return;
+      counts[v.brand] = (counts[v.brand] || 0) + 1;
+      if (!modelsMap[v.brand]) modelsMap[v.brand] = new Set();
+      if (v.model) modelsMap[v.brand].add(v.model);
+    });
+    return Object.keys(counts).map((name) => ({
+      name,
+      count: `${counts[name]} ${counts[name] === 1 ? "Car" : "Cars"}`,
+      tagline: Array.from(modelsMap[name] || []).slice(0, 3).join(", ") || DEFAULT_BRAND_TAGS[name] || "Available in Ethiopia",
+      svg: BRAND_LOGOS[name] || (
+        <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md uppercase">
+          {name.slice(0, 4)}
+        </div>
+      )
+    }));
+  }, [dbBrands, vehicles]);
+
+  // Compute Unique Dynamic Locations from Live Database Listings
+  const availableLocations = useMemo(() => {
+    const locSet = new Set<string>();
+    vehicles.forEach((v) => {
+      if (v.location && v.location.trim()) {
+        locSet.add(v.location.trim());
+      }
+    });
+    return ["Any Location", ...Array.from(locSet).sort()];
+  }, [vehicles]);
+
+  // Compute Real Database Counts for Body Types
+  const categoriesWithCounts = useMemo(() => {
+    return CATEGORIES.map((cat) => {
+      let count = 0;
+      if (cat.id === "electric") {
+        count = vehicles.filter((v) => v.fuelType === "Electric" || v.fuelType === "Hybrid").length;
+      } else if (cat.id === "suv") {
+        count = vehicles.filter(
+          (v) => (v.bodyType || "").toLowerCase() === "suv" || v.model.includes("RAV4") || v.model.includes("Tucson")
+        ).length;
+      } else if (cat.id === "luxury") {
+        count = vehicles.filter(
+          (v) => v.brand === "Mercedes-Benz" || v.brand === "Lexus" || (v.price && v.price >= 10000000)
+        ).length;
+      } else if (cat.id === "pickup") {
+        count = vehicles.filter(
+          (v) => (v.bodyType || "").toLowerCase() === "pickup" || v.model.toLowerCase().includes("hilux") || v.model.toLowerCase().includes("d-max")
+        ).length;
+      } else if (cat.id === "budget") {
+        count = vehicles.filter((v) => v.price && v.price < 4000000).length;
+      }
+      return {
+        ...cat,
+        count: `${count} ${count === 1 ? "Car" : "Cars"}`
+      };
+    });
+  }, [vehicles]);
 
   useEffect(() => {
     const uniqueBrands = Array.from(new Set(vehicles.map((v) => v.brand))).filter(Boolean);
@@ -790,7 +678,7 @@ export default function HomePage({
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
                 >
-                  {ETHIOPIAN_LOCATIONS.map((loc) => (
+                  {availableLocations.map((loc) => (
                     <option key={loc} value={loc}>{loc}</option>
                   ))}
                 </select>
@@ -811,8 +699,8 @@ export default function HomePage({
                   className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
                 >
                   <option value="Any Brand">All Brands</option>
-                  {ETHIOPIA_TOP_BRANDS.map((b) => (
-                    <option key={b.name} value={b.name}>{b.name}</option>
+                  {dynamicBrands.map((b) => (
+                    <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
                   ))}
                 </select>
                 <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -911,7 +799,7 @@ export default function HomePage({
             <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-slate-50 dark:from-[#0E1424] to-transparent z-10 pointer-events-none" />
 
             <div className="animate-marquee-infinite flex gap-4 sm:gap-5">
-              {[...ETHIOPIA_TOP_BRANDS, ...ETHIOPIA_TOP_BRANDS].map((b, idx) => (
+              {[...(dynamicBrands.length > 0 ? dynamicBrands : []), ...(dynamicBrands.length > 0 ? dynamicBrands : [])].map((b, idx) => (
                 <button
                   key={`${b.name}-${idx}`}
                   onClick={() => onBrowse({ brand: b.name })}
@@ -920,9 +808,14 @@ export default function HomePage({
                   <div className="shrink-0 flex items-center justify-center group-hover:text-[#22c55e] transition-colors h-9">
                     {b.svg}
                   </div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#22c55e] transition-colors tracking-tight">
-                    {b.name}
-                  </span>
+                  <div className="flex flex-col items-center leading-none">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#22c55e] transition-colors tracking-tight">
+                      {b.name}
+                    </span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                      {b.count}
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -1362,7 +1255,7 @@ export default function HomePage({
               onScroll={handleBodyTypeScroll}
               className="flex sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 overflow-x-auto sm:overflow-visible pb-3 sm:pb-0 scrollbar-none snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
             >
-              {CATEGORIES.map((cat) => {
+              {categoriesWithCounts.map((cat) => {
                 const Icon = cat.icon;
                 return (
                   <div
@@ -1416,7 +1309,7 @@ export default function HomePage({
           <div className="sm:hidden flex items-center justify-between pt-1 px-1">
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
               <ArrowRight size={12} className="text-[#22c55e] animate-pulse" />
-              <span>Swipe to explore all {CATEGORIES.length} body types</span>
+              <span>Swipe to explore all {categoriesWithCounts.length} body types</span>
             </div>
 
             {/* Scroll Progress Track */}

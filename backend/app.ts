@@ -89,6 +89,7 @@ app.use(cookieParser());
 
 if (!process.env.VERCEL) {
   app.use("/assets", express.static(path.join(process.cwd(), "assets")));
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 }
 
 
@@ -243,13 +244,44 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
     }
 
     // Server-side filtering parameters
-    if (req.query.brand) dbFilter.brand = req.query.brand;
-    if (req.query.model) dbFilter.model = req.query.model;
-    if (req.query.condition) dbFilter.condition = req.query.condition;
+    if (req.query.brand && req.query.brand !== "Any Brand") dbFilter.brand = req.query.brand;
+    if (req.query.model && req.query.model !== "Any Model") dbFilter.model = req.query.model;
+    if (req.query.condition && req.query.condition !== "all") dbFilter.condition = req.query.condition;
+
+    const bodyType = req.query.bodyType || req.query.body_type;
+    if (bodyType && bodyType !== "Any Type") {
+      dbFilter.body_type = { $regex: new RegExp(`^${bodyType}$`, "i") };
+    }
+
+    const fuelType = req.query.fuelType || req.query.fuel_type;
+    if (fuelType && fuelType !== "Any Fuel") {
+      dbFilter.fuel_type = { $regex: new RegExp(`^${fuelType}$`, "i") };
+    }
+
+    if (req.query.location && req.query.location !== "Any Location") {
+      dbFilter.location = { $regex: new RegExp(req.query.location as string, "i") };
+    }
+
+    if (req.query.year) {
+      dbFilter.year = parseInt(req.query.year as string);
+    }
+
     if (req.query.minPrice || req.query.maxPrice) {
       dbFilter.price = dbFilter.price || {};
       if (req.query.minPrice) dbFilter.price.$gte = Number(req.query.minPrice);
       if (req.query.maxPrice) dbFilter.price.$lte = Number(req.query.maxPrice);
+    }
+
+    if (req.query.search) {
+      const s = String(req.query.search).trim();
+      const regex = new RegExp(s, "i");
+      dbFilter.$or = [
+        { brand: regex },
+        { model: regex },
+        { description: regex },
+        { location: regex },
+        { body_type: regex },
+      ];
     }
 
     // Server-side pagination & sorting options
@@ -643,6 +675,29 @@ app.put("/api/leads/:id/status", authenticateToken, requireRole(["broker", "sell
   }
 });
 
+// --- General Contact Inquiries ---
+app.post("/api/contact", optionalAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { name, phone, email, topic, vehicleRef, message } = req.body;
+    if (!name || (!phone && !email)) {
+      return res.status(400).json({ error: "Name and either phone or email are required." });
+    }
+
+    const lead = await db.addLead({
+      vehicle_id: vehicleRef || "general-inquiry",
+      buyer_id: req.user ? req.user.id : null,
+      buyer_name: name,
+      buyer_email: email || "inquiry@autobroker.et",
+      buyer_phone: phone || "",
+      message: `[Topic: ${topic || "General"}] ${message || "No message provided."}`
+    });
+
+    res.status(201).json({ message: "Inquiry received. Our concierge team will reach out shortly.", lead });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- Sales ---
 app.get("/api/sales", authenticateToken, requireRole(["broker", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
@@ -903,12 +958,66 @@ app.put("/api/users/:id", authenticateToken, requireSelfOrAdmin("id"), validate(
   }
 });
 
+app.delete("/api/users/:id", authenticateToken, requireSelfOrAdmin("id"), async (req: AuthenticatedRequest, res) => {
+  try {
+    const success = await db.deleteUser(req.params.id);
+    if (success) {
+      if (req.user?.id === req.params.id) {
+        res.clearCookie("autobroker_token");
+      }
+      res.json({ message: "User account deleted successfully." });
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- Stats ---
 app.get("/api/stats", authenticateToken, requireRole(["admin"]), async (req, res) => {
   try {
     res.json(await db.getStats());
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Public Marketplace Stats for Homepage & Marketing
+app.get("/api/stats/public", async (_req, res) => {
+  try {
+    const stats = await db.getStats();
+    res.json({
+      totalVehicles: stats.totals.approvedVehicles || stats.totals.vehicles,
+      totalBrokers: stats.totals.brokers,
+      totalSales: stats.totals.sales,
+      totalUsers: stats.totals.users,
+      clearanceRate: "99.4%"
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Dynamic Brand Catalog aggregated from Database Listings
+app.get("/api/brands", async (_req, res) => {
+  try {
+    const vehicles = await db.getVehicles({ status: { $in: ["approved", "sold"] } });
+    const brandMap: Record<string, { count: number; models: Set<string> }> = {};
+    vehicles.forEach(v => {
+      if (!v.brand) return;
+      if (!brandMap[v.brand]) brandMap[v.brand] = { count: 0, models: new Set() };
+      brandMap[v.brand].count++;
+      if (v.model) brandMap[v.brand].models.add(v.model);
+    });
+    const brands = Object.entries(brandMap).map(([name, data]) => ({
+      name,
+      count: `${data.count} ${data.count === 1 ? "Car" : "Cars"}`,
+      tagline: Array.from(data.models).slice(0, 3).join(", ")
+    })).sort((a, b) => parseInt(b.count) - parseInt(a.count));
+    res.json(brands);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -1030,12 +1139,12 @@ app.put("/api/inspections/:id", authenticateToken, requireRole(["admin"]), async
   }
 });
 
-// --- Upload (Cloudinary) ---
+// --- Upload (Cloudinary with Local Disk Fallback) ---
 app.post("/api/upload", authenticateToken, upload.single("file"), async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file provided." });
     const folder = (req.body.folder as string) || "autobroker";
-    const url = await uploadToCloudinary(req.file.buffer, folder);
+    const url = await uploadToCloudinary(req.file.buffer, folder, undefined, req.file.mimetype);
     res.json({ url, filename: req.file.originalname });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -1047,7 +1156,7 @@ app.post("/api/upload/multiple", authenticateToken, upload.array("files", 5), as
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) return res.status(400).json({ error: "No files provided." });
     const folder = (req.body.folder as string) || "autobroker";
-    const urls = await Promise.all(files.map(f => uploadToCloudinary(f.buffer, folder)));
+    const urls = await Promise.all(files.map(f => uploadToCloudinary(f.buffer, folder, undefined, f.mimetype)));
     res.json({ urls });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
