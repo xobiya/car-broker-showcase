@@ -89,11 +89,6 @@ export default function ContactPage({ onNotify }: ContactPageProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/60 pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center space-y-4 relative z-10">
-          <div className="inline-flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#22c55e]">
-            <Sparkles size={14} />
-            <span>Dedicated Automotive Concierge</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-white">
             Get in Touch with <span className="text-[#22c55e]">Arif Car Sell</span>
           </h1>
@@ -111,9 +106,6 @@ export default function ContactPage({ onNotify }: ContactPageProps) {
           {/* Left: Contact Info Cards */}
           <div className="lg:col-span-5 space-y-6">
             <div className="space-y-2">
-              <span className="text-xs font-bold text-[#16a34a] dark:text-[#4ade80] uppercase tracking-wider">
-                Support Channels
-              </span>
               <h2 className="text-2xl font-black text-slate-950 dark:text-white">
                 Direct Communication Lines
               </h2>

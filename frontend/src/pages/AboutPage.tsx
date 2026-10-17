@@ -35,6 +35,9 @@ interface BrokerMember {
   deals: number;
   rating: number;
   image: string;
+  bio: string;
+  experience: string;
+  location: string;
 }
 
 const BROKERS: BrokerMember[] = [
@@ -49,7 +52,10 @@ const BROKERS: BrokerMember[] = [
     telegram: "@yonas_broker",
     deals: 420,
     rating: 4.9,
-    image: "/images/brokers/yonas.jpg"
+    image: "/images/brokers/yonas.jpg",
+    bio: "Over 9 years connecting verified private sellers and buyers in Bole and Sarbet. Specializes in clean-title luxury sedans, hybrids, and certified European imports with zero hidden markups.",
+    experience: "9+ Years Experience",
+    location: "Addis Ababa (Bole & Sarbet)"
   },
   {
     id: "bethzatha",
@@ -62,7 +68,10 @@ const BROKERS: BrokerMember[] = [
     telegram: "@bethzatha_ev",
     deals: 310,
     rating: 5.0,
-    image: "/images/brokers/bethzatha.jpg"
+    image: "/images/brokers/bethzatha.jpg",
+    bio: "Leading Ethiopia's electric transition. Provides expert guidance on zero-customs duty EV purchases, home wallbox installation, and state-of-health battery diagnostics.",
+    experience: "6+ Years Experience",
+    location: "Addis Ababa (Kazanchis)"
   },
   {
     id: "mesfin",
@@ -75,7 +84,10 @@ const BROKERS: BrokerMember[] = [
     telegram: "@mesfin_fleet",
     deals: 580,
     rating: 4.8,
-    image: "/images/brokers/mesfin.jpg"
+    image: "/images/brokers/mesfin.jpg",
+    bio: "The go-to commercial broker for double-cabin pickups, logistics vans, and heavy-duty commercial fleets. Trusted by contractors and enterprises throughout Addis and Hawassa.",
+    experience: "12+ Years Experience",
+    location: "Addis Ababa & Hawassa"
   },
   {
     id: "dawit",
@@ -88,13 +100,17 @@ const BROKERS: BrokerMember[] = [
     telegram: "@dawit_legal",
     deals: 390,
     rating: 4.9,
-    image: "/images/brokers/dawit.jpg"
+    image: "/images/brokers/dawit.jpg",
+    bio: "Former Transport Bureau liaison officer. Oversees certified Libre title deed audits, ensuring 100% legal compliance, zero court or bank liens, and verified ownership transfers.",
+    experience: "8+ Years Experience",
+    location: "Kaliti & Megenagna Hubs"
   }
 ];
 
 export default function AboutPage({ onNotify }: AboutPageProps) {
   const navigate = useNavigate();
   const [selectedBroker, setSelectedBroker] = useState<BrokerMember | null>(null);
+  const [flippedBrokerId, setFlippedBrokerId] = useState<string | null>(null);
 
   const handleBrokerContact = (broker: BrokerMember, method: "phone" | "email" | "telegram") => {
     if (method === "phone") {
@@ -120,11 +136,6 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/60 pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center space-y-5 relative z-10">
-          <div className="inline-flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#22c55e]">
-            <Sparkles size={14} />
-            <span>Pioneering Trust & Institutional Standards</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight text-white">
             About <span className="text-[#22c55e]">Arif Car Sell</span>
           </h1>
@@ -141,10 +152,6 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
           
           {/* Left Text Column */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="inline-block bg-[#22c55e]/10 dark:bg-[#22c55e]/20 text-[#16a34a] dark:text-[#4ade80] border border-[#22c55e]/30 font-extrabold text-xs px-3.5 py-1.5 rounded-full uppercase tracking-wider">
-              Our Mission
-            </div>
-
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">
               Sell your car at a fair price. <br className="hidden sm:inline" />
               Get started with us today.
@@ -232,95 +239,214 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 space-y-12">
           
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <p className="text-xs font-black uppercase tracking-widest text-[#16a34a] dark:text-[#4ade80]">
-              Awesome Teams
-            </p>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white tracking-tight">
               Meet Our Brokers
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Licensed, certified automotive specialists across Addis Ababa dedicated to transparent negotiations and verified vehicle history.
+              Ethiopia's certified automotive advisors ensuring 100% verified Libre title transfer and transparent pricing.
             </p>
           </div>
 
+          {/* 3D Flip Card Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {BROKERS.map((broker) => (
-              <div 
-                key={broker.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs hover:shadow-xl dark:hover:border-[#22c55e]/40 transition-all duration-300 group flex flex-col justify-between"
-              >
-                <div>
-                  {/* Portrait photo */}
-                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-                    <img 
-                      src={broker.image} 
-                      alt={broker.name} 
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-black text-slate-900 dark:text-slate-100 shadow-sm flex items-center gap-1 border border-slate-200 dark:border-slate-700">
-                      <BadgeCheck size={12} className="text-[#22c55e]" />
-                      <span>{broker.license}</span>
+            {BROKERS.map((broker) => {
+              const isFlipped = flippedBrokerId === broker.id;
+
+              return (
+                <div 
+                  key={broker.id}
+                  onClick={() => setFlippedBrokerId(prev => prev === broker.id ? null : broker.id)}
+                  className={`flip-card-container h-[450px] sm:h-[470px] w-full group ${isFlipped ? "is-flipped" : ""}`}
+                >
+                  <div className="flip-card-inner">
+                    
+                    {/* ── CARD FRONT FACE ── */}
+                    <div className="flip-card-front bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs group-hover:shadow-xl dark:group-hover:border-emerald-500/40 transition-shadow duration-300 flex flex-col justify-between overflow-hidden">
+                      {/* Maximized portrait photo */}
+                      <div className="relative h-60 sm:h-64 w-full overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
+                        <img 
+                          src={broker.image} 
+                          alt={broker.name} 
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+
+                      {/* Bottom Info & Icons Section (No description, clean spacing) */}
+                      <div className="p-4 sm:p-5 flex flex-col justify-between flex-1 gap-2.5">
+                        {/* Broker Basic Info */}
+                        <div>
+                          <div className="flex items-start justify-between gap-1.5">
+                            <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white group-hover:text-[#22c55e] transition-colors leading-tight">
+                              {broker.name}
+                            </h3>
+                            <span className="text-[10px] font-bold text-emerald-700 dark:text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40 shrink-0">
+                              {broker.specialty}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 pt-0.5">
+                            {broker.role}
+                          </p>
+                        </div>
+
+                        {/* Reviews & Experience */}
+                        <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+                          <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-100">
+                            <div className="flex items-center text-amber-400">
+                              <Star size={13} className="fill-amber-400" />
+                            </div>
+                            <span className="font-extrabold">{broker.rating}</span>
+                            <span className="text-slate-400 text-[11px] font-medium">({broker.deals} reviews)</span>
+                          </div>
+                          <span className="text-[11px] font-bold text-emerald-600 dark:text-[#22c55e]">
+                            {broker.experience}
+                          </span>
+                        </div>
+
+                        {/* Only Action Icons */}
+                        <div className="flex items-center justify-between gap-2 pt-0.5">
+                          {/* Call Icon */}
+                          <a
+                            href={`tel:${broker.phone}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBrokerContact(broker, "phone");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] hover:text-white text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                            title={`Call ${broker.name}`}
+                            aria-label={`Call ${broker.name}`}
+                          >
+                            <Phone size={16} />
+                          </a>
+
+                          {/* Telegram Icon */}
+                          <a
+                            href={`https://t.me/${broker.telegram.replace("@", "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBrokerContact(broker, "telegram");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-sky-500 hover:text-white text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                            title={`Telegram ${broker.name}`}
+                            aria-label={`Message ${broker.name}`}
+                          >
+                            <Send size={16} />
+                          </a>
+
+                          {/* Email Icon */}
+                          <a
+                            href={`mailto:${broker.email}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBrokerContact(broker, "email");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                            title={`Email ${broker.name}`}
+                            aria-label={`Email ${broker.name}`}
+                          >
+                            <Mail size={16} />
+                          </a>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Broker info */}
-                  <div className="p-5 space-y-1.5">
-                    <h3 className="text-lg font-black text-slate-950 dark:text-white group-hover:text-[#22c55e] transition-colors">
-                      {broker.name}
-                    </h3>
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                      {broker.role}
-                    </p>
-                    <p className="text-[11px] font-semibold text-[#16a34a] dark:text-[#4ade80] bg-emerald-50 dark:bg-emerald-950/60 inline-block px-2.5 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40">
-                      {broker.specialty}
-                    </p>
+
+                    {/* ── CARD BACK FACE (REVEALED ON MOUSE OVER) ── */}
+                    <div className="flip-card-back bg-slate-950 text-white border-2 border-emerald-500/70 p-5 sm:p-6 rounded-2xl shadow-2xl flex flex-col justify-between overflow-hidden">
+                      
+                      {/* Top Header of Back Face */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-800/90 pb-2.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#22c55e]/20 text-[#22c55e] flex items-center justify-center font-black text-xs border border-[#22c55e]/40">
+                              {broker.name.charAt(0)}
+                            </div>
+                            <div>
+                              <h4 className="font-extrabold text-sm text-white">{broker.name}</h4>
+                              <p className="text-[10px] text-emerald-400 font-bold">{broker.role}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20">
+                            <Star size={11} className="fill-amber-400" />
+                            <span>{broker.rating}</span>
+                          </div>
+                        </div>
+
+                        {/* Description / Bio */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                            About Broker
+                          </span>
+                          <p className="text-xs text-slate-300 leading-relaxed line-clamp-4">
+                            {broker.bio}
+                          </p>
+                        </div>
+
+                        {/* Experience & Deals Badges */}
+                        <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                          <div className="bg-slate-900/90 rounded-xl p-2.5 border border-slate-800">
+                            <span className="text-[9px] text-slate-400 font-bold uppercase block">Experience</span>
+                            <span className="font-bold text-white text-[11px]">{broker.experience}</span>
+                          </div>
+                          <div className="bg-slate-900/90 rounded-xl p-2.5 border border-slate-800">
+                            <span className="text-[9px] text-slate-400 font-bold uppercase block">Completed Deals</span>
+                            <span className="font-bold text-[#22c55e] text-[11px]">{broker.deals}+ Handed Over</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Contact Info (Only Icons Row on Back) */}
+                      <div className="space-y-2 pt-2 border-t border-slate-800">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block text-center">
+                          Direct Contact Info
+                        </span>
+
+                        <div className="flex items-center justify-between gap-2">
+                          <a 
+                            href={`tel:${broker.phone}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBrokerContact(broker, "phone");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-[#22c55e] hover:text-slate-950 text-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+                            title={`Call ${broker.phone}`}
+                          >
+                            <Phone size={16} />
+                          </a>
+                          <a 
+                            href={`https://t.me/${broker.telegram.replace("@", "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBrokerContact(broker, "telegram");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-sky-500 hover:text-white text-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+                            title={broker.telegram}
+                          >
+                            <Send size={16} />
+                          </a>
+                          <a 
+                            href={`mailto:${broker.email}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBrokerContact(broker, "email");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-emerald-600 hover:text-white text-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+                            title={broker.email}
+                          >
+                            <Mail size={16} />
+                          </a>
+                        </div>
+                      </div>
+
+                    </div>
+
                   </div>
                 </div>
-
-                {/* Bottom Action / Social Icons */}
-                <div className="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleBrokerContact(broker, "phone")}
-                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-[#22c55e] text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
-                      title="Call Broker"
-                      aria-label={`Call ${broker.name}`}
-                    >
-                      <Phone size={13} />
-                    </button>
-                    <button
-                      onClick={() => handleBrokerContact(broker, "telegram")}
-                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-[#22c55e] text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
-                      title="Telegram"
-                      aria-label={`Message ${broker.name}`}
-                    >
-                      <Send size={13} />
-                    </button>
-                    <button
-                      onClick={() => handleBrokerContact(broker, "email")}
-                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-[#22c55e] text-slate-600 dark:text-slate-300 flex items-center justify-center transition cursor-pointer"
-                      title="Email Broker"
-                      aria-label={`Email ${broker.name}`}
-                    >
-                      <Mail size={13} />
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setSelectedBroker(broker);
-                      onNotify(`Selected ${broker.name} — ${broker.role}`, "success");
-                    }}
-                    className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-[#22c55e] group-hover:text-white text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shadow-xs"
-                    title="View & Inquire"
-                    aria-label={`Inquire with ${broker.name}`}
-                  >
-                    <ArrowUpRight size={15} />
-                  </button>
-                </div>
-
-              </div>
-            ))}
+              );
+            })}
           </div>
 
         </div>
