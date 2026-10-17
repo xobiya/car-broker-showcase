@@ -180,3 +180,8 @@ export const settingsApi = {
   get: (key: string) => api.get<{ key: string; value: string | null }>(`/api/settings/${key}`),
   set: (key: string, value: string) => api.put<{ message: string; key: string; value: string }>(`/api/settings/${key}`, { value }),
 };
+
+export const contactApi = {
+  submit: (data: { name: string; phone?: string; email?: string; topic?: string; vehicleRef?: string; message?: string }) =>
+    api.post<{ message: string; lead?: any }>("/api/contact", data),
+};

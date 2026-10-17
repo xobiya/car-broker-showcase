@@ -13,6 +13,7 @@ import {
   Sparkles,
   Car
 } from "lucide-react";
+import { api } from "../lib/api";
 
 interface ContactPageProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -56,7 +57,7 @@ export default function ContactPage({ onNotify }: ContactPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || (!phone.trim() && !email.trim())) {
       onNotify("Please provide your name and either phone or email.", "error");
@@ -64,15 +65,26 @@ export default function ContactPage({ onNotify }: ContactPageProps) {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await api.post("/api/contact", {
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        topic: selectedTopic,
+        vehicleRef: vehicleRef.trim(),
+        message: message.trim()
+      });
       onNotify("Your inquiry has been submitted. Our concierge will contact you within 2 business hours.", "success");
       setName("");
       setEmail("");
       setPhone("");
       setVehicleRef("");
       setMessage("");
-    }, 600);
+    } catch (err: any) {
+      onNotify(err.message || "Failed to submit inquiry. Please try again or call our hotline.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
