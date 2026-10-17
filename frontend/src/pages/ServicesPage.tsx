@@ -179,11 +179,6 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/60 pointer-events-none" />
 
         <div className="max-w-5xl mx-auto relative z-10 text-center space-y-5">
-          <div className="inline-flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#22c55e]">
-            <Sparkles size={14} />
-            <span>Comprehensive Automotive Solutions</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
             Services Built on <span className="text-[#22c55e]">Trust & Transparency</span>
           </h1>
@@ -197,9 +192,6 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
       {/* 2. Services Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-24 space-y-12">
         <div className="text-center space-y-2 max-w-xl mx-auto">
-          <p className="text-xs font-black uppercase tracking-widest text-[#16a34a] dark:text-[#4ade80]">
-            Professional Assistance
-          </p>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
             Our Core Automotive Services
           </h2>

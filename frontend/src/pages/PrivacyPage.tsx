@@ -7,7 +7,7 @@ interface PrivacyPageProps {
 
 export default function PrivacyPage({ onBack }: PrivacyPageProps) {
   return (
-    <div className="max-w-3xl mx-auto w-full p-6 md:p-8 flex-grow">
+    <div className="max-w-3xl mx-auto w-full p-4 sm:p-6 md:p-8 flex-grow pb-24 sm:pb-8">
       <button onClick={onBack} className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 mb-6 transition cursor-pointer">
         <ArrowLeft size={14} /> Back
       </button>

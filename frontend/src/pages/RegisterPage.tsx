@@ -43,8 +43,7 @@ export default function RegisterPage() {
       });
       addToast(`Account created successfully! Welcome to Arif Car Sell, ${user.name}.`, "success");
       if (user.role === "broker") navigate("/broker-dashboard");
-      else if (user.role === "seller") navigate("/seller-dashboard");
-      else navigate("/");
+      else navigate("/profile");
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please verify your information.");
     } finally {
@@ -53,14 +52,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 md:px-8 bg-slate-50/60">
+    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 md:px-8 bg-slate-50/60 dark:bg-[#0B0F19] pb-24 sm:pb-12">
       <div className="w-full max-w-md mx-auto">
         
         {/* Main Carento Style Register Card */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] p-7 sm:p-10 space-y-6">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] dark:shadow-none p-7 sm:p-10 space-y-6">
           
           {/* Sign In & Sign Up Navigation Bar Switcher */}
-          <div className="flex items-center p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80">
+          <div className="flex items-center p-1.5 bg-slate-100/90 dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700">
             <button
               type="button"
               onClick={() => navigate("/login")}
@@ -83,30 +82,29 @@ export default function RegisterPage() {
             <span className="bg-emerald-500/10 text-[#16a34a] border border-emerald-500/25 text-xs font-black px-3.5 py-1 rounded-full inline-block">
               New Account Registration
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               Create an account
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Join thousands of buyers, certified brokers, and sellers in Ethiopia
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              Join thousands of vehicle owners and certified brokers in Ethiopia
             </p>
           </div>
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-medium">
               {error}
             </div>
           )}
 
           {/* Role Selector Tabs */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              I want to:
+            <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
+              Account Type:
             </label>
-            <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-transparent dark:border-slate-800">
               {[
-                { id: "buyer", label: "Buy Cars" },
-                { id: "seller", label: "Sell Cars" },
-                { id: "broker", label: "Be a Broker" }
+                { id: "buyer", label: "Customer" },
+                { id: "broker", label: "Certified Broker" }
               ].map((r) => (
                 <button
                   key={r.id}
@@ -114,8 +112,8 @@ export default function RegisterPage() {
                   onClick={() => setRole(r.id as any)}
                   className={`py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
                     role === r.id
-                      ? "bg-[#0B0F19] text-[#22c55e] shadow-xs font-black"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-[#0B0F19] dark:bg-emerald-500/10 text-[#22c55e] border border-emerald-500/20 shadow-xs font-black"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   {r.label}
@@ -129,17 +127,17 @@ export default function RegisterPage() {
             
             {/* Full Name */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                 Full Name
               </label>
               <div className="relative">
-                <UserIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <UserIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Dawit Lemma"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
               </div>
@@ -147,17 +145,17 @@ export default function RegisterPage() {
 
             {/* Email */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                 Email Address
               </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
               </div>
@@ -165,40 +163,40 @@ export default function RegisterPage() {
 
             {/* Phone Number */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                 Phone Number
               </label>
               <div className="relative">
-                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+251 91 123 4567"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                 Create Password
               </label>
               <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -206,7 +204,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Terms Agreement Checkbox */}
-            <div className="flex items-start gap-2 pt-1 text-xs text-slate-600">
+            <div className="flex items-start gap-2 pt-1 text-xs text-slate-600 dark:text-slate-400">
               <input
                 type="checkbox"
                 checked={agreed}
@@ -215,7 +213,7 @@ export default function RegisterPage() {
                 id="terms-check"
               />
               <label htmlFor="terms-check" className="cursor-pointer leading-snug">
-                I agree to the <Link to="/terms" className="text-[#16a34a] underline font-semibold">Terms</Link> and <Link to="/privacy" className="text-[#16a34a] underline font-semibold">Privacy Policy</Link>.
+                I agree to the <Link to="/terms" className="text-[#16a34a] dark:text-[#22c55e] underline font-semibold">Terms</Link> and <Link to="/privacy" className="text-[#16a34a] dark:text-[#22c55e] underline font-semibold">Privacy Policy</Link>.
               </label>
             </div>
 
@@ -240,9 +238,9 @@ export default function RegisterPage() {
           </form>
 
           {/* Link to Login */}
-          <div className="text-center pt-2 border-t border-slate-100 text-xs text-slate-600">
+          <div className="text-center pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
             Already have an account?{" "}
-            <Link to="/login" className="font-bold text-[#16a34a] hover:text-emerald-700 underline">
+            <Link to="/login" className="font-bold text-[#16a34a] dark:text-[#22c55e] hover:text-emerald-700 dark:hover:text-emerald-400 underline">
               Sign in here
             </Link>
           </div>
