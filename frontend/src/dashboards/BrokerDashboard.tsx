@@ -48,21 +48,21 @@ const StatCard = ({ icon, label, value, trend, trendUp, sub }: {
 
 const StatusPill = ({ status }: { status: string }) => {
   const colors: Record<string, string> = {
-    draft: "bg-slate-100 text-slate-600",
-    approved: "bg-emerald-100 text-emerald-700",
-    pending: "bg-amber-100 text-amber-700",
-    rejected: "bg-red-100 text-red-700",
-    sold: "bg-blue-100 text-blue-700",
-    new: "bg-orange-100 text-orange-700",
-    contacted: "bg-sky-100 text-sky-700",
-    negotiating: "bg-violet-100 text-violet-700",
-    cancelled: "bg-red-100 text-red-700",
-    not_inspected: "bg-slate-100 text-slate-600",
-    passed: "bg-emerald-100 text-emerald-700",
-    failed: "bg-red-100 text-red-700",
+    draft: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300",
+    approved: "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300",
+    pending: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300",
+    rejected: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+    sold: "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300",
+    new: "bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300",
+    contacted: "bg-sky-100 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300",
+    negotiating: "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300",
+    cancelled: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+    not_inspected: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300",
+    passed: "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300",
+    failed: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
   };
   return (
-    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${colors[status] || "bg-slate-100 text-slate-600"}`}>
+    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${colors[status] || "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
       {status === "new" && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />}
       {status === "pending" && <Clock size={10} />}
       {status.charAt(0).toUpperCase() + status.slice(1).replace(/_/, " ")}
@@ -95,7 +95,7 @@ const RevenueChart = ({ data }: { data: { label: string; value: number }[] }) =>
             <div className="w-full flex items-end justify-center" style={{ height: "120px" }}>
               <div
                 style={{ height: `${h}%`, minHeight: "4px" }}
-                className={`w-full rounded-sm transition-all duration-500 ${isLast ? "bg-indigo-600" : "bg-indigo-200"}`}
+                className={`w-full rounded-sm transition-all duration-500 ${isLast ? "bg-[#22c55e]" : "bg-emerald-200 dark:bg-emerald-950/50"}`}
               />
             </div>
             <span className="text-[10px] text-slate-400 font-medium">{d.label}</span>
@@ -192,13 +192,13 @@ function VehicleFormModal({ editing, onSave, onCancel }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
-          <h3 className="text-sm font-bold text-slate-800">{editing ? "Edit Listing" : "Add New Listing"}</h3>
-          <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={18} /></button>
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[92vh] sm:max-h-[90vh] flex flex-col my-auto transition-colors">
+        <div className="flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 shrink-0">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editing ? "Edit Listing" : "Add New Listing"}</h3>
+          <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1"><X size={18} /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mb-3">Basic Information</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -365,11 +365,11 @@ function VehicleFormModal({ editing, onSave, onCancel }: {
             <textarea value={f.description} onChange={e => upd("description", e.target.value)} rows={3} placeholder="Vehicle history, condition, imported features, tax status..." className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400 resize-none" />
           </div>
 
-          <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-            <p className="text-[10px] text-slate-400 font-medium">Listings are saved as draft until submitted for approval.</p>
-            <div className="flex gap-3">
-              <button type="button" onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-800 px-4 py-2 cursor-pointer">Cancel</button>
-              <button type="submit" className="flex items-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-lg transition cursor-pointer">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Listings are saved as draft until submitted for approval.</p>
+            <div className="flex items-center justify-end gap-2.5">
+              <button type="button" onClick={onCancel} className="text-xs sm:text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white px-3 sm:px-4 py-2 rounded-lg cursor-pointer transition">Cancel</button>
+              <button type="submit" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm bg-[#22c55e] hover:bg-emerald-600 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95">
                 <Save size={14} /> {editing ? "Save Changes" : "Save as Draft"}
               </button>
             </div>
@@ -877,48 +877,89 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+              <div className="px-5 sm:px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-800">Recent Leads</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Latest buyer inquiries</p>
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-white">Recent Leads</h2>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Latest buyer inquiries</p>
                 </div>
               </div>
-              <div className="overflow-x-auto">
+
+              {/* Mobile Lead Cards (< md) */}
+              <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                {leads.slice(0, 6).map(l => (
+                  <div key={l.id} className="p-4 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#22c55e] text-xs font-bold flex items-center justify-center shrink-0">
+                          {l.buyerName.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">{l.buyerName}</p>
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500">{l.vehicleBrand} {l.vehicleModel}</p>
+                        </div>
+                      </div>
+                      <StatusPill status={l.status} />
+                    </div>
+                    {l.status !== "sold" && l.status !== "cancelled" && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          onClick={() => handleLeadStatus(l.id, "contacted")}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold text-center transition cursor-pointer"
+                        >
+                          Contact Buyer
+                        </button>
+                        <button
+                          onClick={() => { setSaleModal(l); setSalePrice(l.vehiclePrice || 0); }}
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold text-center transition cursor-pointer"
+                        >
+                          Mark Sold
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {leads.length === 0 && (
+                  <div className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 text-xs">No leads yet.</div>
+                )}
+              </div>
+
+              {/* Desktop Table (>= md) */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                    <tr className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                       <th className="text-left px-6 py-3">Buyer</th>
                       <th className="text-left px-4 py-3">Vehicle</th>
                       <th className="text-left px-4 py-3">Status</th>
                       <th className="text-left px-4 py-3">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800/60">
                     {leads.slice(0, 6).map(l => (
-                      <tr key={l.id} className="hover:bg-slate-50 transition">
+                      <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                         <td className="px-6 py-3.5">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#22c55e] text-xs font-bold flex items-center justify-center shrink-0">
                               {l.buyerName.charAt(0)}
                             </div>
-                            <span className="font-semibold text-slate-700">{l.buyerName}</span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">{l.buyerName}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 text-slate-500 text-[13px]">{l.vehicleBrand} {l.vehicleModel}</td>
+                        <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 text-[13px]">{l.vehicleBrand} {l.vehicleModel}</td>
                         <td className="px-4 py-3.5"><StatusPill status={l.status} /></td>
                         <td className="px-4 py-3.5">
                           {l.status !== "sold" && l.status !== "cancelled" ? (
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleLeadStatus(l.id, "contacted")} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition cursor-pointer">Contact</button>
-                              <span className="text-slate-200">|</span>
+                              <button onClick={() => handleLeadStatus(l.id, "contacted")} className="text-xs font-semibold text-[#22c55e] hover:text-emerald-700 transition cursor-pointer">Contact</button>
+                              <span className="text-slate-200 dark:text-slate-700">|</span>
                               <button onClick={() => { setSaleModal(l); setSalePrice(l.vehiclePrice || 0); }} className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition cursor-pointer">Sold</button>
                             </div>
-                          ) : <span className="text-xs text-slate-300 font-medium">—</span>}
+                          ) : <span className="text-xs text-slate-300 dark:text-slate-600 font-medium">—</span>}
                         </td>
                       </tr>
                     ))}
-                    {leads.length === 0 && <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-400 text-sm">No leads yet.</td></tr>}
+                    {leads.length === 0 && <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 text-sm">No leads yet.</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -1046,50 +1087,75 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               <p className="text-xs text-slate-400 mt-0.5">Sales and commission breakdown</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                <p className="text-xs text-slate-500 font-medium">Total Sales</p>
-                <p className="text-2xl font-bold text-slate-800 mt-1">{sales.length}</p>
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 transition-colors">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Sales</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-white mt-1">{sales.length}</p>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                <p className="text-xs text-slate-500 font-medium">Revenue</p>
-                <p className="text-2xl font-bold text-slate-800 mt-1">ETB {fmt(totalRevenue)}</p>
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 transition-colors">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Revenue</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-white mt-1">ETB {fmt(totalRevenue)}</p>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                <p className="text-xs text-slate-500 font-medium">Commission Earned</p>
-                <p className="text-2xl font-bold text-emerald-600 mt-1">ETB {fmt(totalCommission)}</p>
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 transition-colors">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Commission Earned</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">ETB {fmt(totalCommission)}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-800">Sales History</h3>
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+              <div className="px-5 sm:px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">Sales History</h3>
+                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{sales.length} Closed</span>
               </div>
               {sales.length === 0 ? (
-                <div className="py-14 text-center text-slate-400 text-sm">No sales yet.</div>
+                <div className="py-14 text-center text-slate-400 dark:text-slate-500 text-sm">No sales yet.</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                        <th className="text-left px-6 py-3">Vehicle</th>
-                        <th className="text-left px-4 py-3">Sale Price</th>
-                        <th className="text-left px-4 py-3">Commission</th>
-                        <th className="text-left px-4 py-3">Buyer</th>
-                        <th className="text-left px-4 py-3">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {sales.map(s => (
-                        <tr key={s.id} className="hover:bg-slate-50 transition">
-                          <td className="px-6 py-3.5 font-semibold text-slate-700">{s.vehicleBrand} {s.vehicleModel}</td>
-                          <td className="px-4 py-3.5 text-slate-600">ETB {fmt(s.salePrice)}</td>
-                          <td className="px-4 py-3.5 font-semibold text-emerald-600">ETB {fmt(s.commission)}</td>
-                          <td className="px-4 py-3.5 text-slate-500">{s.buyerName || "—"}</td>
-                          <td className="px-4 py-3.5 text-slate-400 text-xs">{new Date(s.saleDate).toLocaleDateString()}</td>
+                <>
+                  {/* Mobile Sales Cards (< md) */}
+                  <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                    {sales.map(s => (
+                      <div key={s.id} className="p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold text-slate-800 dark:text-white">{s.vehicleBrand} {s.vehicleModel}</p>
+                          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
+                            +ETB {fmt(s.commission)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 pt-1">
+                          <span>Sale: ETB {fmt(s.salePrice)}</span>
+                          <span>{new Date(s.saleDate).toLocaleDateString()}</span>
+                        </div>
+                        {s.buyerName && (
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">Buyer: {s.buyerName}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop Table (>= md) */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                          <th className="text-left px-6 py-3">Vehicle</th>
+                          <th className="text-left px-4 py-3">Sale Price</th>
+                          <th className="text-left px-4 py-3">Commission</th>
+                          <th className="text-left px-4 py-3">Buyer</th>
+                          <th className="text-left px-4 py-3">Date</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50 dark:divide-slate-800/60">
+                        {sales.map(s => (
+                          <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td className="px-6 py-3.5 font-semibold text-slate-700 dark:text-slate-200">{s.vehicleBrand} {s.vehicleModel}</td>
+                            <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300">ETB {fmt(s.salePrice)}</td>
+                            <td className="px-4 py-3.5 font-semibold text-emerald-600 dark:text-emerald-400">ETB {fmt(s.commission)}</td>
+                            <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400">{s.buyerName || "—"}</td>
+                            <td className="px-4 py-3.5 text-slate-400 dark:text-slate-500 text-xs">{new Date(s.saleDate).toLocaleDateString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </div>

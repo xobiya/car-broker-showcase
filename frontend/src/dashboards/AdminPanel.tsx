@@ -3,10 +3,11 @@ import {
   Shield, Check, Users, DollarSign, Award, Star,
   Edit3, Trash2, Plus, Landmark, TrendingUp,
   Car, ClipboardList, UserCheck, Menu, X, Save,
-  Bell, LogOut, ChevronRight, Search, RefreshCw
+  Bell, LogOut, ChevronRight, Search, RefreshCw,
+  SlidersHorizontal, Upload, Image as ImageIcon, Sparkles
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
-import { vehiclesApi, brokersApi, leadsApi, salesApi, reportsApi, usersApi } from "../lib/api";
+import { vehiclesApi, brokersApi, leadsApi, salesApi, reportsApi, usersApi, settingsApi, uploadApi } from "../lib/api";
 import Logo from "../components/ui/Logo";
 
 const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
@@ -282,8 +283,76 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const clearNotif = (id: string) => setDismissedIds(prev => new Set([...prev, id]));
   const clearAllNotifs = () => setDismissedIds(new Set(notifications.map(n => n.id)));
 
-  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers" | "reports" | "users" | "notifications";
+  type AdminTab = "overview" | "listings" | "brokers" | "commissions" | "buyers" | "reports" | "users" | "notifications" | "settings";
   const [adminTab, setAdminTab] = useState<AdminTab>("overview");
+  const [heroBgUrl, setHeroBgUrl] = useState<string>(() => localStorage.getItem("autobroker_hero_bg") || "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1920&q=80");
+  const [savingHeroBg, setSavingHeroBg] = useState(false);
+  const [uploadingHeroBg, setUploadingHeroBg] = useState(false);
+
+  useEffect(() => {
+    const loadHeroSetting = async () => {
+      try {
+        const res = await settingsApi.get("hero_bg_image");
+        if (res && res.value) {
+          setHeroBgUrl(res.value);
+          localStorage.setItem("autobroker_hero_bg", res.value);
+        }
+      } catch {}
+    };
+    loadHeroSetting();
+  }, []);
+
+  const handleSaveHeroBg = async () => {
+    if (!heroBgUrl.trim()) {
+      onNotify("Please provide a valid image URL", "error");
+      return;
+    }
+    setSavingHeroBg(true);
+    try {
+      await settingsApi.set("hero_bg_image", heroBgUrl.trim());
+      localStorage.setItem("autobroker_hero_bg", heroBgUrl.trim());
+      window.dispatchEvent(new CustomEvent("autobroker:hero_bg_updated", { detail: heroBgUrl.trim() }));
+      onNotify("Hero background image updated successfully!", "success");
+    } catch (err: any) {
+      localStorage.setItem("autobroker_hero_bg", heroBgUrl.trim());
+      window.dispatchEvent(new CustomEvent("autobroker:hero_bg_updated", { detail: heroBgUrl.trim() }));
+      onNotify(err.message || "Saved to local session", "info");
+    } finally {
+      setSavingHeroBg(false);
+    }
+  };
+
+  const handleResetHeroBg = async () => {
+    const defaultUrl = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1920&q=80";
+    setHeroBgUrl(defaultUrl);
+    try {
+      await settingsApi.set("hero_bg_image", defaultUrl);
+      localStorage.setItem("autobroker_hero_bg", defaultUrl);
+      window.dispatchEvent(new CustomEvent("autobroker:hero_bg_updated", { detail: defaultUrl }));
+      onNotify("Hero background reset to default", "info");
+    } catch {
+      localStorage.setItem("autobroker_hero_bg", defaultUrl);
+      window.dispatchEvent(new CustomEvent("autobroker:hero_bg_updated", { detail: defaultUrl }));
+    }
+  };
+
+  const handleUploadHeroImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingHeroBg(true);
+    try {
+      const res = await uploadApi.single(file, "hero");
+      if (res && res.url) {
+        setHeroBgUrl(res.url);
+        onNotify("Image uploaded! Click 'Save Image' to apply it.", "success");
+      }
+    } catch (err: any) {
+      onNotify("Failed to upload image: " + err.message, "error");
+    } finally {
+      setUploadingHeroBg(false);
+      e.target.value = "";
+    }
+  };
   const [listingSearch, setListingSearch] = useState("");
   const [listingStatusFilter, setListingStatusFilter] = useState("all");
   const [brokerSearch, setBrokerSearch] = useState("");
@@ -540,6 +609,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
     { key: "commissions", label: "Commissions", icon: DollarSign },
     { key: "reports", label: "Reports", icon: Shield, badge: reports.filter(r => r.status === "pending").length || undefined },
     { key: "users", label: "Members", icon: Users },
+    { key: "settings", label: "Hero & Settings", icon: SlidersHorizontal },
   ];
 
   const sidebar = (
@@ -717,6 +787,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 {adminTab === "commissions" && "Commissions"}
                 {adminTab === "reports" && "Reports"}
                 {adminTab === "users" && "Members"}
+                {adminTab === "settings" && "Hero & Settings"}
               </span>
             </div>
 
@@ -733,6 +804,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 {adminTab === "commissions" && "Commission & Revenue"}
                 {adminTab === "reports" && "Trust & Safety Reports"}
                 {adminTab === "users" && "Member Management"}
+                {adminTab === "settings" && "Hero Banner & Settings"}
               </h2>
               <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest hidden sm:block">
                 {adminTab === "overview" && "Analytics and recent activity"}
@@ -743,6 +815,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 {adminTab === "commissions" && "Revenue reports and commission tracking"}
                 {adminTab === "reports" && "Review and moderate user reports"}
                 {adminTab === "users" && "All registered platform members"}
+                {adminTab === "settings" && "Homepage hero background image and appearance"}
               </p>
             </div>
           </div>
@@ -1683,6 +1756,168 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               </table>
             </div>
             <Pagination currentPage={userPage} totalPages={Math.ceil(users.filter(u => !userSearch || `${u.name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(userSearch.toLowerCase())).length / ITEMS_PER_PAGE)} onPageChange={setUserPage} />
+          </div>
+        </div>
+      )}
+
+      {/* ── SITE SETTINGS / HERO BANNER ───────────────────────────────────── */}
+      {adminTab === "settings" && (
+        <div className="space-y-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <ImageIcon size={18} className="text-[#22c55e]" />
+                  <span>Homepage Hero Background Image</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Change the main background photo shown on the homepage hero section.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleResetHeroBg}
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Reset Default
+                </button>
+                <button
+                  type="button"
+                  disabled={savingHeroBg}
+                  onClick={handleSaveHeroBg}
+                  className="bg-[#22c55e] hover:bg-emerald-600 disabled:opacity-50 text-white font-black px-5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95"
+                >
+                  <Save size={14} />
+                  <span>{savingHeroBg ? "Saving..." : "Save Image"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Hero Mockup Preview */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                Live Preview (Visible across the website)
+              </label>
+              <div className="relative rounded-2xl overflow-hidden min-h-[260px] sm:min-h-[300px] flex flex-col justify-center items-center p-6 text-center shadow-inner border border-slate-800 bg-slate-950">
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-all duration-500 opacity-90"
+                  style={{ backgroundImage: `url('${heroBgUrl}')` }}
+                />
+                <div className="absolute inset-0 bg-slate-950/45 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-slate-950/35 to-slate-950/60 pointer-events-none" />
+                
+                <div className="relative z-10 max-w-xl space-y-3">
+                  <h4 className="text-xl sm:text-3xl font-black text-white leading-tight">
+                    Looking for a vehicle? <br />
+                    <span className="text-[#22c55e]">You're in the perfect spot.</span>
+                  </h4>
+                  <p className="text-xs text-slate-200 max-w-md mx-auto">
+                    Background photo is now crisp and clearly visible behind the search console.
+                  </p>
+                  <div className="pt-2">
+                    <span className="inline-block bg-[#22c55e] text-slate-950 text-[10px] font-black px-4 py-1.5 rounded-full shadow-md">
+                      Current Hero Image Active
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Input & Upload */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end pt-2">
+              <div className="md:col-span-8 space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Image URL
+                </label>
+                <input
+                  type="text"
+                  value={heroBgUrl}
+                  onChange={(e) => setHeroBgUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-[#22c55e] focus:bg-white transition"
+                />
+              </div>
+
+              <div className="md:col-span-4">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
+                  Or Upload Local File
+                </label>
+                <label className="w-full text-xs font-bold py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-[#22c55e] bg-slate-50 hover:bg-emerald-50/50 text-slate-700 flex items-center justify-center gap-2 cursor-pointer transition">
+                  <Upload size={14} className="text-[#22c55e]" />
+                  <span>{uploadingHeroBg ? "Uploading..." : "Upload New Image"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingHeroBg}
+                    onChange={handleUploadHeroImage}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Curated Presets */}
+            <div className="space-y-3 pt-4 border-t border-slate-100">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                Quick Automotive Presets
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {[
+                  {
+                    name: "Modern Architectural Showroom",
+                    desc: "Classic Audi Showroom (Default)",
+                    url: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1920&q=80"
+                  },
+                  {
+                    name: "Luxury SUV Showroom",
+                    desc: "High-end Range Rover & Mercedes",
+                    url: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80"
+                  },
+                  {
+                    name: "Clean EV Charging Hub",
+                    desc: "Modern Green Energy Hub",
+                    url: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1920&q=80"
+                  },
+                  {
+                    name: "Night Skyline Automotive",
+                    desc: "Urban Evening Aesthetic",
+                    url: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1920&q=80"
+                  },
+                  {
+                    name: "Minimalist Porsche Studio",
+                    desc: "High-contrast Studio Display",
+                    url: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=1920&q=80"
+                  }
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setHeroBgUrl(preset.url)}
+                    className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-2 group ${
+                      heroBgUrl === preset.url
+                        ? "border-[#22c55e] bg-emerald-50/40 ring-2 ring-[#22c55e]/20"
+                        : "border-slate-200 hover:border-slate-300 bg-white"
+                    }`}
+                  >
+                    <div className="aspect-[16/9] w-full rounded-lg overflow-hidden bg-slate-100 relative">
+                      <img src={preset.url} alt={preset.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      {heroBgUrl === preset.url && (
+                        <div className="absolute top-1 right-1 bg-[#22c55e] text-white p-0.5 rounded-full shadow-xs">
+                          <Check size={10} strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-800 line-clamp-1 leading-snug">{preset.name}</p>
+                      <p className="text-[9px] text-slate-400 line-clamp-1">{preset.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       )}

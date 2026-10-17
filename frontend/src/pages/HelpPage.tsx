@@ -28,7 +28,7 @@ export default function HelpPage({ onNotify }: HelpPageProps) {
   );
 
   return (
-    <div className="max-w-3xl mx-auto w-full p-6 md:p-8 flex-grow">
+    <div className="max-w-3xl mx-auto w-full p-4 sm:p-6 md:p-8 flex-grow pb-24 sm:pb-8">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         <div className="bg-slate-950 p-6 md:p-8 text-white space-y-4 border-b border-slate-800">
           <div className="flex items-center gap-3.5">

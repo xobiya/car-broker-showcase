@@ -33,6 +33,14 @@ const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+}
+
 function PageLoader() {
   return (
     <div className="flex-1 min-h-[50vh] flex flex-col items-center justify-center p-8 text-slate-400">
@@ -102,8 +110,6 @@ export default function App() {
   const [authModalRole, setAuthModalRole] = useState<"buyer" | "broker" | "seller">("buyer");
   const [authModalTab, setAuthModalTab] = useState<"login" | "register">("login");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [vehiclesMenuOpen, setVehiclesMenuOpen] = useState(false);
-  const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const { toasts, removeToast } = useToast();
@@ -111,10 +117,8 @@ export default function App() {
   const userRole = user?.role || "buyer";
 
   useEffect(() => {
-    setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
-    setVehiclesMenuOpen(false);
-    setServicesMenuOpen(false);
+    setMobileMenuOpen(false);
   }, [location.pathname]);
 
   // If user is admin and visits any user-side page, redirect them to admin pages
@@ -167,6 +171,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased transition-colors duration-200">
+      <ScrollToTop />
       <div className="fixed top-5 right-5 z-[100] space-y-2 pointer-events-none w-80 max-w-full">
         <AnimatePresence>
           {toasts.map(toast => (
@@ -236,15 +241,8 @@ export default function App() {
           </div>
 
           {/* Clean White Signature Header with Emerald Accents */}
-          <header className="shrink-0 bg-white/95 border-b border-slate-200/90 text-slate-900 h-20 px-4 sm:px-6 md:px-8 flex items-center justify-between backdrop-blur-xl sticky top-0 z-40 transition-colors duration-200 shadow-sm shadow-slate-950/5">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
-                aria-label="Open mobile menu"
-              >
-                <Menu size={22} />
-              </button>
+          <header className="shrink-0 bg-white/95 dark:bg-[#0B0F19]/95 border-b border-slate-200/90 dark:border-slate-800 text-slate-900 dark:text-slate-100 h-16 sm:h-20 px-3 sm:px-6 md:px-8 flex items-center justify-between backdrop-blur-xl sticky top-0 z-40 transition-colors duration-200 shadow-sm shadow-slate-950/5 dark:shadow-none">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <div onClick={() => navigate(userRole === "admin" ? "/admin" : "/")} className="cursor-pointer shrink-0">
                 <Logo size="md" />
               </div>
@@ -252,21 +250,21 @@ export default function App() {
 
             {/* Actual Pages Navigation: Clean, Professional, Emerald Accents */}
             <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-              {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
+              {userRole !== "admin" && (
                 <button
                   onClick={() => navigate("/")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                    location.pathname === "/" ? "text-[#22c55e]" : "text-slate-700"
+                    location.pathname === "/" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   Home
                 </button>
               )}
-              {userRole !== "broker" && userRole !== "seller" && userRole !== "admin" && (
+              {userRole !== "admin" && (
                 <button
                   onClick={() => navigate("/browse")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                    location.pathname === "/browse" ? "text-[#22c55e]" : "text-slate-700"
+                    location.pathname === "/browse" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   Vehicles
@@ -276,7 +274,7 @@ export default function App() {
                 <button
                   onClick={() => navigate("/services")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                    location.pathname === "/services" ? "text-[#22c55e]" : "text-slate-700"
+                    location.pathname === "/services" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   Services
@@ -286,37 +284,17 @@ export default function App() {
                 <button
                   onClick={() => navigate("/compare")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                    location.pathname === "/compare" ? "text-[#22c55e]" : "text-slate-700"
+                    location.pathname === "/compare" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   Compare
-                </button>
-              )}
-              {userRole === "broker" && (
-                <button
-                  onClick={() => navigate("/broker-dashboard")}
-                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                    location.pathname === "/broker-dashboard" ? "text-[#22c55e]" : "text-slate-700"
-                  }`}
-                >
-                  Broker Portal
-                </button>
-              )}
-              {userRole === "seller" && (
-                <button
-                  onClick={() => navigate("/seller-dashboard")}
-                  className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                    location.pathname === "/seller-dashboard" ? "text-[#22c55e]" : "text-slate-700"
-                  }`}
-                >
-                  Seller Hub
                 </button>
               )}
               {userRole === "admin" && (
                 <button
                   onClick={() => navigate("/admin")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                    location.pathname.startsWith("/admin") ? "text-[#22c55e]" : "text-slate-700"
+                    location.pathname.startsWith("/admin") ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   Admin Panel
@@ -327,7 +305,7 @@ export default function App() {
                   <button
                     onClick={() => navigate("/about")}
                     className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                      location.pathname === "/about" ? "text-[#22c55e]" : "text-slate-700"
+                      location.pathname === "/about" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                     }`}
                   >
                     About
@@ -335,7 +313,7 @@ export default function App() {
                   <button
                     onClick={() => navigate("/contact")}
                     className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#22c55e] transition-colors ${
-                      location.pathname === "/contact" ? "text-[#22c55e]" : "text-slate-700"
+                      location.pathname === "/contact" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                     }`}
                   >
                     Contact
@@ -344,34 +322,51 @@ export default function App() {
               )}
             </nav>
 
-            {/* Right: Sign in, Add Listing & Grid Icon Button */}
-            <div className="flex items-center space-x-2.5 sm:space-x-3.5 shrink-0">
+            {/* Right: Actions */}
+            <div className="flex items-center space-x-2 sm:space-x-3.5 shrink-0">
+              
+              {/* Desktop Add Listing Pill Button */}
+              <button
+                onClick={() => {
+                  if (!user) navigate("/login");
+                  else if (userRole === "broker") navigate("/broker-dashboard");
+                  else navigate("/profile?section=listings&action=new");
+                }}
+                className="hidden md:inline-flex items-center gap-1.5 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-5 py-2.5 rounded-full text-xs transition cursor-pointer shadow-sm hover:shadow-emerald-500/20 tracking-tight active:scale-95 whitespace-nowrap"
+              >
+                <Plus size={14} strokeWidth={3} />
+                <span>Add Listing</span>
+              </button>
+
+
+
               {user ? (
                 <div className="relative">
                   <button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-800 rounded-full px-3 py-1.5 shadow-xs transition cursor-pointer"
+                    className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-full px-2 sm:px-3.5 py-1 sm:py-1.5 shadow-xs transition cursor-pointer shrink-0"
+                    aria-label="User Profile"
                   >
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center text-[10px] font-black">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-xs font-bold hidden sm:block text-slate-800">{user.name.split(" ")[0]}</span>
-                    <ChevronDown size={12} className={`text-slate-500 transition ${profileDropdownOpen ? "rotate-180" : ""}`} />
+                    <UserCircle size={18} className="text-[#22c55e] shrink-0" />
+                    <span className="text-xs font-bold hidden sm:block text-slate-800 dark:text-slate-200">{user.name.split(" ")[0]}</span>
+                    <ChevronDown size={11} className={`text-slate-500 transition ${profileDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
                   {profileDropdownOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 text-slate-700 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
-                        <div className="px-4 py-3 border-b border-slate-100">
-                          <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#22c55e] mt-0.5">{user.role}</p>
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#22c55e] mt-0.5">
+                            {user.role === "admin" ? "Admin" : user.role === "broker" ? "Certified Broker" : "Verified Member"}
+                          </p>
                         </div>
                         <div className="py-1">
-                          {userRole === "buyer" && (
-                            <DropdownItem icon={LayoutDashboard} label="My Saved & Requests" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
+                          {(userRole === "buyer" || userRole === "seller") && (
+                            <DropdownItem icon={UserCircle} label="My Profile" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
                           )}
-                          {(userRole === "broker" || userRole === "seller") && (
-                            <DropdownItem icon={LayoutDashboard} label="My Dashboard" onClick={() => { navigate(userRole === "broker" ? "/broker-dashboard" : "/seller-dashboard"); setProfileDropdownOpen(false); }} />
+                          {userRole === "broker" && (
+                            <DropdownItem icon={LayoutDashboard} label="Broker Portal" onClick={() => { navigate("/broker-dashboard"); setProfileDropdownOpen(false); }} />
                           )}
                           {userRole === "admin" && (
                             <>
@@ -379,11 +374,8 @@ export default function App() {
                               <DropdownItem icon={UserCircle} label="Admin Profile" onClick={() => { navigate("/admin/profile"); setProfileDropdownOpen(false); }} />
                             </>
                           )}
-                          {userRole !== "admin" && (
-                            <DropdownItem icon={UserCircle} label="Profile Settings" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
-                          )}
                         </div>
-                        <div className="border-t border-slate-100 pt-1">
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-1">
                           <DropdownItem icon={LogOut} label="Sign Out" onClick={() => { handleLogout(); setProfileDropdownOpen(false); }} danger />
                         </div>
                       </div>
@@ -394,21 +386,21 @@ export default function App() {
                 <div className="flex items-center space-x-1 sm:space-x-2">
                   <button
                     onClick={() => navigate("/login")}
-                    className={`flex items-center gap-1.5 text-xs sm:text-[13px] font-bold transition-colors cursor-pointer px-2 sm:px-3 py-1.5 rounded-full ${
+                    className={`flex items-center gap-1 text-xs sm:text-[13px] font-bold transition-all cursor-pointer px-2.5 sm:px-4 py-1.5 rounded-full border ${
                       location.pathname === "/login"
-                        ? "text-[#22c55e] bg-emerald-50 border border-emerald-200/80"
-                        : "text-slate-700 hover:text-[#22c55e]"
+                        ? "text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800"
+                        : "text-slate-700 dark:text-slate-200 hover:text-[#22c55e] border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
-                    <UserCircle size={16} className={location.pathname === "/login" ? "text-[#22c55e]" : "text-slate-600"} />
+                    <UserCircle size={14} className="text-[#22c55e] hidden xs:block sm:block" />
                     <span>Sign in</span>
                   </button>
                   <button
                     onClick={() => navigate("/register")}
-                    className={`hidden sm:inline-flex items-center gap-1 text-xs sm:text-[13px] font-bold transition-colors cursor-pointer px-2.5 py-1.5 rounded-full ${
+                    className={`hidden sm:inline-flex items-center gap-1 text-xs sm:text-[13px] font-bold transition-colors cursor-pointer px-3.5 py-1.5 rounded-full ${
                       location.pathname === "/register"
-                        ? "text-[#22c55e] bg-emerald-50 border border-emerald-200/80"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     <span>Sign up</span>
@@ -416,32 +408,36 @@ export default function App() {
                 </div>
               )}
 
-              {/* Add Listing Pill Button */}
+              {/* Mobile Theme Toggle Icon Button */}
               <button
-                onClick={() => {
-                  if (!user) navigate("/choose-role");
-                  else if (userRole === "seller") navigate("/seller-dashboard");
-                  else if (userRole === "broker") navigate("/broker-dashboard");
-                  else navigate("/choose-role");
-                }}
-                className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-extrabold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs transition cursor-pointer shadow-sm hover:shadow-emerald-500/20 tracking-tight active:scale-95 whitespace-nowrap"
+                type="button"
+                onClick={toggleTheme}
+                className="md:hidden p-1.5 sm:p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-[#22c55e] hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
+                title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                aria-label="Toggle theme mode"
               >
-                Add Listing
+                {theme === "dark" ? (
+                  <Sun size={18} className="text-amber-400" />
+                ) : (
+                  <Moon size={18} className="text-slate-600 dark:text-slate-400" />
+                )}
               </button>
 
-              {/* Green Grid 4-Squares Icon Button */}
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 transition cursor-pointer shadow-xs flex items-center justify-center active:scale-95 shrink-0"
-                aria-label="Navigation drawer"
-                title="Navigation & Categories"
-              >
-                <LayoutGrid size={18} strokeWidth={2.2} className="text-slate-700" />
-              </button>
+              {/* Mobile Menu Hamburger Button */}
+              {userRole !== "admin" && (
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="md:hidden p-1.5 sm:p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-[#22c55e] hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
+                  aria-label="Toggle navigation menu"
+                >
+                  {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              )}
             </div>
           </header>
 
-          {/* Off-canvas Mobile Drawer */}
+          {/* ── MOBILE SLIDE-DOWN NAVIGATION DRAWER ── */}
           <AnimatePresence>
             {mobileMenuOpen && (
               <>
@@ -449,206 +445,71 @@ export default function App() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm md:hidden"
+                  className="fixed inset-0 top-16 sm:top-20 bg-slate-950/40 backdrop-blur-xs z-30 md:hidden"
                 />
-                <motion.aside
-                  initial={{ x: "-100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "-100%" }}
-                  transition={{ type: "spring", damping: 25, stiffness: 240 }}
-                  className="fixed inset-y-0 left-0 z-50 w-[84%] max-w-sm bg-white text-slate-900 shadow-2xl flex flex-col md:hidden border-r border-slate-200 overflow-hidden"
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="md:hidden bg-white dark:bg-[#0B0F19] border-b border-slate-200 dark:border-slate-800 shadow-2xl z-40 fixed top-16 sm:top-20 left-0 right-0 max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-5rem)] overflow-y-auto"
                 >
-                  <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-                    <Logo size="sm" />
-                    <button
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
-                      aria-label="Close menu"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-4 space-y-5">
-                    {user ? (
-                      <div className="p-4 rounded-2xl bg-slate-50 text-slate-900 space-y-3 border border-slate-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center text-sm font-black shadow-xs">
-                            {user.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold truncate text-slate-900">{user.name}</p>
-                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-[#16a34a] border border-emerald-200/80">
-                              {user.role}
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            if (user.role === "broker") navigate("/broker-dashboard");
-                            else if (user.role === "seller") navigate("/seller-dashboard");
-                            else if (user.role === "admin") navigate("/admin");
-                            else navigate("/profile");
-                            setMobileMenuOpen(false);
-                          }}
-                          className="w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                        >
-                          <LayoutDashboard size={14} />
-                          Go to Dashboard
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                        <div>
-                          <p className="text-xs font-bold text-slate-900">Welcome to Arif Car Sell</p>
-                          <p className="text-[11px] text-slate-500">Sign in to contact brokers, schedule test drives, and save cars.</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => { navigate("/login"); setMobileMenuOpen(false); }}
-                            className="w-full bg-white border border-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl hover:bg-slate-50 transition cursor-pointer shadow-xs"
-                          >
-                            Sign In
-                          </button>
-                          <button
-                            onClick={() => { navigate("/register"); setMobileMenuOpen(false); }}
-                            className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs font-black py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-emerald-500/20"
-                          >
-                            Register
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
+                  <div className="px-4 py-4 space-y-4">
+                    {/* Primary Links */}
                     <div className="space-y-1">
-                      {userRole !== "admin" ? (
-                        <>
-                          <p className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Marketplace</p>
-                          {[
-                            { to: "/", label: "Home", icon: Home },
-                            { to: "/browse", label: "Showroom Inventory", icon: LayoutGrid },
-                            { to: "/services", label: "Broker Services & Inspection", icon: Sparkles },
-                            { to: "/compare", label: "Compare Vehicles", icon: GitCompare },
-                            { to: "/about", label: "About Our Marketplace", icon: Info },
-                            { to: "/contact", label: "Contact Broker Support", icon: Phone },
-                          ].map(item => {
-                            const Icon = item.icon;
-                            const active = location.pathname === item.to;
-                            return (
-                              <button
-                                key={item.to}
-                                onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                                  active
-                                    ? "bg-emerald-50 text-[#16a34a] font-extrabold"
-                                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                                }`}
-                              >
-                                <Icon size={16} className={active ? "text-[#16a34a]" : "text-slate-400"} />
-                                {item.label}
-                              </button>
-                            );
-                          })}
-                        </>
-                      ) : (
-                        <>
-                          <p className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Administration</p>
-                          {[
-                            { to: "/admin", label: "Admin Control Panel", icon: ShieldCheck },
-                            { to: "/admin/profile", label: "Admin Profile", icon: UserCircle },
-                            { to: "/admin/notifications", label: "Notifications & Alerts", icon: Info },
-                          ].map(item => {
-                            const Icon = item.icon;
-                            const active = location.pathname === item.to;
-                            return (
-                              <button
-                                key={item.to}
-                                onClick={() => { navigate(item.to); setMobileMenuOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                                  active
-                                    ? "bg-emerald-50 text-[#16a34a] font-extrabold"
-                                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                                }`}
-                              >
-                                <Icon size={16} className={active ? "text-[#16a34a]" : "text-slate-400"} />
-                                {item.label}
-                              </button>
-                            );
-                          })}
-                        </>
-                      )}
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-3 pb-1">
+                        Explore Marketplace
+                      </p>
+                      {[
+                        { label: "Home", path: "/", icon: Home },
+                        { label: "Vehicles (Showroom)", path: "/browse", icon: LayoutGrid },
+                        { label: "Compare Vehicles", path: "/compare", icon: GitCompare },
+                        { label: "Broker Services", path: "/services", icon: Sparkles },
+                        { label: "About Arif Car Sell", path: "/about", icon: Info },
+                        { label: "Contact & Support", path: "/contact", icon: Phone }
+                      ].map(link => {
+                        const LinkIcon = link.icon;
+                        const isActive = location.pathname === link.path;
+                        return (
+                          <button
+                            key={link.path}
+                            onClick={() => {
+                              navigate(link.path);
+                              setMobileMenuOpen(false);
+                              window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                            }}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                              isActive
+                                ? "bg-emerald-50 dark:bg-emerald-950/60 text-[#22c55e]"
+                                : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <LinkIcon size={17} className={isActive ? "text-[#22c55e]" : "text-slate-400"} />
+                              <span>{link.label}</span>
+                            </div>
+                            {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />}
+                          </button>
+                        );
+                      })}
                     </div>
 
-                    <div className="space-y-1 pt-2 border-t border-slate-100">
-                      <p className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Account & Roles</p>
-                      {userRole === "admin" && (
-                        <button
-                          onClick={() => { navigate("/admin"); setMobileMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                        >
-                          <ShieldCheck size={16} className="text-indigo-600" />
-                          Admin Control Panel
-                        </button>
-                      )}
-                      {userRole === "broker" && (
-                        <button
-                          onClick={() => { navigate("/broker-dashboard"); setMobileMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                        >
-                          <LayoutDashboard size={16} className="text-indigo-600" />
-                          Broker Portal
-                        </button>
-                      )}
-                      {userRole === "seller" && (
-                        <button
-                          onClick={() => { navigate("/seller-dashboard"); setMobileMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                        >
-                          <LayoutDashboard size={16} className="text-orange-600" />
-                          Seller Hub
-                        </button>
-                      )}
-                      {!user && (
-                        <button
-                          onClick={() => { navigate("/choose-role"); setMobileMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-900 hover:text-white cursor-pointer"
-                        >
-                          <UserCircle size={16} className="text-slate-400" />
-                          Join as Broker or Seller
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Mobile Theme Mode Switcher */}
-                    <div className="pt-2 border-t border-slate-800">
+                    {/* Drawer Footer: Theme Icon Toggle Only (No contact phone number) */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between px-3.5">
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Theme</span>
                       <button
                         onClick={toggleTheme}
-                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white cursor-pointer transition"
+                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer shadow-xs"
+                        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                        aria-label="Toggle theme mode"
                       >
-                        <span className="flex items-center gap-2">
-                          {theme === "dark" ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-slate-300" />}
-                          <span>Appearance</span>
-                        </span>
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-800 text-[#22c55e]">
-                          {theme === "dark" ? "Dark Mode" : "Light Mode"}
-                        </span>
+                        {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-slate-400" />}
                       </button>
                     </div>
-
-                    {user && (
-                      <div className="pt-2 border-t border-slate-800">
-                        <button
-                          onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-950/30 transition cursor-pointer"
-                        >
-                          <LogOut size={16} />
-                          Sign Out
-                        </button>
-                      </div>
-                    )}
                   </div>
-                </motion.aside>
+                </motion.div>
               </>
             )}
           </AnimatePresence>
@@ -667,21 +528,20 @@ export default function App() {
               className={`w-full ${fullScreen ? "h-full flex-1" : "flex-grow"} flex flex-col`}
             >
               <Routes>
-                <Route path="/" element={<UserRoute><HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller") navigate("/seller-dashboard"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} /></UserRoute>} />
+                <Route path="/" element={<UserRoute><HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller" || user.role === "buyer") navigate("/profile"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} /></UserRoute>} />
                 <Route path="/choose-role" element={<UserRoute><ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => navigate("/login")} /></UserRoute>} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/signup" element={<RegisterPage />} />
                 <Route path="/services" element={<UserRoute><ServicesPage onNotify={addToast} /></UserRoute>} />
                 <Route path="/service" element={<Navigate to="/services" replace />} />
-                <Route path="/browse" element={<UserRoute><div className="max-w-7xl mx-auto w-full p-6 md:p-8 flex-grow"><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></div></UserRoute>} />
+                <Route path="/browse" element={<UserRoute><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></UserRoute>} />
                 <Route path="/vehicles/:id" element={<UserRoute><VehicleDetail vehicle={selectedVehicle} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} /></UserRoute>} />
                 <Route path="/broker-dashboard" element={<ProtectedRoute allowedRoles={["broker"]}><BrokerDashboard onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
-                <Route path="/seller-dashboard" element={<ProtectedRoute allowedRoles={["seller"]}><SellerDashboard currentUser={user} onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
+                <Route path="/seller-dashboard" element={<Navigate to="/profile?section=listings" replace />} />
                 <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPanel onNotify={addToast} onLogout={handleLogout} onNavigate={(v: string) => navigate(`/admin/${v}`)} /></ProtectedRoute>} />
                 <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProfilePage onBack={() => navigate("/admin")} onLogout={handleLogout} onNotify={addToast} /></ProtectedRoute>} />
-                <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationsPage onBack={() => navigate("/admin")} /></ProtectedRoute>} />
-                <Route path="/profile" element={<UserRoute>{user ? user.role === "buyer" ? <BuyerProfilePage user={user} onNotify={addToast} onViewDetails={handleViewDetails} /> : <div className="max-w-2xl mx-auto w-full p-6 md:p-8 flex-grow"><ProfileView user={user} onLogout={handleLogout} onBack={() => navigate("/")} /></div> : <div className="p-8 text-center"><p className="text-sm font-semibold text-slate-500">Please log in to view your profile.</p></div>}</UserRoute>} />
+                <Route path="/profile" element={<UserRoute>{user ? (user.role === "admin" ? <Navigate to="/admin/profile" replace /> : <BuyerProfilePage user={user} onNotify={addToast} onViewDetails={handleViewDetails} />) : <Navigate to="/login" replace />}</UserRoute>} />
                 <Route path="/about" element={<UserRoute><AboutPage onNotify={addToast} /></UserRoute>} />
                 <Route path="/about-us" element={<Navigate to="/about" replace />} />
                 <Route path="/contact" element={<UserRoute><ContactPage onNotify={addToast} /></UserRoute>} />
@@ -720,7 +580,7 @@ export default function App() {
             <div className="space-y-6">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">For Sellers</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => user ? navigate("/seller-dashboard") : navigate("/choose-role")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Sell Your Car</button></li>
+                <li><button onClick={() => user ? navigate("/profile?section=listings&action=new") : navigate("/login")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Sell Your Car</button></li>
                 {['Pricing Guide', 'Listing Tips'].map(link => (
                   <li key={link}>
                     <button onClick={() => addToast("Coming soon!", "info")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer">
@@ -750,23 +610,45 @@ export default function App() {
       )}
 
       {!fullScreen && userRole !== "admin" && (
-        <div className="fixed sm:hidden bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 flex items-center justify-around px-1 py-1 shadow-[0_-3px_16px_rgba(0,0,0,0.06)]">
-          <button onClick={() => navigate("/")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/" ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
-            <Home size={20} /><span className="text-[10px]">Home</span>
+        <div className="fixed md:hidden bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-slate-800 flex items-center justify-around px-2 py-1 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <button onClick={() => { navigate("/"); setMobileMenuOpen(false); window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }} className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/" && !mobileMenuOpen ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
+            <Home size={19} /><span className="text-[10px]">Home</span>
           </button>
-          <button onClick={() => navigate("/browse")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/browse" ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
-            <LayoutGrid size={20} /><span className="text-[10px]">Showroom</span>
+          
+          <button onClick={() => { navigate("/browse"); setMobileMenuOpen(false); window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }} className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/browse" && !mobileMenuOpen ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
+            <LayoutGrid size={19} /><span className="text-[10px]">Showroom</span>
           </button>
-          <button onClick={() => navigate("/compare")} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/compare" ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
-            <GitCompare size={20} /><span className="text-[10px]">Compare</span>
+
+          {/* Elevated Center "Sell Car" Button */}
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+              if (!user) navigate("/login");
+              else if (userRole === "broker") navigate("/broker-dashboard");
+              else navigate("/profile?section=listings&action=new");
+            }}
+            className="flex flex-col items-center -mt-5 cursor-pointer group shrink-0"
+            aria-label="Sell Car"
+          >
+            <div className="w-12 h-12 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/35 border-3 border-white dark:border-[#0B0F19] group-active:scale-95 transition-transform duration-200">
+              <Plus size={22} strokeWidth={3} />
+            </div>
+            <span className="text-[9px] font-black text-slate-700 dark:text-slate-300 group-hover:text-[#22c55e] mt-0.5">Sell Car</span>
           </button>
+
+          <button onClick={() => { navigate("/compare"); setMobileMenuOpen(false); window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }} className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl cursor-pointer transition-colors min-w-0 ${location.pathname === "/compare" && !mobileMenuOpen ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
+            <GitCompare size={19} /><span className="text-[10px]">Compare</span>
+          </button>
+
           <button onClick={() => {
+            setMobileMenuOpen(false);
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
             if (!user) navigate("/login");
             else if (userRole === "broker") navigate("/broker-dashboard");
-            else if (userRole === "seller") navigate("/seller-dashboard");
             else navigate("/profile");
-          }} className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl cursor-pointer transition-colors min-w-0 ${(location.pathname === "/profile" || location.pathname.includes("dashboard")) ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
-            <UserCircle size={20} /><span className="text-[10px]">{user ? (userRole === "broker" ? "Broker" : userRole === "seller" ? "Seller" : "Saved") : "Sign In"}</span>
+          }} className={`flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-xl cursor-pointer transition-colors min-w-0 ${(location.pathname === "/profile" || location.pathname.includes("dashboard") || location.pathname === "/login") && !mobileMenuOpen ? "text-[#22c55e] font-bold" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"}`}>
+            <UserCircle size={19} /><span className="text-[10px]">{user ? (userRole === "broker" ? "Portal" : "Profile") : "Sign In"}</span>
           </button>
         </div>
       )}
@@ -790,53 +672,13 @@ function DropdownItem({ icon: Icon, label, onClick, danger }: { icon: any; label
   return (
     <button onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
-        danger ? "text-rose-600 hover:bg-rose-50" : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+        danger 
+          ? "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40" 
+          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
       }`}
     >
-      <Icon size={15} className={danger ? "text-rose-500" : "text-slate-500"} />
+      <Icon size={15} className={danger ? "text-rose-500" : "text-slate-500 dark:text-slate-400"} />
       {label}
     </button>
-  );
-}
-
-function ProfileView({ user, onLogout, onBack }: { user: User; onLogout: () => void; onBack: () => void }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-900 to-blue-800 p-6 md:p-8 text-white">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-black">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">{user.name}</h1>
-            <p className="text-sm text-blue-200 font-black uppercase tracking-wider mt-0.5">{user.role}</p>
-          </div>
-        </div>
-      </div>
-      <div className="p-6 md:p-8 space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Email</p>
-            <p className="text-sm font-semibold text-slate-800 mt-1">{user.email}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Phone</p>
-            <p className="text-sm font-semibold text-slate-800 mt-1">{user.phone}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Joined</p>
-            <p className="text-sm font-semibold text-slate-800 mt-1">{new Date().toLocaleDateString()}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Status</p>
-            <p className="text-sm font-semibold text-emerald-600 mt-1">Active</p>
-          </div>
-        </div>
-        <div className="flex gap-3 pt-4 border-t border-slate-100">
-          <button onClick={onBack} className="text-sm font-bold text-slate-500 hover:text-slate-800 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition cursor-pointer">Back to Home</button>
-          <button onClick={onLogout} className="text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 px-4 py-2 rounded-lg transition cursor-pointer">Logout</button>
-        </div>
-      </div>
-    </div>
   );
 }

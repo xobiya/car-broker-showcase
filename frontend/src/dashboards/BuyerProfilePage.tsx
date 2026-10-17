@@ -1,7 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Heart, Calendar, Trash2, Clock, MapPin, User, Mail, Phone, CalendarDays, Key, Camera, Check, Pencil, Eye, EyeOff, Loader2, ShieldCheck, Bell, BadgeCheck, Save, LayoutDashboard, Settings, LogOut, ArrowRight, Search } from "lucide-react";
-import { VehicleListing, SavedVehicle, TestDriveRequest } from "../../../shared/types";
-import { savedVehiclesApi, testDrivesApi, usersApi, authApi, uploadApi } from "../lib/api";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Heart, Calendar, Trash2, Clock, MapPin, User, Mail, Phone, CalendarDays,
+  Key, Camera, Check, Pencil, Eye, EyeOff, Loader2, ShieldCheck, Bell,
+  BadgeCheck, Save, LayoutDashboard, LogOut, ArrowRight, Search,
+  Car, Plus, X, AlertCircle, MessageCircle, RefreshCw, Edit3,
+  ExternalLink, Sparkles, ArrowLeft
+} from "lucide-react";
+import { VehicleListing, SavedVehicle, TestDriveRequest, Lead } from "../../../shared/types";
+import { savedVehiclesApi, testDrivesApi, uploadApi, vehiclesApi, leadsApi } from "../lib/api";
+import { useAuth } from "../hooks/useAuth";
+import Combobox from "../components/ui/Combobox";
+import {
+  BRANDS, LOCATIONS, FUEL_TYPES, TRANSMISSIONS,
+  DRIVE_TYPES, CONDITIONS, BODY_TYPES, ENGINE_TYPES,
+  DOOR_OPTIONS, SEAT_OPTIONS, BRAND_MODELS
+} from "../lib/constants";
 
 interface BuyerProfilePageProps {
   user: any;
@@ -9,26 +23,31 @@ interface BuyerProfilePageProps {
   onViewDetails?: (vehicle: VehicleListing) => void;
 }
 
-type Section = "dashboard" | "saved" | "testdrives" | "profile" | "security" | "notifications" | "account";
+type Section = "dashboard" | "saved" | "testdrives" | "listings" | "inquiries" | "profile" | "security";
 
-const sections: { id: Section; label: string; icon: any }[] = [
+const sections: { id: Section; label: string; icon: any; category?: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "saved", label: "Saved Vehicles", icon: Heart },
   { id: "testdrives", label: "Test Drives", icon: Calendar },
+  { id: "listings", label: "My Listed Cars", icon: Car },
+  { id: "inquiries", label: "Inquiries Received", icon: MessageCircle },
   { id: "profile", label: "Personal Info", icon: User },
   { id: "security", label: "Password & Security", icon: Key },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "account", label: "Account", icon: ShieldCheck },
 ];
 
 const fmt = (n: number) => n.toLocaleString("en-ET", { maximumFractionDigits: 0 });
 
 const StatusPill = ({ status }: { status: string }) => {
   const colors: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    confirmed: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    completed: "bg-blue-100 text-blue-700 border-blue-200",
-    cancelled: "bg-rose-100 text-rose-700 border-rose-200",
+    pending: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/60",
+    confirmed: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/60",
+    approved: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/60",
+    completed: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/60",
+    sold: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900/60",
+    cancelled: "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/60",
+    new: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/60",
+    contacted: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900/60",
+    closed: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
   };
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${colors[status] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
@@ -38,33 +57,60 @@ const StatusPill = ({ status }: { status: string }) => {
 };
 
 export default function BuyerProfilePage({ user, onNotify, onViewDetails }: BuyerProfilePageProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<Section>("dashboard");
   const [savedVehicles, setSavedVehicles] = useState<(SavedVehicle & { vehicle?: VehicleListing })[]>([]);
   const [testDrives, setTestDrives] = useState<TestDriveRequest[]>([]);
+  const [myListings, setMyListings] = useState<VehicleListing[]>([]);
+  const [inquiries, setInquiries] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Listing modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<VehicleListing | null>(null);
+  const [deletingVehicleId, setDeletingVehicleId] = useState<string | null>(null);
 
   const userId = user?.id;
   const initials = user?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "U";
 
+  // Respond dynamically to URL changes like ?section=profile or ?section=listings&action=new
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sec = params.get("section") as Section | null;
+    const action = params.get("action");
+    if (sec && sections.some(s => s.id === sec)) {
+      setActiveSection(sec);
+    }
+    if (action === "new") {
+      setShowAddModal(true);
+    }
+  }, [location.search]);
+
+  const fetchData = async () => {
     if (!userId) return;
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [savedData, tdData] = await Promise.all([
-          savedVehiclesApi.list(userId).catch(() => [] as SavedVehicle[]),
-          testDrivesApi.list().catch(() => [] as TestDriveRequest[]),
-        ]);
-        setSavedVehicles(savedData);
-        setTestDrives(tdData);
-      } catch {
-        onNotify("Failed to load data.", "error");
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      setLoading(true);
+      const [savedData, tdData, allVehicles, allLeads] = await Promise.all([
+        savedVehiclesApi.list(userId).catch(() => [] as SavedVehicle[]),
+        testDrivesApi.list().catch(() => [] as TestDriveRequest[]),
+        vehiclesApi.list().catch(() => [] as VehicleListing[]),
+        leadsApi.list().catch(() => [] as Lead[]),
+      ]);
+      setSavedVehicles(savedData);
+      setTestDrives(tdData);
+      setMyListings(allVehicles.filter(v => v.brokerId === userId));
+      setInquiries(allLeads);
+    } catch {
+      onNotify("Failed to load customer data.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [userId, onNotify]);
+  }, [userId]);
 
   const handleRemoveSaved = async (vehicleId: string) => {
     try {
@@ -86,54 +132,107 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
     }
   };
 
+  const handleDeleteListing = async (vehicleId: string) => {
+    try {
+      await vehiclesApi.delete(vehicleId);
+      setMyListings(prev => prev.filter(v => v.id !== vehicleId));
+      setDeletingVehicleId(null);
+      onNotify("Vehicle listing removed.", "success");
+    } catch {
+      onNotify("Failed to delete vehicle.", "error");
+    }
+  };
+
+  const handleLeadStatusChange = async (leadId: string, status: string) => {
+    try {
+      await leadsApi.updateStatus(leadId, status);
+      setInquiries(prev => prev.map(l => l.id === leadId ? { ...l, status } : l));
+      onNotify(`Inquiry updated to ${status}.`, "success");
+    } catch {
+      onNotify("Failed to update inquiry status.", "error");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-        <div className="flex items-center justify-between mb-8">
+        
+        {/* Top Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white">My Account</h1>
-            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium mt-0.5">Welcome back, {user?.name?.split(" ")[0]}</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              My Profile
+            </h1>
+            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+              Welcome back, {user?.name?.split(" ")[0]} — manage your account, saved cars, and marketplace listings.
+            </p>
           </div>
-          <a href="/browse"
-            className="flex items-center gap-2 text-xs font-bold text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm"
-          >
-            <Search size={14} />
-            Browse Vehicles
-          </a>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+            <button
+              onClick={() => { setEditingVehicle(null); setShowAddModal(true); }}
+              className="flex items-center justify-center gap-2 text-xs font-black text-slate-950 bg-[#22c55e] hover:bg-[#16a34a] px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
+            >
+              <Plus size={15} strokeWidth={3} />
+              <span>List a Car to Sell</span>
+            </button>
+            <button
+              onClick={() => navigate("/browse")}
+              className="flex items-center justify-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer whitespace-nowrap"
+            >
+              <Search size={14} />
+              <span>Browse Marketplace</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
+          {/* Navigation Sidebar / Mobile Horizontal Tabs */}
           <div className="lg:w-64 shrink-0">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden sticky top-24 transition-colors">
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden sticky top-20 sm:top-24 z-20 transition-colors">
+              <div className="p-5 border-b border-slate-100 dark:border-slate-800 hidden lg:block">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-[#22c55e]/30 text-[#22c55e] flex items-center justify-center text-sm font-black shadow-sm">
-                    {initials}
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-[#22c55e]/30 text-[#22c55e] flex items-center justify-center text-sm font-black shadow-sm shrink-0 overflow-hidden">
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" />
+                    ) : (
+                      initials
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
-                    <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Buyer</p>
+                    <p className="text-[10px] font-bold text-[#22c55e] uppercase tracking-wider">
+                      {user?.role === "broker" ? "Certified Broker" : "Verified Member"}
+                    </p>
                   </div>
                 </div>
               </div>
-              <nav className="p-2 flex lg:flex-col gap-1 overflow-x-auto scrollbar-none">
+              <nav className="p-1.5 sm:p-2 flex lg:flex-col gap-1 overflow-x-auto scrollbar-none">
                 {sections.map(sec => {
                   const Icon = sec.icon;
-                  const counts: Record<string, number> = { saved: savedVehicles.length, testdrives: testDrives.length };
+                  const counts: Record<string, number> = {
+                    saved: savedVehicles.length,
+                    testdrives: testDrives.length,
+                    listings: myListings.length,
+                    inquiries: inquiries.length,
+                  };
                   const count = counts[sec.id];
                   return (
-                    <button key={sec.id} onClick={() => setActiveSection(sec.id)}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 lg:w-full ${
+                    <button
+                      key={sec.id}
+                      onClick={() => setActiveSection(sec.id)}
+                      className={`flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 lg:w-full ${
                         activeSection === sec.id
-                          ? "bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] font-extrabold shadow-sm"
-                          : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                          ? "bg-[#22c55e] text-slate-950 font-black shadow-sm shadow-emerald-500/20"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80"
                       }`}
                     >
-                      <Icon size={15} className="shrink-0" />
-                      <span className="text-left">{sec.label}</span>
-                      {count !== undefined && (
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                          activeSection === sec.id ? "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                      <Icon size={15} className={`shrink-0 ${activeSection === sec.id ? "text-slate-950" : "text-slate-400"}`} />
+                      <span className="text-left flex-1">{sec.label}</span>
+                      {count !== undefined && count > 0 && (
+                        <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
+                          activeSection === sec.id
+                            ? "bg-slate-950/20 text-slate-950"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                         }`}>
                           {count}
                         </span>
@@ -145,13 +244,17 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
             </div>
           </div>
 
+          {/* Main Content Area */}
           <div className="flex-1 min-w-0">
             {activeSection === "dashboard" && (
               <DashboardSection
                 user={user}
                 savedCount={savedVehicles.length}
                 testDriveCount={testDrives.length}
+                listingsCount={myListings.length}
+                inquiriesCount={inquiries.length}
                 onNavigate={setActiveSection}
+                onAddListing={() => { setEditingVehicle(null); setShowAddModal(true); }}
               />
             )}
             {activeSection === "saved" && (
@@ -167,94 +270,206 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                 onCancel={handleCancelTestDrive}
               />
             )}
-            {activeSection === "profile" && <ProfileSection user={user} onNotify={onNotify} />}
+            {activeSection === "listings" && (
+              <ListingsSection
+                listings={myListings}
+                onAddListing={() => { setEditingVehicle(null); setShowAddModal(true); }}
+                onEditListing={(v) => { setEditingVehicle(v); setShowAddModal(true); }}
+                onDeleteListing={(id) => setDeletingVehicleId(id)}
+                onViewDetails={onViewDetails}
+                onRefresh={fetchData}
+              />
+            )}
+            {activeSection === "inquiries" && (
+              <InquiriesSection
+                inquiries={inquiries}
+                onStatusChange={handleLeadStatusChange}
+                onRefresh={fetchData}
+              />
+            )}
+            {activeSection === "profile" && <ProfileSection onNotify={onNotify} />}
             {activeSection === "security" && <SecuritySection onNotify={onNotify} />}
-            {activeSection === "notifications" && <NotificationsSection onNotify={onNotify} />}
-            {activeSection === "account" && <AccountSection user={user} onNotify={onNotify} />}
           </div>
         </div>
       </div>
+
+      {/* Add / Edit Vehicle Modal */}
+      {showAddModal && (
+        <VehicleFormModal
+          sellerId={userId}
+          editing={editingVehicle}
+          onClose={() => { setShowAddModal(false); setEditingVehicle(null); }}
+          onSaved={() => {
+            setShowAddModal(false);
+            setEditingVehicle(null);
+            fetchData();
+            onNotify(editingVehicle ? "Vehicle updated successfully!" : "Vehicle listing submitted for review!", "success");
+          }}
+          onNotify={onNotify}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingVehicleId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center mx-auto">
+              <Trash2 size={22} />
+            </div>
+            <div className="text-center">
+              <h3 className="text-base font-black text-slate-900 dark:text-white">Delete Listing?</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">This listing will be permanently removed from the marketplace.</p>
+            </div>
+            <div className="flex gap-2.5 pt-2">
+              <button
+                onClick={() => setDeletingVehicleId(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteListing(deletingVehicleId)}
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition cursor-pointer shadow-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function DashboardSection({ user, savedCount, testDriveCount, onNavigate }: {
-  user: any; savedCount: number; testDriveCount: number; onNavigate: (s: Section) => void;
+/* ──────────────── DASHBOARD SECTION ──────────────── */
+
+function DashboardSection({
+  user, savedCount, testDriveCount, listingsCount, inquiriesCount, onNavigate, onAddListing
+}: {
+  user: any;
+  savedCount: number;
+  testDriveCount: number;
+  listingsCount: number;
+  inquiriesCount: number;
+  onNavigate: (s: Section) => void;
+  onAddListing: () => void;
 }) {
   const joined = user?.joinDate ? new Date(user.joinDate).toLocaleDateString("en-US", { year: "numeric", month: "long" }) : "N/A";
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
-        <div className="h-24 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#22c55e]/15 rounded-full blur-3xl pointer-events-none" />
-        </div>
-        <div className="px-6 pb-6 -mt-10">
-          <div className="flex items-end gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border-2 border-[#22c55e]/40 text-[#22c55e] flex items-center justify-center text-xl font-black shadow-lg ring-4 ring-white dark:ring-slate-900">
-              {user?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}
+      {/* Profile Photo & Account Info Card */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4 sm:gap-5">
+          <div className="relative shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-[#22c55e]/30 text-[#22c55e] flex items-center justify-center text-xl sm:text-2xl font-black shadow-sm overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" />
+              ) : (
+                <span>{user?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}</span>
+              )}
             </div>
-            <div className="pb-1">
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">{user?.name}</h2>
-              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Member since {joined}</p>
+            <button
+              onClick={() => onNavigate("profile")}
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-white flex items-center justify-center shadow-xs cursor-pointer transition active:scale-95"
+              title="Change profile photo"
+            >
+              <Camera size={12} />
+            </button>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{user?.name}</h2>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#16a34a] border border-emerald-200/80 dark:border-emerald-800/80">
+                Verified Member
+              </span>
             </div>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">
+              {user?.email ? `${user.email} • ` : ""}Member since {joined}
+            </p>
           </div>
         </div>
+
+        <button
+          onClick={() => onNavigate("profile")}
+          className="self-start sm:self-center flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl transition cursor-pointer"
+        >
+          <User size={14} className="text-[#22c55e]" />
+          <span>Edit Profile</span>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={Heart} label="Saved Vehicles" value={savedCount} color="text-rose-500 bg-rose-50 dark:bg-rose-950/40" onClick={() => onNavigate("saved")} />
+      {/* Grid of Marketplace Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <StatCard icon={Heart} label="Saved Cars" value={savedCount} color="text-rose-500 bg-rose-50 dark:bg-rose-950/40" onClick={() => onNavigate("saved")} />
         <StatCard icon={Calendar} label="Test Drives" value={testDriveCount} color="text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/40" onClick={() => onNavigate("testdrives")} />
-        <StatCard icon={BadgeCheck} label="Verification" value={user?.verificationStatus === "verified" ? "Verified" : user?.verificationStatus === "pending" ? "Pending" : "Unverified"} color={user?.verificationStatus === "verified" ? "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/40" : "text-amber-500 bg-amber-50 dark:bg-amber-950/40"} />
+        <StatCard icon={Car} label="My Listings" value={listingsCount} color="text-indigo-500 bg-indigo-50 dark:bg-indigo-950/40" onClick={() => onNavigate("listings")} />
+        <StatCard icon={MessageCircle} label="Inquiries" value={inquiriesCount} color="text-amber-500 bg-amber-50 dark:bg-amber-950/40" onClick={() => onNavigate("inquiries")} />
       </div>
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h3 className="text-sm font-black text-slate-800 dark:text-white">Quick Actions</h3>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">All Customer Tools</span>
         </div>
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <QuickAction icon={Heart} label="View Saved Vehicles" desc="Browse your favorite cars" onClick={() => onNavigate("saved")} />
-          <QuickAction icon={Calendar} label="View Test Drives" desc="Check your scheduled drives" onClick={() => onNavigate("testdrives")} />
-          <QuickAction icon={User} label="Edit Profile" desc="Update personal information" onClick={() => onNavigate("profile")} />
-          <QuickAction icon={Key} label="Change Password" desc="Update your password" onClick={() => onNavigate("security")} />
+          <QuickAction icon={Plus} label="List a Vehicle for Sale" desc="Create a new marketplace listing" onClick={onAddListing} highlight />
+          <QuickAction icon={Search} label="Browse Vehicles" desc="Explore certified cars available for purchase" onClick={() => { window.location.href = "/browse"; }} />
+          <QuickAction icon={Car} label="Manage My Listings" desc="View, edit, or update your car listings" onClick={() => onNavigate("listings")} />
+          <QuickAction icon={MessageCircle} label="Check Inquiries" desc="View prospective buyer messages & leads" onClick={() => onNavigate("inquiries")} />
+          <QuickAction icon={Heart} label="View Saved Favorites" desc="See cars you bookmarked" onClick={() => onNavigate("saved")} />
+          <QuickAction icon={Calendar} label="Test Drive Bookings" desc="Check appointment times and confirmations" onClick={() => onNavigate("testdrives")} />
+          <QuickAction icon={User} label="Personal Profile" desc="Update contact info and city" onClick={() => onNavigate("profile")} />
+          <QuickAction icon={Key} label="Password & Security" desc="Manage authentication settings" onClick={() => onNavigate("security")} />
         </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ icon: Icon, label, value, color, onClick }: { icon: any; label: string; value: string | number; color: string; onClick?: () => void }) {
+function StatCard({ icon: Icon, label, value, color, onClick, sub }: { icon: any; label: string; value: string | number; color: string; onClick?: () => void; sub?: string }) {
   return (
     <button onClick={onClick} disabled={!onClick}
-      className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center gap-3 hover:shadow-sm transition cursor-pointer ${!onClick ? "cursor-default" : ""} text-left`}
+      className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition cursor-pointer ${!onClick ? "cursor-default" : ""} text-left group`}
     >
-      <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center shrink-0`}>
-        <Icon size={18} />
+      <div className="flex items-center justify-between w-full mb-2">
+        <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center shrink-0`}>
+          <Icon size={17} />
+        </div>
+        {sub && <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">{sub}</span>}
       </div>
       <div>
-        <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{label}</p>
-        <p className="text-sm font-bold text-slate-800 dark:text-white">{value}</p>
+        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{label}</p>
+        <p className="text-xl font-black text-slate-800 dark:text-white mt-0.5">{value}</p>
       </div>
     </button>
   );
 }
 
-function QuickAction({ icon: Icon, label, desc, onClick }: { icon: any; label: string; desc: string; onClick: () => void }) {
+function QuickAction({ icon: Icon, label, desc, onClick, highlight }: { icon: any; label: string; desc: string; onClick: () => void; highlight?: boolean }) {
   return (
     <button onClick={onClick}
-      className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition cursor-pointer text-left"
+      className={`flex items-center gap-3 p-3.5 rounded-xl border transition cursor-pointer text-left ${
+        highlight
+          ? "bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100/70"
+          : "hover:bg-slate-50 dark:hover:bg-slate-800/60 border-slate-100 dark:border-slate-800/80 hover:border-slate-200"
+      }`}
     >
-      <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+        highlight ? "bg-[#22c55e] text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+      }`}>
         <Icon size={16} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{label}</p>
-        <p className="text-[10px] text-slate-400 dark:text-slate-500">{desc}</p>
+        <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{label}</p>
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">{desc}</p>
       </div>
       <ArrowRight size={13} className="text-slate-300 dark:text-slate-600 shrink-0" />
     </button>
   );
 }
+
+/* ──────────────── SAVED VEHICLES SECTION ──────────────── */
 
 function SavedSection({ vehicles, onViewDetails, onRemove }: {
   vehicles: (SavedVehicle & { vehicle?: VehicleListing })[];
@@ -263,16 +478,28 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
 }) {
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
-      <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-        <h3 className="text-sm font-black text-slate-800 dark:text-white">Saved Vehicles</h3>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Vehicles you've saved for later</p>
+      <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-black text-slate-800 dark:text-white">Saved Vehicles</h3>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Vehicles you have bookmarked to compare and view</p>
+        </div>
+        <a href="/browse" className="text-xs font-bold text-[#22c55e] hover:underline flex items-center gap-1">
+          <span>Find more</span>
+          <ArrowRight size={12} />
+        </a>
       </div>
       <div className="p-6">
         {vehicles.length === 0 ? (
           <div className="text-center py-12">
-            <Heart size={32} className="mx-auto text-slate-300 dark:text-slate-700 mb-3" />
-            <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No saved vehicles</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Browse and save vehicles you're interested in</p>
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center mx-auto mb-3 shadow-xs">
+              <Heart size={26} />
+            </div>
+            <p className="text-sm font-bold text-slate-800 dark:text-white">No saved vehicles yet</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">Browse our marketplace and tap the heart icon on any vehicle to save it to your wishlist.</p>
+            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
+              <Search size={13} />
+              <span>Explore Marketplace</span>
+            </a>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -280,23 +507,27 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
               <div key={sv.id} className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition cursor-pointer group bg-white dark:bg-slate-850/60"
                 onClick={() => onViewDetails?.(sv.vehicle!)}
               >
-                <div className="w-full sm:w-36 h-44 sm:h-auto shrink-0 bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
-                  <img src={sv.vehicle.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                <div className="sm:w-44 h-36 bg-slate-100 dark:bg-slate-800 shrink-0 relative overflow-hidden">
+                  <img src={sv.vehicle.imageUrl || "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=600&q=80"}
+                    alt={`${sv.vehicle.brand} ${sv.vehicle.model}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                  <button onClick={(e) => { e.stopPropagation(); onRemove(sv.vehicleId); }}
+                    className="absolute top-2 right-2 w-7 h-7 bg-white/90 dark:bg-slate-900/90 rounded-full flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition shadow-sm cursor-pointer"
+                    title="Remove from saved"
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
-                <div className="p-4 flex-1 flex flex-col justify-between min-w-0">
+                <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
-                    <div className="flex justify-between items-start gap-2">
-                      <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate">{sv.vehicle.brand} {sv.vehicle.model}</h4>
-                      <button onClick={(e) => { e.stopPropagation(); onRemove(sv.vehicleId); }}
-                        className="text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition cursor-pointer p-1 shrink-0"
-                        title="Remove vehicle"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium truncate mt-0.5">{sv.vehicle.year} &bull; {sv.vehicle.transmission} &bull; {sv.vehicle.fuelType}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{sv.vehicle.brand}</span>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-[#22c55e] transition-colors line-clamp-1">
+                      {sv.vehicle.brand} {sv.vehicle.model}
+                    </h4>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{sv.vehicle.year} • {sv.vehicle.mileage?.toLocaleString()} km • {sv.vehicle.fuelType}</p>
                   </div>
-                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
                     <span className="text-sm font-black text-[#22c55e]">ETB {fmt(sv.vehicle.price)}</span>
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1"><MapPin size={10} /> {sv.vehicle.location}</span>
                   </div>
@@ -310,6 +541,8 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
   );
 }
 
+/* ──────────────── TEST DRIVES SECTION ──────────────── */
+
 function TestDriveSection({ drives, onCancel }: {
   drives: TestDriveRequest[];
   onCancel: (id: string) => void;
@@ -317,15 +550,21 @@ function TestDriveSection({ drives, onCancel }: {
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
       <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-        <h3 className="text-sm font-black text-slate-800 dark:text-white">Test Drives</h3>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Your scheduled and past test drives</p>
+        <h3 className="text-sm font-black text-slate-800 dark:text-white">Scheduled Test Drives</h3>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Your booked inspection and test drive appointments</p>
       </div>
       <div className="p-6">
         {drives.length === 0 ? (
           <div className="text-center py-12">
-            <Calendar size={32} className="mx-auto text-slate-300 dark:text-slate-700 mb-3" />
-            <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No test drives scheduled</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Request a test drive from any vehicle detail page</p>
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] flex items-center justify-center mx-auto mb-3 shadow-xs">
+              <Calendar size={26} />
+            </div>
+            <p className="text-sm font-bold text-slate-800 dark:text-white">No test drives scheduled</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">When browsing vehicles, click "Book Test Drive" to schedule an in-person vehicle inspection.</p>
+            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
+              <Car size={13} />
+              <span>Browse Cars for Test Drive</span>
+            </a>
           </div>
         ) : (
           <div className="space-y-3">
@@ -363,20 +602,692 @@ function TestDriveSection({ drives, onCancel }: {
   );
 }
 
-function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string, type: "success" | "error" | "info") => void }) {
+/* ──────────────── MY LISTED CARS SECTION (SELLING) ──────────────── */
+
+function ListingsSection({
+  listings, onAddListing, onEditListing, onDeleteListing, onViewDetails, onRefresh
+}: {
+  listings: VehicleListing[];
+  onAddListing: () => void;
+  onEditListing: (v: VehicleListing) => void;
+  onDeleteListing: (id: string) => void;
+  onViewDetails?: (v: VehicleListing) => void;
+  onRefresh: () => void;
+}) {
+  const [filter, setFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    return listings.filter(v => {
+      const matchFilter = filter === "all" || v.status === filter;
+      const q = search.toLowerCase().trim();
+      const matchSearch = !q || `${v.brand} ${v.model} ${v.location}`.toLowerCase().includes(q);
+      return matchFilter && matchSearch;
+    });
+  }, [listings, filter, search]);
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
+      <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2">
+            <span>My Listed Vehicles</span>
+            <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+              {listings.length} Listed
+            </span>
+          </h3>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Manage cars you have put up for sale on the marketplace</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={onRefresh} className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" title="Refresh">
+            <RefreshCw size={14} />
+          </button>
+          <button onClick={onAddListing}
+            className="flex items-center gap-1.5 text-xs font-black text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+          >
+            <Plus size={14} />
+            <span>+ List New Car</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="p-6 border-b border-slate-100 dark:border-slate-800 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by brand, model, city..."
+              className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e]"
+            />
+          </div>
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+            {["all", "approved", "pending", "sold"].map(st => (
+              <button
+                key={st}
+                onClick={() => setFilter(st)}
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer capitalize ${
+                  filter === st
+                    ? "bg-[#22c55e] text-white shadow-xs"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+              >
+                {st === "approved" ? "Live (Active)" : st}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Listing Cards */}
+      <div className="p-6">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12">
+            <Car size={36} className="mx-auto text-slate-300 dark:text-slate-700 mb-3" />
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              {listings.length === 0 ? "You haven't listed any cars yet" : "No vehicles match your filter"}
+            </p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">
+              Any customer can sell vehicles on Arif Car Sell. Click below to add your car with photos and specs.
+            </p>
+            <button onClick={onAddListing} className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm">
+              <Plus size={14} />
+              <span>List a Car Now</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filtered.map(vehicle => (
+              <div key={vehicle.id} className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-md transition bg-white dark:bg-slate-850/60 flex flex-col">
+                <div className="h-44 bg-slate-100 dark:bg-slate-800 relative overflow-hidden group">
+                  <img
+                    src={vehicle.imageUrl || "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=600&q=80"}
+                    alt={`${vehicle.brand} ${vehicle.model}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                  <div className="absolute top-2.5 left-2.5">
+                    <StatusPill status={vehicle.status || "pending"} />
+                  </div>
+                  <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Eye size={11} />
+                    <span>{vehicle.views || 0} views</span>
+                  </div>
+                </div>
+
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{vehicle.brand}</span>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white line-clamp-1">
+                          {vehicle.brand} {vehicle.model}
+                        </h4>
+                      </div>
+                      <span className="text-sm font-black text-[#22c55e] whitespace-nowrap">
+                        ETB {fmt(vehicle.price)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+                      <span>{vehicle.year} Year</span>
+                      <span>{vehicle.mileage ? `${fmt(vehicle.mileage)} km` : "N/A"}</span>
+                      <span>{vehicle.fuelType || "Gasoline"}</span>
+                      <span className="flex items-center gap-1 truncate"><MapPin size={10} /> {vehicle.location}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-slate-800 mt-4">
+                    <button
+                      onClick={() => onEditListing(vehicle)}
+                      className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <Edit3 size={12} />
+                      <span>Edit</span>
+                    </button>
+                    {onViewDetails && (
+                      <button
+                        onClick={() => onViewDetails(vehicle)}
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+                        title="View Live Listing"
+                      >
+                        <ExternalLink size={14} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onDeleteListing(vehicle.id)}
+                      className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/60 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
+                      title="Delete Listing"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────── INQUIRIES RECEIVED SECTION (SELLING) ──────────────── */
+
+function InquiriesSection({
+  inquiries, onStatusChange, onRefresh
+}: {
+  inquiries: Lead[];
+  onStatusChange: (leadId: string, status: string) => void;
+  onRefresh: () => void;
+}) {
+  const [filter, setFilter] = useState<string>("all");
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return inquiries;
+    return inquiries.filter(l => l.status === filter);
+  }, [inquiries, filter]);
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
+      <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2">
+            <span>Inquiries Received</span>
+            <span className="text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+              {inquiries.length} Inquiries
+            </span>
+          </h3>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Inquiries and messages from customers interested in your vehicles</p>
+        </div>
+        <button onClick={onRefresh} className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" title="Refresh">
+          <RefreshCw size={14} />
+        </button>
+      </div>
+
+      <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+        {["all", "new", "contacted", "closed"].map(st => (
+          <button
+            key={st}
+            onClick={() => setFilter(st)}
+            className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer capitalize ${
+              filter === st
+                ? "bg-blue-600 text-white shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            {st}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-6">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12">
+            <MessageCircle size={36} className="mx-auto text-slate-300 dark:text-slate-700 mb-3" />
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No inquiries yet</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">
+              When prospective buyers contact you through your car listings, their messages and contact numbers will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map(lead => (
+              <div key={lead.id} className="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-sm transition bg-white dark:bg-slate-850/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black text-slate-900 dark:text-white">{lead.name}</span>
+                    <StatusPill status={lead.status} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <a href={`tel:${lead.phone}`} className="flex items-center gap-1 font-semibold text-[#22c55e] hover:underline">
+                      <Phone size={12} />
+                      <span>{lead.phone}</span>
+                    </a>
+                    {lead.email && (
+                      <a href={`mailto:${lead.email}`} className="flex items-center gap-1 hover:underline">
+                        <Mail size={12} />
+                        <span>{lead.email}</span>
+                      </a>
+                    )}
+                    <span className="text-[11px] text-slate-400">
+                      {new Date(lead.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {lead.message && (
+                    <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60 mt-2">
+                      "{lead.message}"
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {lead.status === "new" && (
+                    <button
+                      onClick={() => onStatusChange(lead.id, "contacted")}
+                      className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900 rounded-xl text-xs font-bold hover:bg-blue-100 transition cursor-pointer"
+                    >
+                      Mark Contacted
+                    </button>
+                  )}
+                  {lead.status !== "closed" && (
+                    <button
+                      onClick={() => onStatusChange(lead.id, "closed")}
+                      className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 transition cursor-pointer"
+                    >
+                      Mark Closed
+                    </button>
+                  )}
+                  <a
+                    href={`tel:${lead.phone}`}
+                    className="p-2 rounded-xl bg-[#22c55e] text-white hover:bg-emerald-600 transition shadow-xs flex items-center justify-center cursor-pointer"
+                    title="Call Buyer"
+                  >
+                    <Phone size={14} />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────── ADD / EDIT VEHICLE MODAL (SELLING) ──────────────── */
+
+function VehicleFormModal({
+  sellerId, editing, onClose, onSaved, onNotify
+}: {
+  sellerId: string;
+  editing: VehicleListing | null;
+  onClose: () => void;
+  onSaved: () => void;
+  onNotify: (msg: string, type: "success" | "error" | "info") => void;
+}) {
+  const isEditing = !!editing;
+  const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+
+  const [form, setForm] = useState({
+    brand: editing?.brand || "Toyota",
+    model: editing?.model || "",
+    year: editing?.year || new Date().getFullYear(),
+    regYear: editing?.registrationYear || new Date().getFullYear(),
+    price: editing?.price || 0,
+    originalPrice: editing?.originalPrice || 0,
+    mileage: editing?.mileage || 0,
+    fuelType: editing?.fuelType || "Gasoline",
+    transmission: editing?.transmission || "Automatic",
+    driveType: editing?.driveType || "FWD",
+    condition: editing?.condition || "Used",
+    bodyType: editing?.bodyType || "Sedan",
+    doors: editing?.doors || 4,
+    seats: editing?.seats || 5,
+    engineSize: editing?.engineSize || "1.8L",
+    engineType: editing?.engineType || "V4",
+    horsepower: editing?.horsepower || 130,
+    location: editing?.location || "Addis Ababa",
+    description: editing?.description || "",
+    phone: editing?.phone || "+251 ",
+    chassisNumber: editing?.chassisNumber || "",
+  });
+
+  useEffect(() => {
+    if (editing?.imageUrl) {
+      setUploadedImages([editing.imageUrl]);
+    }
+  }, [editing]);
+
+  const currentModels = useMemo(() => {
+    return BRAND_MODELS[form.brand] || [];
+  }, [form.brand]);
+
+  const handleChange = (field: string, val: any) => {
+    setForm(p => ({ ...p, [field]: val }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.brand || !form.model) {
+      setError("Please select both Brand and Model.");
+      return;
+    }
+    if (form.price <= 0) {
+      setError("Price must be greater than zero.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const primaryImage = uploadedImages.length > 0 ? uploadedImages[0] : undefined;
+      const body = {
+        broker_id: sellerId,
+        brand: form.brand,
+        model: form.model,
+        year: form.year,
+        registration_year: form.regYear,
+        price: form.price,
+        original_price: form.originalPrice || form.price,
+        mileage: form.mileage,
+        fuel_type: form.fuelType,
+        transmission: form.transmission,
+        drive_type: form.driveType,
+        location: form.location,
+        description: form.description,
+        image_url: primaryImage,
+        gallery_images: uploadedImages.length > 1 ? JSON.stringify(uploadedImages) : undefined,
+        condition: form.condition,
+        body_type: form.bodyType,
+        doors: form.doors,
+        seats: form.seats,
+        engine_size: form.engineSize,
+        engine_type: form.engineType,
+        horsepower: form.horsepower,
+        phone: form.phone,
+        chassis_number: form.chassisNumber,
+        ...(isEditing ? {} : { status: "pending" })
+      };
+
+      if (isEditing) {
+        await vehiclesApi.update(editing!.id, body as Record<string, unknown>);
+      } else {
+        await vehiclesApi.create(body as Record<string, unknown>);
+      }
+      onSaved();
+    } catch (err: any) {
+      setError(err?.message || "Failed to submit vehicle listing.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+        
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-[#22c55e] flex items-center justify-center shrink-0">
+              <Car size={16} />
+            </div>
+            <div>
+              <h2 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                {isEditing ? "Edit Vehicle Listing" : "List Car for Sale"}
+              </h2>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Stepper */}
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-50 dark:bg-slate-850 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[11px] font-bold shrink-0">
+          {[
+            { nr: 1, full: "Info & Make", short: "Make" },
+            { nr: 2, full: "Specs & Details", short: "Specs" },
+            { nr: 3, full: "Pricing & Photos", short: "Price" },
+          ].map((item) => (
+            <div key={item.nr} className="flex items-center gap-1.5 sm:gap-2">
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                step === item.nr ? "bg-[#22c55e] text-white shadow-xs" : step > item.nr ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400" : "bg-slate-200 dark:bg-slate-700 text-slate-500"
+              }`}>
+                {step > item.nr ? "✓" : item.nr}
+              </span>
+              <span className={`${step === item.nr ? "text-[#22c55e] font-black" : "text-slate-400 dark:text-slate-500"}`}>
+                <span className="sm:hidden">{item.short}</span>
+                <span className="hidden sm:inline">{item.full}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
+          {error && (
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 text-rose-700 dark:text-rose-400 text-xs rounded-xl flex items-center gap-2">
+              <AlertCircle size={15} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Brand *</label>
+                  <Combobox value={form.brand} onChange={v => {
+                    const models = BRAND_MODELS[v] || [];
+                    const stillValid = models.includes(form.model);
+                    setForm(p => ({ ...p, brand: v, model: stillValid ? p.model : "" }));
+                  }} options={BRANDS} placeholder="Select Brand..." />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Model *</label>
+                  <Combobox value={form.model} onChange={v => handleChange("model", v)} options={currentModels} placeholder="Select Model..." />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Model Year</label>
+                  <input type="number" value={form.year} onChange={e => handleChange("year", parseInt(e.target.value) || 2020)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Reg. Year</label>
+                  <input type="number" value={form.regYear} onChange={e => handleChange("regYear", parseInt(e.target.value) || 2021)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Condition</label>
+                  <select value={form.condition} onChange={e => handleChange("condition", e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                    {CONDITIONS.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Body Type</label>
+                  <select value={form.bodyType} onChange={e => handleChange("bodyType", e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                    {BODY_TYPES.map(b => <option key={b}>{b}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Chassis / VIN (Optional)</label>
+                <input type="text" value={form.chassisNumber} onChange={e => handleChange("chassisNumber", e.target.value)} placeholder="e.g. JT123456789"
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Mileage (km)</label>
+                  <input type="number" value={form.mileage} onChange={e => handleChange("mileage", parseInt(e.target.value) || 0)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Fuel Type</label>
+                  <select value={form.fuelType} onChange={e => handleChange("fuelType", e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                    {FUEL_TYPES.map(f => <option key={f}>{f}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Transmission</label>
+                  <select value={form.transmission} onChange={e => handleChange("transmission", e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                    {TRANSMISSIONS.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Drive Type</label>
+                  <select value={form.driveType} onChange={e => handleChange("driveType", e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                    {DRIVE_TYPES.map(d => <option key={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Seats</label>
+                  <select value={form.seats} onChange={e => handleChange("seats", parseInt(e.target.value))}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                    {SEAT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Doors</label>
+                  <select value={form.doors} onChange={e => handleChange("doors", parseInt(e.target.value))}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                    {DOOR_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Horsepower</label>
+                  <input type="number" value={form.horsepower} onChange={e => handleChange("horsepower", parseInt(e.target.value) || 0)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Vehicle Location *</label>
+                <Combobox value={form.location} onChange={v => handleChange("location", v)} options={LOCATIONS} placeholder="Select City/Location..." />
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Selling Price (ETB) *</label>
+                  <input type="number" required value={form.price || ""} onChange={e => handleChange("price", parseInt(e.target.value) || 0)} placeholder="e.g. 2500000"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Contact Phone Number</label>
+                  <input type="tel" value={form.phone} onChange={e => handleChange("phone", e.target.value)} placeholder="+251 9XX XXX XXX"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Car Photos (Add at least 1 image)</label>
+                <div className="flex flex-wrap gap-2.5">
+                  {uploadedImages.map((img, i) => (
+                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group">
+                      <img src={img} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold cursor-pointer opacity-0 group-hover:opacity-100 transition"
+                      >×</button>
+                      {i === 0 && <span className="absolute bottom-1 left-1 bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase">Main</span>}
+                    </div>
+                  ))}
+                  <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-[#22c55e] bg-slate-50 dark:bg-slate-800 flex flex-col items-center justify-center gap-1 cursor-pointer transition">
+                    <Plus size={16} className="text-slate-400" />
+                    <span className="text-[8px] font-bold uppercase text-slate-400">Add Photo</span>
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                      const files = e.target.files;
+                      if (!files) return;
+                      Array.from({ length: files.length }, (_, i) => files[i]).forEach((file: File) => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => { if (ev.target?.result) setUploadedImages(prev => [...prev, ev.target.result as string]); };
+                        reader.readAsDataURL(file);
+                      });
+                      e.target.value = "";
+                    }} />
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Vehicle Description</label>
+                <textarea rows={3} value={form.description} onChange={e => handleChange("description", e.target.value)} placeholder="Describe vehicle condition, features, maintenance history..."
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none" />
+              </div>
+            </div>
+          )}
+
+          {/* Stepper Footer */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+            <button
+              type="button"
+              onClick={step === 1 ? onClose : () => setStep(s => s - 1)}
+              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+            >
+              {step === 1 ? "Cancel" : "Back"}
+            </button>
+            {step < 3 ? (
+              <button
+                type="button"
+                onClick={() => setStep(s => s + 1)}
+                className="px-5 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-black transition cursor-pointer shadow-sm active:scale-95"
+              >
+                Continue
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-5 sm:px-6 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-black transition cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm active:scale-95"
+              >
+                {submitting && <Loader2 size={13} className="animate-spin" />}
+                <span>{isEditing ? "Save Listing" : "Publish Listing"}</span>
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────── PROFILE SECTION ──────────────── */
+
+function ProfileSection({ onNotify }: { onNotify: (msg: string, type: "success" | "error" | "info") => void }) {
+  const { user, updateProfile } = useAuth();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: user?.name || "", email: user?.email || "", phone: user?.phone || "", bio: user?.bio || "" });
+  const [form, setForm] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    bio: user?.bio || ""
+  });
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        bio: user.bio || ""
+      });
+    }
+  }, [user]);
 
   const handleSave = async () => {
     if (!user?.id) return;
     setSaving(true);
     try {
-      const updated = await usersApi.update(user.id, form);
-      localStorage.setItem("autobroker_user", JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent("autobroker:user-updated", { detail: updated }));
-      onNotify("Profile updated.", "success");
+      await updateProfile(form);
+      onNotify("Profile updated successfully.", "success");
       setEditing(false);
     } catch (err: any) {
       onNotify(err.message || "Update failed.", "error");
@@ -391,12 +1302,8 @@ function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string,
     try {
       const upData = await uploadApi.single(file, "avatars");
       if (upData && upData.url) {
-        await usersApi.update(user.id, { avatar: upData.url });
-        const meData = await authApi.me();
-        const u = meData.user || meData;
-        localStorage.setItem("autobroker_user", JSON.stringify(u));
-        window.dispatchEvent(new CustomEvent("autobroker:user-updated", { detail: u }));
-        onNotify("Avatar updated.", "success");
+        await updateProfile({ avatar: upData.url });
+        onNotify("Avatar updated successfully.", "success");
       } else {
         onNotify("Upload failed.", "error");
       }
@@ -417,8 +1324,12 @@ function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string,
     >
       <div className="flex items-center gap-5 pb-6 mb-6 border-b border-slate-100 dark:border-slate-800">
         <div className="relative group">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border-2 border-[#22c55e]/40 text-[#22c55e] flex items-center justify-center text-xl font-black shadow-sm ring-2 ring-[#22c55e]/20">
-            {user?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border-2 border-[#22c55e]/40 text-[#22c55e] flex items-center justify-center text-xl font-black shadow-sm ring-2 ring-[#22c55e]/20 overflow-hidden">
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "U"
+            )}
           </div>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           <button onClick={() => fileRef.current?.click()}
@@ -433,11 +1344,11 @@ function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string,
       {editing ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Full Name"><input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="input" /></Field>
-            <Field label="Email"><input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="input" /></Field>
-            <Field label="Phone"><input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="input" /></Field>
+            <Field label="Full Name"><input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" /></Field>
+            <Field label="Email"><input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" /></Field>
+            <Field label="Phone"><input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" /></Field>
           </div>
-          <Field label="Bio"><textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} rows={3} className="input resize-none" /></Field>
+          <Field label="Bio"><textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} rows={3} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none" /></Field>
           <div className="flex justify-end pt-2">
             <button onClick={handleSave} disabled={saving}
               className="flex items-center gap-2 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50 shadow-sm"
@@ -449,7 +1360,7 @@ function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string,
           <InfoRow icon={Mail} label="Email" value={user?.email || "—"} />
           <InfoRow icon={Phone} label="Phone" value={user?.phone || "—"} />
           <InfoRow icon={CalendarDays} label="Member Since" value={joined} />
-          <InfoRow icon={BadgeCheck} label="Verification" value={user?.verificationStatus ? user.verificationStatus.charAt(0).toUpperCase() + user.verificationStatus.slice(1) : "Unverified"} />
+          <InfoRow icon={BadgeCheck} label="Verification" value={user?.verificationStatus ? user.verificationStatus.charAt(0).toUpperCase() + user.verificationStatus.slice(1) : "Verified Customer"} />
           {user?.bio && <div className="sm:col-span-2"><InfoRow icon={User} label="Bio" value={user.bio} /></div>}
         </div>
       )}
@@ -457,7 +1368,10 @@ function ProfileSection({ user, onNotify }: { user: any; onNotify: (msg: string,
   );
 }
 
+/* ──────────────── SECURITY SECTION ──────────────── */
+
 function SecuritySection({ onNotify }: { onNotify: (msg: string, type: "success" | "error" | "info") => void }) {
+  const { changePassword } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -472,12 +1386,12 @@ function SecuritySection({ onNotify }: { onNotify: (msg: string, type: "success"
     if (form.newPassword !== form.confirmPassword) { setError("Passwords do not match."); return; }
     setChanging(true);
     try {
-      await authApi.changePassword(form.currentPassword, form.newPassword);
-      onNotify("Password changed.", "success");
+      await changePassword(form.currentPassword, form.newPassword);
+      onNotify("Password changed successfully.", "success");
       setShowForm(false);
       setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err: any) {
-      setError(err.message || "Failed.");
+      setError(err.message || "Failed to update password.");
     } finally {
       setChanging(false);
     }
@@ -489,9 +1403,21 @@ function SecuritySection({ onNotify }: { onNotify: (msg: string, type: "success"
     >
       {showForm ? (
         <div className="max-w-md space-y-4">
-          <Field label="Current Password"><div className="relative"><input type={showCurrent ? "text" : "password"} value={form.currentPassword} onChange={e => setForm(f => ({ ...f, currentPassword: e.target.value }))} className="input pr-10" /><button onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">{showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}</button></div></Field>
-          <Field label="New Password"><div className="relative"><input type={showNew ? "text" : "password"} value={form.newPassword} onChange={e => setForm(f => ({ ...f, newPassword: e.target.value }))} className="input pr-10" /><button onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">{showNew ? <EyeOff size={15} /> : <Eye size={15} />}</button></div></Field>
-          <Field label="Confirm New Password"><input type="password" value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))} className="input" /></Field>
+          <Field label="Current Password">
+            <div className="relative">
+              <input type={showCurrent ? "text" : "password"} value={form.currentPassword} onChange={e => setForm(f => ({ ...f, currentPassword: e.target.value }))} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white pr-10" />
+              <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">{showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}</button>
+            </div>
+          </Field>
+          <Field label="New Password">
+            <div className="relative">
+              <input type={showNew ? "text" : "password"} value={form.newPassword} onChange={e => setForm(f => ({ ...f, newPassword: e.target.value }))} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white pr-10" />
+              <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">{showNew ? <EyeOff size={15} /> : <Eye size={15} />}</button>
+            </div>
+          </Field>
+          <Field label="Confirm New Password">
+            <input type="password" value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
+          </Field>
           {error && <p className="text-xs font-semibold text-rose-500">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button onClick={handleChange} disabled={changing} className="flex items-center gap-2 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50 shadow-sm">{changing ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{changing ? "Changing..." : "Update Password"}</button>
@@ -501,23 +1427,26 @@ function SecuritySection({ onNotify }: { onNotify: (msg: string, type: "success"
       ) : (
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] flex items-center justify-center shrink-0"><ShieldCheck size={16} /></div>
-          <div><p className="text-sm font-bold text-slate-800 dark:text-white">Password</p><p className="text-xs text-slate-400 dark:text-slate-500">Last changed: —</p></div>
+          <div><p className="text-sm font-bold text-slate-800 dark:text-white">Password Protection</p><p className="text-xs text-slate-400 dark:text-slate-500">Keep your account secure with regular updates</p></div>
         </div>
       )}
     </SectionCard>
   );
 }
 
+/* ──────────────── NOTIFICATIONS SECTION ──────────────── */
+
 function NotificationsSection({ onNotify }: { onNotify: (msg: string, type: "success" | "error" | "info") => void }) {
-  const [prefs, setPrefs] = useState({ emailNewListings: true, emailTestDriveUpdates: true, emailPromotions: false, pushSavedPriceDrop: true });
+  const [prefs, setPrefs] = useState({ emailNewListings: true, emailTestDriveUpdates: true, emailPromotions: false, pushSavedPriceDrop: true, emailInquiries: true });
   const toggle = (key: keyof typeof prefs) => { setPrefs(p => ({ ...p, [key]: !p[key] })); onNotify("Preference updated.", "success"); };
 
   return (
-    <SectionCard title="Notifications" subtitle="Choose what notifications you receive">
-      <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-3">Email Notifications</p>
+    <SectionCard title="Notifications" subtitle="Choose what updates and alerts you receive">
+      <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-3">Email Alerts</p>
       {[
-        { key: "emailNewListings" as const, label: "New listings", desc: "Get notified when new vehicles matching your interests are listed" },
-        { key: "emailTestDriveUpdates" as const, label: "Test drive updates", desc: "Receive updates about your test drive requests" },
+        { key: "emailInquiries" as const, label: "Buyer inquiries", desc: "Get notified immediately when an interested buyer contacts you about your car" },
+        { key: "emailNewListings" as const, label: "New vehicle listings", desc: "Get notified when new vehicles matching your interests are listed" },
+        { key: "emailTestDriveUpdates" as const, label: "Test drive updates", desc: "Receive updates about your scheduled test drive requests" },
         { key: "emailPromotions" as const, label: "Promotions & offers", desc: "Special offers, promotions, and market updates" },
       ].map(item => <ToggleRow key={item.key} checked={prefs[item.key]} onChange={() => toggle(item.key)} label={item.label} desc={item.desc} />)}
       <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
@@ -528,7 +1457,10 @@ function NotificationsSection({ onNotify }: { onNotify: (msg: string, type: "suc
   );
 }
 
+/* ──────────────── ACCOUNT SECTION ──────────────── */
+
 function AccountSection({ user, onNotify }: { user: any; onNotify: (msg: string, type: "success" | "error" | "info") => void }) {
+  const { logout } = useAuth();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const handleDelete = async () => {
@@ -537,7 +1469,7 @@ function AccountSection({ user, onNotify }: { user: any; onNotify: (msg: string,
     try {
       await usersApi.delete(user.id);
       onNotify("Account deleted.", "info");
-      localStorage.clear();
+      logout();
       window.location.href = "/";
     } catch (err: any) {
       onNotify(err.message || "Delete failed.", "error");
@@ -548,12 +1480,12 @@ function AccountSection({ user, onNotify }: { user: any; onNotify: (msg: string,
   };
 
   return (
-    <SectionCard title="Account" subtitle="Manage your account settings">
+    <SectionCard title="Account" subtitle="Manage your account profile and data">
       {confirmDelete ? (
         <div className="space-y-3">
           <div className="flex items-start gap-3 p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-xl">
             <Trash2 size={18} className="text-rose-500 shrink-0 mt-0.5" />
-            <div><p className="text-sm font-bold text-rose-700 dark:text-rose-400">Are you absolutely sure?</p><p className="text-xs text-rose-600 dark:text-rose-300 mt-1">This permanently deletes your account and all associated data. This cannot be undone.</p></div>
+            <div><p className="text-sm font-bold text-rose-700 dark:text-rose-400">Are you absolutely sure?</p><p className="text-xs text-rose-600 dark:text-rose-300 mt-1">This permanently deletes your account, listed cars, and saved preferences. This cannot be undone.</p></div>
           </div>
           <div className="flex gap-3">
             <button onClick={handleDelete} disabled={deleting} className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50">{deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}{deleting ? "Deleting..." : "Yes, Delete My Account"}</button>
@@ -564,7 +1496,7 @@ function AccountSection({ user, onNotify }: { user: any; onNotify: (msg: string,
         <div className="flex items-center justify-between">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center shrink-0"><Trash2 size={16} /></div>
-            <div><p className="text-sm font-bold text-slate-800 dark:text-white">Delete Account</p><p className="text-xs text-slate-400 dark:text-slate-500">Permanently remove your account and all data</p></div>
+            <div><p className="text-sm font-bold text-slate-800 dark:text-white">Delete Account</p><p className="text-xs text-slate-400 dark:text-slate-500">Permanently remove your customer account and data</p></div>
           </div>
           <button onClick={() => setConfirmDelete(true)} className="text-xs font-bold text-rose-500 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 px-4 py-2 rounded-lg border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer shrink-0">Delete</button>
         </div>
@@ -572,6 +1504,8 @@ function AccountSection({ user, onNotify }: { user: any; onNotify: (msg: string,
     </SectionCard>
   );
 }
+
+/* ──────────────── SHARED UI HELPERS ──────────────── */
 
 function SectionCard({ title, subtitle, action, children }: { title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -598,11 +1532,11 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
   );
 }
 
-function ToggleRow({ checked, onChange, label, desc }: { key?: string; checked: boolean; onChange: () => void; label: string; desc: string }) {
+function ToggleRow({ checked, onChange, label, desc }: { checked: boolean; onChange: () => void; label: string; desc: string }) {
   return (
     <div className="flex items-center justify-between py-2.5">
       <div><p className="text-sm font-semibold text-slate-800 dark:text-white">{label}</p><p className="text-xs text-slate-400 dark:text-slate-500">{desc}</p></div>
-      <button onClick={onChange} className={`relative w-10 h-6 rounded-full transition cursor-pointer shrink-0 ml-4 ${checked ? "bg-[#22c55e]" : "bg-slate-200 dark:bg-slate-700"}`}>
+      <button type="button" onClick={onChange} className={`relative w-10 h-6 rounded-full transition cursor-pointer shrink-0 ml-4 ${checked ? "bg-[#22c55e]" : "bg-slate-200 dark:bg-slate-700"}`}>
         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${checked ? "translate-x-4" : ""}`} />
       </button>
     </div>

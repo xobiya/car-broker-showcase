@@ -15,13 +15,13 @@ const fmt = (n: number) => n.toLocaleString("en-ET", { maximumFractionDigits: 0 
 
 const StatusPill = ({ status }: { status: string }) => {
   const colors: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    confirmed: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    completed: "bg-blue-100 text-blue-700 border-blue-200",
-    cancelled: "bg-rose-100 text-rose-700 border-rose-200",
+    pending: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+    confirmed: "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+    completed: "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+    cancelled: "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800",
   };
   return (
-    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${colors[status] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
+    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${colors[status] || "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"}`}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
