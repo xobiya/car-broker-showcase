@@ -108,6 +108,12 @@ paymentSchema.index({ broker_id: 1, status: 1 });
 testDriveSchema.index({ vehicle_id: 1 });
 testDriveSchema.index({ user_id: 1 });
 
+const settingSchema = new Schema({
+  key: { type: String, unique: true, required: true },
+  value: { type: String, required: true },
+  updated_at: String,
+});
+
 export const UserModel = mongoose.model('User', userSchema, 'users');
 export const BrokerModel = mongoose.model('Broker', brokerSchema, 'brokers');
 export const VehicleModel = mongoose.model('Vehicle', vehicleSchema, 'vehicles');
@@ -120,6 +126,7 @@ export const SavedVehicleModel = mongoose.model('SavedVehicle', savedVehicleSche
 export const ReportModel = mongoose.model('Report', reportSchema, 'reports');
 export const PaymentModel = mongoose.model('Payment', paymentSchema, 'payments');
 export const TestDriveModel = mongoose.model('TestDrive', testDriveSchema, 'test_drives');
+export const SettingModel = mongoose.model('Setting', settingSchema, 'settings');
 
 export function toPlain<T>(doc: any): T {
   if (!doc) return null as any;

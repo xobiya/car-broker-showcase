@@ -346,7 +346,7 @@ app.get("/api/vehicles/:id", optionalAuth, async (req: AuthenticatedRequest, res
   }
 });
 
-app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "admin"]), validate(vehicleSchema), async (req: AuthenticatedRequest, res) => {
+app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "buyer", "admin"]), validate(vehicleSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const brokers = await db.getBrokers();
     let brokerId = req.body.broker_id;
@@ -355,7 +355,7 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "a
       const broker = brokers.find(b => b.userId === req.user!.id);
       if (!broker) return res.status(403).json({ error: "Broker profile not found. Complete your profile registration first." });
       brokerId = broker.id;
-    } else if (req.user!.role === "seller") {
+    } else if (req.user!.role === "seller" || req.user!.role === "buyer") {
       brokerId = req.user!.id;
     } else if (req.user!.role === "admin" && !brokerId) {
       brokerId = "brk-1";
@@ -402,7 +402,7 @@ const verifyVehicleOwnership = async (vehicleId: string, reqUser: any) => {
   if (reqUser.role === "admin") return true;
   const vehicle = await db.getVehicleById(vehicleId);
   if (!vehicle) return false;
-  if (reqUser.role === "seller") {
+  if (reqUser.role === "seller" || reqUser.role === "buyer") {
     return vehicle.brokerId === reqUser.id;
   }
   const brokers = await db.getBrokers();
@@ -550,7 +550,7 @@ app.put("/api/vehicles/:id/submit", authenticateToken, async (req: Authenticated
 });
 
 // --- Leads ---
-app.get("/api/leads", authenticateToken, requireRole(["broker", "seller", "admin"]), async (req: AuthenticatedRequest, res) => {
+app.get("/api/leads", authenticateToken, requireRole(["broker", "seller", "buyer", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
     const leads = await db.getLeads();
     const vehicles = await db.getVehicles();
@@ -563,9 +563,9 @@ app.get("/api/leads", authenticateToken, requireRole(["broker", "seller", "admin
       const brokerId = broker ? broker.id : null;
       const brokerVehicles = vehicles.filter(v => v.brokerId === brokerId).map(v => v.id);
       filteredLeads = leads.filter(l => brokerVehicles.includes(l.vehicleId));
-    } else if (req.user!.role === "seller") {
-      const sellerVehicles = vehicles.filter(v => v.brokerId === req.user!.id).map(v => v.id);
-      filteredLeads = leads.filter(l => sellerVehicles.includes(l.vehicleId));
+    } else if (req.user!.role === "seller" || req.user!.role === "buyer") {
+      const customerVehicles = vehicles.filter(v => v.brokerId === req.user!.id).map(v => v.id);
+      filteredLeads = leads.filter(l => customerVehicles.includes(l.vehicleId));
     }
 
     const enriched = filteredLeads.map(l => {
@@ -621,7 +621,7 @@ app.post("/api/leads", optionalAuth, validate(leadSchema), async (req: Authentic
   }
 });
 
-app.put("/api/leads/:id/status", authenticateToken, requireRole(["broker", "seller", "admin"]), async (req: AuthenticatedRequest, res) => {
+app.put("/api/leads/:id/status", authenticateToken, requireRole(["broker", "seller", "buyer", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
     const { status } = req.body;
     if (!status) return res.status(400).json({ error: "Status is required." });
@@ -1243,6 +1243,38 @@ app.put("/api/reports/:id/status", authenticateToken, requireRole(["admin"]), as
     else res.status(404).json({ error: "Report not found" });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Site Settings Endpoints ---
+app.get("/api/settings", async (_req, res) => {
+  try {
+    const settings = await db.getAllSettings();
+    res.json(settings);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to load settings" });
+  }
+});
+
+app.get("/api/settings/:key", async (req, res) => {
+  try {
+    const value = await db.getSetting(req.params.key);
+    res.json({ key: req.params.key, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to get setting" });
+  }
+});
+
+app.put("/api/settings/:key", authenticateToken, requireRole(["admin"]), async (req: AuthenticatedRequest, res) => {
+  try {
+    const { value } = req.body;
+    if (typeof value !== "string") {
+      return res.status(400).json({ error: "Value must be a string" });
+    }
+    await db.setSetting(req.params.key, value);
+    res.json({ message: "Setting updated successfully", key: req.params.key, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to update setting" });
   }
 });
 

@@ -9,7 +9,7 @@ import type { DBPayment } from "./types";
 import {
   UserModel, BrokerModel, VehicleModel, LeadModel, SaleModel,
   AuditLogModel, DocumentModel, InspectionModel, SavedVehicleModel,
-  ReportModel, TestDriveModel, PaymentModel, toPlain, toPlainArray
+  ReportModel, TestDriveModel, PaymentModel, SettingModel, toPlain, toPlainArray
 } from "./models";
 import { seedDatabase } from "./seed";
 import type {
@@ -446,5 +446,28 @@ export const db = {
         commission: salesTotals.totalCommission,
       },
     };
+  },
+
+  // --- Site Settings ---
+  getSetting: async (key: string): Promise<string | null> => {
+    const doc = await SettingModel.findOne({ key });
+    return doc ? (doc as any).value : null;
+  },
+
+  setSetting: async (key: string, value: string): Promise<void> => {
+    await SettingModel.updateOne(
+      { key },
+      { $set: { key, value, updated_at: new Date().toISOString() } },
+      { upsert: true }
+    );
+  },
+
+  getAllSettings: async (): Promise<Record<string, string>> => {
+    const docs = await SettingModel.find({});
+    const result: Record<string, string> = {};
+    docs.forEach((d: any) => {
+      result[d.key] = d.value;
+    });
+    return result;
   },
 };
