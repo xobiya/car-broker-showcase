@@ -255,13 +255,18 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
             )}
           </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {images.map((img, idx) => (
-              <button key={idx} onClick={() => setActiveImage(img)}
-                className={`h-20 w-28 shrink-0 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${activeImage === img ? "border-[#22c55e] shadow-sm" : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"}`}>
-                <img src={img} alt={`view ${idx + 1}`} className="w-full h-full object-cover" />
-              </button>
-            ))}
+          <div className="relative">
+            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
+              {images.map((img, idx) => (
+                <button key={idx} onClick={() => setActiveImage(img)}
+                  className={`h-20 w-28 shrink-0 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${activeImage === img ? "border-[#22c55e] shadow-sm" : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"}`}>
+                  <img src={img} alt={`view ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+            {images.length > 3 && (
+              <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-slate-50 dark:from-[#0B0F19] to-transparent sm:hidden" />
+            )}
           </div>
 
           {showVideo && vehicle.videoUrl && (

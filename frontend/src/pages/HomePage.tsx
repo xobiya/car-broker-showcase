@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Search,
   ShieldCheck,
@@ -525,6 +525,30 @@ export default function HomePage({
   const [carConditionTab, setCarConditionTab] = useState<"all" | "new" | "used">("all");
   const [showHelpModal, setShowHelpModal] = useState(false);
 
+  // Horizontal scroll tracking for Browse by Body Type
+  const bodyTypeScrollRef = useRef<HTMLDivElement>(null);
+  const [bodyTypeCanScrollLeft, setBodyTypeCanScrollLeft] = useState(false);
+  const [bodyTypeCanScrollRight, setBodyTypeCanScrollRight] = useState(true);
+  const [bodyTypeScrollProgress, setBodyTypeScrollProgress] = useState(0);
+
+  const handleBodyTypeScroll = () => {
+    const el = bodyTypeScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setBodyTypeCanScrollLeft(scrollLeft > 10);
+    setBodyTypeCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+    const maxScroll = scrollWidth - clientWidth;
+    const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
+    setBodyTypeScrollProgress(progress);
+  };
+
+  const scrollBodyType = (direction: "left" | "right") => {
+    if (bodyTypeScrollRef.current) {
+      const amount = direction === "left" ? -280 : 280;
+      bodyTypeScrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+    }
+  };
+
   // Load Hero Background Image from Settings & Listen for Admin Updates
   useEffect(() => {
     const loadHeroSetting = async () => {
@@ -923,30 +947,33 @@ export default function HomePage({
             </div>
 
             {/* Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
-              {[
-                { id: "all", label: "All Featured", icon: Car },
-                { id: "electric", label: "Electric & Hybrid", icon: Zap },
-                { id: "suv", label: "SUVs & 4x4", icon: Car },
-                { id: "luxury", label: "Luxury Sedans", icon: Award },
-                { id: "budget", label: "Under 5M ETB", icon: Tag }
-              ].map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`px-3.5 py-2 rounded-full font-bold transition-all cursor-pointer text-xs whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
-                      activeTab === tab.id
-                        ? "bg-slate-950 dark:bg-[#22c55e] text-white dark:text-slate-950 shadow-md font-black"
-                        : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
-                    }`}
-                  >
-                    <Icon size={13} className={activeTab === tab.id ? "text-emerald-400 dark:text-slate-950" : "text-slate-500 dark:text-slate-400"} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
+            <div className="relative max-w-full">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs -mx-4 px-4 sm:mx-0 sm:px-0">
+                {[
+                  { id: "all", label: "All Featured", icon: Car },
+                  { id: "electric", label: "Electric & Hybrid", icon: Zap },
+                  { id: "suv", label: "SUVs & 4x4", icon: Car },
+                  { id: "luxury", label: "Luxury Sedans", icon: Award },
+                  { id: "budget", label: "Under 5M ETB", icon: Tag }
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`px-3.5 py-2 rounded-full font-bold transition-all cursor-pointer text-xs whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                        activeTab === tab.id
+                          ? "bg-slate-950 dark:bg-[#22c55e] text-white dark:text-slate-950 shadow-md font-black"
+                          : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      <Icon size={13} className={activeTab === tab.id ? "text-emerald-400 dark:text-slate-950" : "text-slate-500 dark:text-slate-400"} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-white dark:from-[#0B0F19] to-transparent sm:hidden" />
             </div>
           </div>
 
@@ -1268,56 +1295,139 @@ export default function HomePage({
       </section>
 
 
-      {/* 5. BROWSE BY BODY TYPE SECTION */}
+      {/* 5. BROWSE BY BODY TYPE SECTION (WITH CLEAR HORIZONTAL SCROLL INDICATION) */}
       <section className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8">
           
-          <div className="text-center space-y-2 max-w-xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-              Browse by Body Type
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
-              From city driving across Addis to rugged regional trips.
-            </p>
+          {/* Section Header with Title & Scroll Controls */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider">
+                <Car size={13} />
+                <span>Vehicle Categories</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
+                Browse by Body Type
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
+                From city driving across Addis to rugged regional trips.
+              </p>
+            </div>
+
+            {/* Scroll Buttons (Arrows for desktop & mobile) */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => scrollBodyType("left")}
+                disabled={!bodyTypeCanScrollLeft}
+                className={`w-9 h-9 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center transition ${
+                  bodyTypeCanScrollLeft
+                    ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs cursor-pointer active:scale-90 hover:border-[#22c55e]"
+                    : "opacity-40 text-slate-400 cursor-not-allowed bg-slate-50 dark:bg-slate-900"
+                }`}
+                aria-label="Scroll categories left"
+                title="Scroll left"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollBodyType("right")}
+                disabled={!bodyTypeCanScrollRight}
+                className={`w-9 h-9 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center transition ${
+                  bodyTypeCanScrollRight
+                    ? "bg-[#22c55e] text-slate-950 shadow-md shadow-[#22c55e]/20 cursor-pointer active:scale-90 hover:bg-[#16a34a]"
+                    : "opacity-40 text-slate-400 cursor-not-allowed bg-slate-50 dark:bg-slate-900"
+                }`}
+                aria-label="Scroll categories right"
+                title="Scroll right"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
 
-          <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 scrollbar-none snap-x snap-mandatory">
-            {CATEGORIES.map((cat) => {
-              const Icon = cat.icon;
-              return (
+          {/* Scrollable Container with Edge Fade Indicators */}
+          <div className="relative">
+            {/* Left Edge Fade Cue */}
+            <div
+              className={`pointer-events-none absolute left-0 top-0 bottom-2 w-10 sm:w-16 bg-gradient-to-r from-white dark:from-[#0B0F19] to-transparent z-10 transition-opacity duration-300 ${
+                bodyTypeCanScrollLeft ? "opacity-100" : "opacity-0"
+              }`}
+            />
+
+            {/* Scroll Track */}
+            <div
+              ref={bodyTypeScrollRef}
+              onScroll={handleBodyTypeScroll}
+              className="flex sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 overflow-x-auto sm:overflow-visible pb-3 sm:pb-0 scrollbar-none snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+            >
+              {CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => onBrowse(cat.filter)}
+                    className="min-w-[230px] w-[72vw] max-w-[280px] sm:min-w-0 sm:w-auto snap-start bg-slate-50/70 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 rounded-3xl p-5 transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-4 shadow-xs hover:shadow-xl hover:-translate-y-1 shrink-0 sm:shrink"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-[#22c55e] flex items-center justify-center shadow-xs">
+                        <Icon size={22} />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-700">
+                        {cat.count}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-bold text-emerald-600 dark:text-[#22c55e] uppercase tracking-wider">
+                        {cat.tag}
+                      </div>
+                      <h3 className="font-black text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors">
+                        {cat.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-2">
+                        {cat.subtitle}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-[#22c55e] pt-1 border-t border-slate-200 dark:border-slate-800">
+                      <span>Browse Models</span>
+                      <ArrowRight size={12} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Edge Fade Cue with Animated Pulse Arrow */}
+            <div
+              className={`pointer-events-none absolute right-0 top-0 bottom-2 w-12 sm:w-16 bg-gradient-to-l from-white dark:from-[#0B0F19] to-transparent z-10 flex items-center justify-end pr-1 transition-opacity duration-300 sm:hidden ${
+                bodyTypeCanScrollRight ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <div className="w-6 h-6 rounded-full bg-slate-950/80 text-[#22c55e] flex items-center justify-center shadow-md animate-pulse">
+                <ChevronRight size={14} />
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Horizontal Scroll Indication Footer (Progress Bar & Indicator on Mobile) */}
+          <div className="sm:hidden flex items-center justify-between pt-1 px-1">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <ArrowRight size={12} className="text-[#22c55e] animate-pulse" />
+              <span>Swipe to explore all {CATEGORIES.length} body types</span>
+            </div>
+
+            {/* Scroll Progress Track */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-20 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div
-                  key={cat.id}
-                  onClick={() => onBrowse(cat.filter)}
-                  className="min-w-[240px] sm:min-w-0 snap-start bg-slate-50/70 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 rounded-3xl p-5 transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-4 shadow-xs hover:shadow-xl hover:-translate-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-[#22c55e] flex items-center justify-center shadow-xs">
-                      <Icon size={22} />
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-700">
-                      {cat.count}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="text-[10px] font-bold text-emerald-600 dark:text-[#22c55e] uppercase tracking-wider">
-                      {cat.tag}
-                    </div>
-                    <h3 className="font-black text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors">
-                      {cat.title}
-                    </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-2">
-                      {cat.subtitle}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-[#22c55e] pt-1 border-t border-slate-200 dark:border-slate-800">
-                    <span>Browse Models</span>
-                    <ArrowRight size={12} />
-                  </div>
-                </div>
-              );
-            })}
+                  className="h-full bg-[#22c55e] rounded-full transition-all duration-150"
+                  style={{ width: `${Math.max(20, bodyTypeScrollProgress)}%` }}
+                />
+              </div>
+            </div>
           </div>
 
         </div>

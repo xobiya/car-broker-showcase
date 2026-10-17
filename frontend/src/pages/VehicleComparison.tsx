@@ -27,9 +27,12 @@ import {
   Crown,
   DollarSign,
   Copy,
-  CheckCheck,
   Send,
-  MessageCircle
+  MessageCircle,
+  ArrowLeftRight,
+  Columns,
+  Layers,
+  ChevronDown
 } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
 import { vehiclesApi } from "../lib/api";
@@ -317,7 +320,9 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
   }, []);
 
   // Sync selected IDs to localStorage & URL
-  const [mobileViewMode, setMobileViewMode] = useState<"table" | "cards">("table");
+  const [mobileViewMode, setMobileViewMode] = useState<"dual" | "table" | "cards">("dual");
+  const [mobileLeftIndex, setMobileLeftIndex] = useState<number>(0);
+  const [mobileRightIndex, setMobileRightIndex] = useState<number>(1);
 
   useEffect(() => {
     try {
@@ -336,6 +341,25 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
       .map(id => allVehicles.find(v => v.id === id))
       .filter((v): v is VehicleListing => v !== undefined);
   }, [selectedIds, allVehicles]);
+
+  // Keep mobile comparison indices within range
+  useEffect(() => {
+    if (selectedVehicles.length <= 1) {
+      setMobileLeftIndex(0);
+      setMobileRightIndex(1);
+      return;
+    }
+    if (mobileLeftIndex >= selectedVehicles.length) {
+      setMobileLeftIndex(0);
+    }
+    if (mobileRightIndex >= selectedVehicles.length || mobileRightIndex === mobileLeftIndex) {
+      const nextIdx = (mobileLeftIndex + 1) % selectedVehicles.length;
+      setMobileRightIndex(nextIdx);
+    }
+  }, [selectedVehicles.length, mobileLeftIndex, mobileRightIndex]);
+
+  const vLeft = selectedVehicles[mobileLeftIndex] || selectedVehicles[0];
+  const vRight = selectedVehicles[mobileRightIndex] || (selectedVehicles.length > 1 ? selectedVehicles[1] : null);
 
   // Helper actions
   const addVehicle = (v: VehicleListing) => {
@@ -725,33 +749,46 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
       </div>
 
 
-      {/* ── MOBILE CONTROLS & QUICK JUMP BAR ── */}
+      {/* ── MOBILE CONTROLS & VIEW TOGGLE ── */}
       {selectedVehicles.length > 0 && (
         <div className="md:hidden space-y-2 mb-3">
-          {/* View Mode Toggle + Swipe Hint */}
-          <div className="flex items-center justify-between text-xs bg-slate-100/80 dark:bg-slate-800/60 p-1.5 rounded-2xl">
+          {/* View Mode Toggle: Dual (50/50), Table View, Cards View */}
+          <div className="flex items-center justify-between text-xs bg-slate-100/80 dark:bg-slate-800/60 p-1 rounded-2xl">
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setMobileViewMode("table")}
-                className={`px-3 py-1 rounded-xl font-bold text-[11px] transition cursor-pointer ${
-                  mobileViewMode === "table"
+                onClick={() => setMobileViewMode("dual")}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold text-[11px] transition cursor-pointer ${
+                  mobileViewMode === "dual"
                     ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                Table View
+                <Columns size={12} className={mobileViewMode === "dual" ? "text-[#22c55e]" : ""} />
+                <span>Side-by-Side</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileViewMode("table")}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold text-[11px] transition cursor-pointer ${
+                  mobileViewMode === "table"
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                <span>Table</span>
               </button>
               <button
                 type="button"
                 onClick={() => setMobileViewMode("cards")}
-                className={`px-3 py-1 rounded-xl font-bold text-[11px] transition cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold text-[11px] transition cursor-pointer ${
                   mobileViewMode === "cards"
                     ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                Cards View
+                <Layers size={12} />
+                <span>Cards</span>
               </button>
             </div>
 
@@ -760,7 +797,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
             </span>
           </div>
 
-          {/* Quick Jump Car Pills (in Table mode) */}
+          {/* Quick Jump Car Pills (in Table mode on mobile) */}
           {mobileViewMode === "table" && (
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px]">
               <span className="text-[10px] font-bold text-slate-400 shrink-0">Jump:</span>
@@ -769,7 +806,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                   key={v.id}
                   type="button"
                   onClick={() => {
-                    const el = document.getElementById(`col-${v.id}`);
+                    const el = document.getElementById(`col-mob-${v.id}`);
                     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
                   }}
                   className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-300 shrink-0 shadow-xs active:scale-95 cursor-pointer"
@@ -786,7 +823,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
       )}
 
 
-      {/* ── MAIN COMPARISON CARD TABLE OR EMPTY STATE ── */}
+      {/* ── MAIN COMPARISON OR EMPTY STATE ── */}
       {selectedVehicles.length === 0 ? (
         
         /* Empty State */
@@ -810,347 +847,682 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
           </button>
         </div>
 
-      ) : mobileViewMode === "cards" ? (
-
-        /* ── MOBILE CARDS BREAKDOWN VIEW ── */
-        <div className="space-y-4 md:hidden">
-          {selectedVehicles.map((v, idx) => {
-            const isLowestPrice = bestValueStats.lowestPriceId === v.id;
-            const isLowestMileage = bestValueStats.lowestMileageId === v.id;
-            const isNewest = bestValueStats.newestYearId === v.id;
-
-            return (
-              <div
-                key={v.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3.5 relative overflow-hidden"
-              >
-                {/* Header with Photo & Badges */}
-                <div className="flex gap-3">
-                  <div className="relative w-28 h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
-                    <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
-                    <div className="absolute top-1 left-1 bg-slate-950/80 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
-                      #{idx + 1}
-                    </div>
-                  </div>
-
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-start justify-between gap-1">
-                      <div>
-                        <div className="text-[10px] font-bold text-slate-400">{v.year} Model</div>
-                        <h3 className="font-extrabold text-sm text-slate-950 dark:text-white truncate">
-                          {v.brand} {v.model}
-                        </h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeVehicle(v.id)}
-                        className="text-slate-400 hover:text-rose-500 p-1 rounded-lg"
-                        title="Remove"
-                      >
-                        <X size={15} />
-                      </button>
-                    </div>
-
-                    <div className="text-base font-black text-[#16a34a] dark:text-[#22c55e]">
-                      ETB {v.price.toLocaleString()}
-                    </div>
-
-                    {/* Best Badges */}
-                    <div className="flex flex-wrap gap-1 pt-0.5">
-                      {isLowestPrice && selectedVehicles.length > 1 && (
-                        <span className="bg-emerald-500 text-slate-950 font-black text-[9px] px-1.5 py-0.2 rounded-full">
-                          Lowest Price
-                        </span>
-                      )}
-                      {isLowestMileage && selectedVehicles.length > 1 && (
-                        <span className="bg-sky-500 text-white font-black text-[9px] px-1.5 py-0.2 rounded-full">
-                          Lowest Km
-                        </span>
-                      )}
-                      {isNewest && selectedVehicles.length > 1 && (
-                        <span className="bg-purple-600 text-white font-black text-[9px] px-1.5 py-0.2 rounded-full">
-                          Newest Year
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Specs List for this vehicle */}
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
-                  {SPEC_SECTIONS.map((sec, sI) => (
-                    <div key={sI} className="space-y-1.5">
-                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                        <span>{sec.title}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                        {sec.fields.slice(0, 4).map((f, fI) => (
-                          <div key={fI} className="space-y-0.5">
-                            <span className="text-[10px] font-bold text-slate-400 block">{f.label}</span>
-                            <div className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-                              {f.getValue(v)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Action button */}
-                <button
-                  type="button"
-                  onClick={() => onViewDetails(v)}
-                  className="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] hover:text-slate-950 text-xs font-bold text-slate-800 dark:text-slate-200 transition cursor-pointer"
-                >
-                  View Full Vehicle Details
-                </button>
-              </div>
-            );
-          })}
-        </div>
-
       ) : (
 
-        /* Active Comparison Matrix (Side-by-Side Table) */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg shadow-slate-950/5">
-          <div className="overflow-x-auto scrollbar-thin scroll-smooth">
-            <table className="w-full text-left border-collapse">
-              
-              {/* ── THEAD: VEHICLE HEADER CARDS ── */}
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
-                  
-                  {/* Sticky Corner Column */}
-                  <th className="p-2.5 sm:p-5 w-24 sm:w-44 md:w-52 sticky left-0 z-30 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-[3px_0_10px_rgba(0,0,0,0.06)] align-top">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
-                        Matrix
-                      </span>
-                      <div className="text-xs sm:text-base font-black text-slate-900 dark:text-white">
-                        {selectedVehicles.length} of 4
-                      </div>
-                      <p className="text-[10px] text-slate-400 hidden sm:block">
-                        Side-by-side evaluation
-                      </p>
-                    </div>
-                  </th>
+        <>
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          {/* ── 1. MOBILE RESPONSIVE VIEWS (md:hidden) ── */}
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          <div className="md:hidden space-y-4">
 
-                  {/* Vehicle Header Columns */}
-                  {selectedVehicles.map((v) => {
+            {/* ── A. 50/50 DUAL SIDE-BY-SIDE MOBILE VIEW (DEFAULT) ── */}
+            {mobileViewMode === "dual" && (
+              <div className="space-y-3.5">
+                
+                {/* Multi-car Pairing Switcher (when 3 or 4 cars are loaded) */}
+                {selectedVehicles.length > 2 && (
+                  <div className="relative">
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px] -mx-1 px-1">
+                      <span className="text-[10px] font-bold text-slate-400 shrink-0">Compare Pairs:</span>
+                      {selectedVehicles.map((v1, i) =>
+                        selectedVehicles.slice(i + 1).map((v2, j) => {
+                          const idx2 = i + 1 + j;
+                          const isActive =
+                            (mobileLeftIndex === i && mobileRightIndex === idx2) ||
+                            (mobileLeftIndex === idx2 && mobileRightIndex === i);
+                          return (
+                            <button
+                              key={`${v1.id}-${v2.id}`}
+                              type="button"
+                              onClick={() => {
+                                setMobileLeftIndex(i);
+                                setMobileRightIndex(idx2);
+                              }}
+                              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition cursor-pointer border ${
+                                isActive
+                                  ? "bg-[#22c55e] text-slate-950 border-[#22c55e] shadow-xs"
+                                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300"
+                              }`}
+                            >
+                              {i + 1} vs {idx2 + 1}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                    <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-slate-50 dark:from-[#0B0F19] to-transparent" />
+                  </div>
+                )}
+
+                {/* Dual Vehicle Cards Header (Exactly 50% / 50% Split) */}
+                <div className="grid grid-cols-2 gap-2.5 items-stretch">
+                  {[vLeft, vRight].map((v, slotIdx) => {
+                    if (!v) {
+                      return (
+                        <div
+                          key="empty-mobile-slot"
+                          onClick={() => setShowSelectorModal(true)}
+                          className="bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-2 cursor-pointer hover:border-[#22c55e] transition"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
+                            <Plus size={18} />
+                          </div>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Add Vehicle</span>
+                          <span className="text-[10px] text-slate-400">Tap to select from inventory</span>
+                        </div>
+                      );
+                    }
+
+                    const isLeft = slotIdx === 0;
+                    const currentIdx = isLeft ? mobileLeftIndex : mobileRightIndex;
                     const isLowestPrice = bestValueStats.lowestPriceId === v.id;
                     const isLowestMileage = bestValueStats.lowestMileageId === v.id;
                     const isNewest = bestValueStats.newestYearId === v.id;
 
                     return (
-                      <th
+                      <div
                         key={v.id}
-                        id={`col-${v.id}`}
-                        className="p-2.5 sm:p-5 min-w-[165px] sm:min-w-[240px] md:min-w-[260px] max-w-[290px] align-top relative border-r border-slate-100 dark:border-slate-800/80 last:border-r-0"
+                        className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2.5 shadow-sm space-y-2 flex flex-col justify-between relative"
                       >
-                        {/* Remove Button */}
-                        <button
-                          type="button"
-                          onClick={() => removeVehicle(v.id)}
-                          className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 p-1.5 rounded-full transition cursor-pointer z-10"
-                          title="Remove"
-                        >
-                          <X size={14} />
-                        </button>
-
-                        <div className="space-y-3">
-                          
-                          {/* Image Thumbnail with Auto Badges */}
-                          <div className="relative h-28 sm:h-36 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-800 group">
-                            <img
-                              src={v.imageUrl}
-                              alt={`${v.brand} ${v.model}`}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-
-                            {/* Best Badge Overlays using Lucide Icons */}
-                            <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-                              {isLowestPrice && selectedVehicles.length > 1 && (
-                                <span className="bg-emerald-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 uppercase tracking-wider">
-                                  <Award size={10} /> Lowest Price
-                                </span>
-                              )}
-                              {isLowestMileage && selectedVehicles.length > 1 && (
-                                <span className="bg-sky-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 uppercase tracking-wider">
-                                  <Gauge size={10} /> Lowest Km
-                                </span>
-                              )}
-                              {isNewest && selectedVehicles.length > 1 && (
-                                <span className="bg-purple-600 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 uppercase tracking-wider">
-                                  <Clock size={10} /> Newest
-                                </span>
-                              )}
+                        {/* Slot Header: Dropdown selector if > 2 cars, and remove button */}
+                        <div className="flex items-center justify-between gap-1">
+                          {selectedVehicles.length > 2 ? (
+                            <div className="relative flex-1">
+                              <select
+                                value={currentIdx}
+                                onChange={(e) => {
+                                  const newIdx = Number(e.target.value);
+                                  if (isLeft) {
+                                    setMobileLeftIndex(newIdx);
+                                    if (newIdx === mobileRightIndex) {
+                                      setMobileRightIndex((newIdx + 1) % selectedVehicles.length);
+                                    }
+                                  } else {
+                                    setMobileRightIndex(newIdx);
+                                    if (newIdx === mobileLeftIndex) {
+                                      setMobileLeftIndex((newIdx + 1) % selectedVehicles.length);
+                                    }
+                                  }
+                                }}
+                                className="w-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-1 rounded-lg border-none focus:ring-1 focus:ring-emerald-500 truncate"
+                              >
+                                {selectedVehicles.map((c, i) => (
+                                  <option key={c.id} value={i}>
+                                    {i + 1}. {c.brand} {c.model}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-[#22c55e] text-[11px] flex items-center justify-center font-black">
+                              {currentIdx + 1}
+                            </span>
+                          )}
 
-                            {/* Fuel type pill */}
-                            <div className="absolute bottom-1.5 right-1.5 bg-slate-950/80 backdrop-blur-sm text-white font-bold text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1">
-                              {v.fuelType === "Electric" && <Zap size={10} className="text-[#22c55e]" />}
-                              <span>{v.fuelType}</span>
-                            </div>
-                          </div>
-
-                          {/* Vehicle Title & Year */}
-                          <div>
-                            <div className="text-[11px] font-bold text-slate-400">{v.year} Model</div>
-                            <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
-                              {v.brand} {v.model}
-                            </h3>
-                          </div>
-
-                          {/* Price Tag */}
-                          <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
-                            <div className="text-[9px] uppercase font-bold text-slate-400">Price</div>
-                            <div className="text-sm sm:text-base font-black text-[#16a34a] dark:text-[#22c55e]">
-                              ETB {v.price.toLocaleString()}
-                            </div>
-                            <div className="text-[9px] text-slate-400 font-medium">
-                              1.5% Fee: ETB {(v.price * 0.015).toLocaleString()}
-                            </div>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="space-y-1.5 pt-0.5">
-                            <button
-                              type="button"
-                              onClick={() => onViewDetails(v)}
-                              className="w-full py-2 px-2.5 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95 shadow-xs"
-                            >
-                              <span>View Details</span>
-                              <ArrowRight size={12} />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setInquireVehicle(v)}
-                              className="w-full py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center gap-1"
-                            >
-                              <PhoneCall size={11} className="text-[#22c55e]" />
-                              <span>Contact</span>
-                            </button>
-                          </div>
-
+                          <button
+                            type="button"
+                            onClick={() => removeVehicle(v.id)}
+                            className="text-slate-400 hover:text-rose-500 p-1 rounded-md"
+                            title="Remove"
+                          >
+                            <X size={13} />
+                          </button>
                         </div>
-                      </th>
+
+                        {/* Thumbnail & Badges */}
+                        <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
+                          <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
+                          <div className="absolute top-1 left-1 flex flex-col gap-0.5 z-10">
+                            {isLowestPrice && selectedVehicles.length > 1 && (
+                              <span className="bg-emerald-500 text-slate-950 font-black text-[8px] px-1.5 py-0.2 rounded shadow-xs">
+                                Lowest Price
+                              </span>
+                            )}
+                            {isLowestMileage && selectedVehicles.length > 1 && (
+                              <span className="bg-sky-500 text-white font-black text-[8px] px-1.5 py-0.2 rounded shadow-xs">
+                                Lowest Km
+                              </span>
+                            )}
+                            {isNewest && selectedVehicles.length > 1 && (
+                              <span className="bg-purple-600 text-white font-black text-[8px] px-1.5 py-0.2 rounded shadow-xs">
+                                Newest
+                              </span>
+                            )}
+                          </div>
+                          <div className="absolute bottom-1 right-1 bg-slate-950/80 text-white font-bold text-[8px] px-1.5 py-0.2 rounded">
+                            {v.fuelType}
+                          </div>
+                        </div>
+
+                        {/* Title & Price */}
+                        <div className="space-y-0.5">
+                          <div className="text-[10px] text-slate-400 font-bold">{v.year} Model</div>
+                          <h4 className="font-extrabold text-xs text-slate-900 dark:text-white line-clamp-1 leading-tight">
+                            {v.brand} {v.model}
+                          </h4>
+                          <div className="text-xs sm:text-sm font-black text-[#16a34a] dark:text-[#22c55e] pt-0.5">
+                            ETB {v.price.toLocaleString()}
+                          </div>
+                          <div className="text-[9px] text-slate-400">
+                            1.5% Fee: ETB {(v.price * 0.015).toLocaleString()}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="space-y-1 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => onViewDetails(v)}
+                            className="w-full py-1.5 px-2 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black rounded-lg text-[11px] transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                          >
+                            <span>View Details</span>
+                            <ArrowRight size={11} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setInquireVehicle(v)}
+                            className="w-full py-1 px-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg text-[10px] transition cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <PhoneCall size={10} className="text-[#22c55e]" />
+                            <span>Contact</span>
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
+                </div>
 
-                  {/* Empty Slot (if less than 4 cars) */}
-                  {selectedVehicles.length < 4 && (
-                    <th className="p-3 sm:p-5 min-w-[180px] sm:min-w-[220px] align-middle text-center border-dashed border-2 border-slate-200 dark:border-slate-800 m-2 rounded-2xl bg-slate-50/20 dark:bg-slate-900/20">
-                      <div className="flex flex-col items-center justify-center space-y-2 py-4">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
-                          <Plus size={18} />
-                        </div>
-                        <div className="space-y-0.5">
-                          <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                            Add Vehicle
-                          </div>
-                          <div className="text-[10px] text-slate-400">
-                            Slot {selectedVehicles.length + 1} of 4
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setShowSelectorModal(true)}
-                          className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition cursor-pointer shadow-xs active:scale-95"
-                        >
-                          + Select
-                        </button>
-                      </div>
-                    </th>
-                  )}
+                {/* Dual 50/50 Spec Rows (Zero Horizontal Panning Required) */}
+                {vLeft && vRight && (
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 shadow-sm space-y-4">
+                    {SPEC_SECTIONS.map((section, sIdx) => {
+                      const SectionIcon = section.icon;
 
-                </tr>
-              </thead>
-
-              {/* ── TBODY: STRUCTURED SPECIFICATION SECTIONS ── */}
-              <tbody>
-                {SPEC_SECTIONS.map((section, sIdx) => {
-                  const SectionIcon = section.icon;
-
-                  return (
-                    <React.Fragment key={sIdx}>
-                      
-                      {/* Section Header Divider */}
-                      <tr className="bg-slate-100/90 dark:bg-slate-800/80 border-t-2 border-b border-slate-200 dark:border-slate-700/80">
-                        <td
-                          colSpan={selectedVehicles.length + (selectedVehicles.length < 4 ? 2 : 1)}
-                          className="px-3 sm:px-5 py-2"
-                        >
-                          <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                            <SectionIcon size={13} className="text-[#22c55e]" />
+                      return (
+                        <div key={sIdx} className="space-y-2">
+                          {/* Full-width Section Title Banner */}
+                          <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                            <SectionIcon size={12} className="text-[#22c55e]" />
                             <span>{section.title}</span>
                           </div>
-                        </td>
-                      </tr>
 
-                      {/* Section Spec Rows */}
-                      {section.fields.map((field, fIdx) => {
-                        let isDifferent = false;
-                        if (selectedVehicles.length > 1 && field.getRawValue) {
-                          const values = selectedVehicles.map(v => field.getRawValue!(v));
-                          const firstVal = values[0];
-                          isDifferent = values.some(v => v !== firstVal);
-                        }
+                          {/* Spec Items in 50/50 split */}
+                          <div className="space-y-2">
+                            {section.fields.map((field, fIdx) => {
+                              let isDifferent = false;
+                              if (field.getRawValue) {
+                                const rawL = field.getRawValue(vLeft);
+                                const rawR = field.getRawValue(vRight);
+                                isDifferent = rawL !== rawR;
+                              }
+                              const highlightRow = highlightDiffs && isDifferent;
 
-                        const highlightRow = highlightDiffs && isDifferent;
+                              return (
+                                <div
+                                  key={`${sIdx}-${fIdx}`}
+                                  className={`p-2 rounded-xl border transition-colors ${
+                                    highlightRow
+                                      ? "bg-amber-500/10 border-amber-500/30"
+                                      : "bg-slate-50/60 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800/80"
+                                  }`}
+                                >
+                                  {/* Full-width Label Header */}
+                                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 px-0.5">
+                                    <span>{field.label}</span>
+                                    {highlightRow && (
+                                      <span className="text-[8px] font-black uppercase text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/80 px-1 py-0.2 rounded">
+                                        Diff
+                                      </span>
+                                    )}
+                                  </div>
 
-                        return (
-                          <tr
-                            key={`${sIdx}-${fIdx}`}
-                            className={`border-b border-slate-100 dark:border-slate-800/80 transition-colors ${
-                              highlightRow
-                                ? "bg-amber-500/10 dark:bg-amber-500/15"
-                                : "hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
-                            }`}
+                                  {/* Two 50% Columns side-by-side */}
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div className="font-semibold text-slate-900 dark:text-white break-words pr-1">
+                                      {field.getValue(vLeft)}
+                                    </div>
+                                    <div className="font-semibold text-slate-900 dark:text-white break-words pl-2 border-l border-slate-200 dark:border-slate-700/60">
+                                      {field.getValue(vRight)}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── B. MOBILE CARDS BREAKDOWN VIEW ── */}
+            {mobileViewMode === "cards" && (
+              <div className="space-y-4">
+                {selectedVehicles.map((v, idx) => {
+                  const isLowestPrice = bestValueStats.lowestPriceId === v.id;
+                  const isLowestMileage = bestValueStats.lowestMileageId === v.id;
+                  const isNewest = bestValueStats.newestYearId === v.id;
+
+                  return (
+                    <div
+                      key={v.id}
+                      className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3.5 relative overflow-hidden"
+                    >
+                      {/* Header with Photo & Badges */}
+                      <div className="flex gap-3">
+                        <div className="relative w-28 h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
+                          <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
+                          <div className="absolute top-1 left-1 bg-slate-950/80 text-white text-[10px] font-black w-4 h-4 rounded flex items-center justify-center">
+                            {idx + 1}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-start justify-between gap-1">
+                            <div>
+                              <div className="text-[10px] font-bold text-slate-400">{v.year} Model</div>
+                              <h3 className="font-extrabold text-sm text-slate-950 dark:text-white truncate">
+                                {v.brand} {v.model}
+                              </h3>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeVehicle(v.id)}
+                              className="text-slate-400 hover:text-rose-500 p-1 rounded-lg"
+                              title="Remove"
+                            >
+                              <X size={15} />
+                            </button>
+                          </div>
+
+                          <div className="text-base font-black text-[#16a34a] dark:text-[#22c55e]">
+                            ETB {v.price.toLocaleString()}
+                          </div>
+
+                          {/* Best Badges */}
+                          <div className="flex flex-wrap gap-1 pt-0.5">
+                            {isLowestPrice && selectedVehicles.length > 1 && (
+                              <span className="bg-emerald-500 text-slate-950 font-black text-[9px] px-1.5 py-0.2 rounded-full">
+                                Lowest Price
+                              </span>
+                            )}
+                            {isLowestMileage && selectedVehicles.length > 1 && (
+                              <span className="bg-sky-500 text-white font-black text-[9px] px-1.5 py-0.2 rounded-full">
+                                Lowest Km
+                              </span>
+                            )}
+                            {isNewest && selectedVehicles.length > 1 && (
+                              <span className="bg-purple-600 text-white font-black text-[9px] px-1.5 py-0.2 rounded-full">
+                                Newest Year
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Specs List for this vehicle */}
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
+                        {SPEC_SECTIONS.map((sec, sI) => (
+                          <div key={sI} className="space-y-1.5">
+                            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                              <span>{sec.title}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                              {sec.fields.slice(0, 4).map((f, fI) => (
+                                <div key={fI} className="space-y-0.5">
+                                  <span className="text-[10px] font-bold text-slate-400 block">{f.label}</span>
+                                  <div className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                    {f.getValue(v)}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Action button */}
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails(v)}
+                        className="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] hover:text-slate-950 text-xs font-bold text-slate-800 dark:text-slate-200 transition cursor-pointer"
+                      >
+                        View Full Vehicle Details
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ── C. MOBILE TABLE VIEW (SLIM STICKY HEADER & SMOOTH SWIPE) ── */}
+            {mobileViewMode === "table" && (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <ArrowRight size={12} className="text-[#22c55e] animate-pulse" />
+                    Swipe horizontally to view all {selectedVehicles.length} vehicles
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-semibold">1 to {selectedVehicles.length}</span>
+                </div>
+                <div className="overflow-x-auto scrollbar-thin">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
+                        <th className="p-2 w-20 sticky left-0 z-20 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+                          <span className="text-[9px] font-black uppercase text-slate-400 block">Matrix</span>
+                          <span className="text-xs font-black text-slate-900 dark:text-white">{selectedVehicles.length} cars</span>
+                        </th>
+                        {selectedVehicles.map(v => (
+                          <th
+                            key={v.id}
+                            id={`col-mob-${v.id}`}
+                            className="p-2.5 min-w-[150px] max-w-[170px] align-top border-r border-slate-100 dark:border-slate-800"
                           >
-                            {/* Sticky Spec Label */}
-                            <td className="w-24 sm:w-44 md:w-52 p-2 sm:px-5 py-2.5 sticky left-0 z-20 bg-slate-50/98 dark:bg-slate-900/98 border-r border-slate-200 dark:border-slate-800 shadow-[3px_0_10px_rgba(0,0,0,0.06)] align-middle">
-                              <div className="flex items-center gap-1">
-                                <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-300 leading-tight">
+                            <div className="space-y-1.5">
+                              <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-bold">{v.year}</div>
+                              <h4 className="font-black text-xs text-slate-900 dark:text-white truncate">
+                                {v.brand} {v.model}
+                              </h4>
+                              <div className="text-xs font-black text-[#16a34a] dark:text-[#22c55e]">
+                                ETB {v.price.toLocaleString()}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => onViewDetails(v)}
+                                className="w-full py-1 bg-[#22c55e] text-slate-950 font-black rounded text-[10px]"
+                              >
+                                Details
+                              </button>
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {SPEC_SECTIONS.map((section, sIdx) => {
+                        const SectionIcon = section.icon;
+                        return (
+                          <React.Fragment key={sIdx}>
+                            <tr className="bg-slate-100 dark:bg-slate-800/80 border-t border-b border-slate-200 dark:border-slate-700">
+                              <td colSpan={selectedVehicles.length + 1} className="p-1.5 px-2 text-[10px] font-black uppercase text-slate-700 dark:text-slate-200">
+                                <div className="flex items-center gap-1">
+                                  <SectionIcon size={11} className="text-[#22c55e]" />
+                                  <span>{section.title}</span>
+                                </div>
+                              </td>
+                            </tr>
+                            {section.fields.map((field, fIdx) => (
+                              <tr key={`${sIdx}-${fIdx}`} className="border-b border-slate-100 dark:border-slate-800/60">
+                                <td className="w-20 p-2 sticky left-0 z-10 bg-slate-50/98 dark:bg-slate-900/98 border-r border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400">
                                   {field.label}
-                                </span>
-                                {highlightRow && (
-                                  <span className="text-[8px] sm:text-[9px] font-black uppercase text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/80 px-1 py-0.2 rounded shrink-0">
-                                    Diff
+                                </td>
+                                {selectedVehicles.map(v => (
+                                  <td key={v.id} className="p-2 text-[11px] text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-800/60">
+                                    {field.getValue(v)}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+          </div>
+
+
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          {/* ── 2. DESKTOP FULL MATRIX TABLE VIEW (hidden md:block) ── */}
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          <div className="hidden md:block bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl overflow-hidden shadow-lg shadow-slate-950/5">
+            <div className="overflow-x-auto scrollbar-thin scroll-smooth">
+              <table className="w-full text-left border-collapse">
+                
+                {/* ── THEAD: VEHICLE HEADER CARDS ── */}
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
+                    
+                    {/* Sticky Corner Column */}
+                    <th className="p-5 w-44 md:w-52 sticky left-0 z-30 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-[3px_0_10px_rgba(0,0,0,0.06)] align-top">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
+                          Matrix
+                        </span>
+                        <div className="text-base font-black text-slate-900 dark:text-white">
+                          {selectedVehicles.length} of 4
+                        </div>
+                        <p className="text-[10px] text-slate-400">
+                          Side-by-side evaluation
+                        </p>
+                      </div>
+                    </th>
+
+                    {/* Vehicle Header Columns */}
+                    {selectedVehicles.map((v) => {
+                      const isLowestPrice = bestValueStats.lowestPriceId === v.id;
+                      const isLowestMileage = bestValueStats.lowestMileageId === v.id;
+                      const isNewest = bestValueStats.newestYearId === v.id;
+
+                      return (
+                        <th
+                          key={v.id}
+                          id={`col-${v.id}`}
+                          className="p-5 min-w-[240px] md:min-w-[260px] max-w-[290px] align-top relative border-r border-slate-100 dark:border-slate-800/80 last:border-r-0"
+                        >
+                          {/* Remove Button */}
+                          <button
+                            type="button"
+                            onClick={() => removeVehicle(v.id)}
+                            className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 p-1.5 rounded-full transition cursor-pointer z-10"
+                            title="Remove"
+                          >
+                            <X size={14} />
+                          </button>
+
+                          <div className="space-y-3">
+                            
+                            {/* Image Thumbnail with Auto Badges */}
+                            <div className="relative h-36 w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-800 group">
+                              <img
+                                src={v.imageUrl}
+                                alt={`${v.brand} ${v.model}`}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+
+                              {/* Best Badge Overlays using Lucide Icons */}
+                              <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                                {isLowestPrice && selectedVehicles.length > 1 && (
+                                  <span className="bg-emerald-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 uppercase tracking-wider">
+                                    <Award size={10} /> Lowest Price
+                                  </span>
+                                )}
+                                {isLowestMileage && selectedVehicles.length > 1 && (
+                                  <span className="bg-sky-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 uppercase tracking-wider">
+                                    <Gauge size={10} /> Lowest Km
+                                  </span>
+                                )}
+                                {isNewest && selectedVehicles.length > 1 && (
+                                  <span className="bg-purple-600 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 uppercase tracking-wider">
+                                    <Clock size={10} /> Newest
                                   </span>
                                 )}
                               </div>
-                            </td>
 
-                            {/* Spec Values for each vehicle */}
-                            {selectedVehicles.map(v => (
-                              <td
-                                key={v.id}
-                                className="p-2 sm:px-5 py-2.5 text-xs text-slate-700 dark:text-slate-300 align-middle border-r border-slate-100 dark:border-slate-800/80 last:border-r-0"
+                              {/* Fuel type pill */}
+                              <div className="absolute bottom-1.5 right-1.5 bg-slate-950/80 backdrop-blur-sm text-white font-bold text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1">
+                                {v.fuelType === "Electric" && <Zap size={10} className="text-[#22c55e]" />}
+                                <span>{v.fuelType}</span>
+                              </div>
+                            </div>
+
+                            {/* Vehicle Title & Year */}
+                            <div>
+                              <div className="text-[11px] font-bold text-slate-400">{v.year} Model</div>
+                              <h3 className="text-base font-black text-slate-900 dark:text-white truncate">
+                                {v.brand} {v.model}
+                              </h3>
+                            </div>
+
+                            {/* Price Tag */}
+                            <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
+                              <div className="text-[9px] uppercase font-bold text-slate-400">Price</div>
+                              <div className="text-base font-black text-[#16a34a] dark:text-[#22c55e]">
+                                ETB {v.price.toLocaleString()}
+                              </div>
+                              <div className="text-[9px] text-slate-400 font-medium">
+                                1.5% Fee: ETB {(v.price * 0.015).toLocaleString()}
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="space-y-1.5 pt-0.5">
+                              <button
+                                type="button"
+                                onClick={() => onViewDetails(v)}
+                                className="w-full py-2 px-2.5 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95 shadow-xs"
                               >
-                                {field.getValue(v)}
+                                <span>View Details</span>
+                                <ArrowRight size={12} />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setInquireVehicle(v)}
+                                className="w-full py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <PhoneCall size={11} className="text-[#22c55e]" />
+                                <span>Contact</span>
+                              </button>
+                            </div>
+
+                          </div>
+                        </th>
+                      );
+                    })}
+
+                    {/* Empty Slot (if less than 4 cars) */}
+                    {selectedVehicles.length < 4 && (
+                      <th className="p-5 min-w-[220px] align-middle text-center border-dashed border-2 border-slate-200 dark:border-slate-800 m-2 rounded-2xl bg-slate-50/20 dark:bg-slate-900/20">
+                        <div className="flex flex-col items-center justify-center space-y-2 py-4">
+                          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
+                            <Plus size={18} />
+                          </div>
+                          <div className="space-y-0.5">
+                            <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                              Add Vehicle
+                            </div>
+                            <div className="text-[10px] text-slate-400">
+                              Slot {selectedVehicles.length + 1} of 4
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowSelectorModal(true)}
+                            className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition cursor-pointer shadow-xs active:scale-95"
+                          >
+                            + Select
+                          </button>
+                        </div>
+                      </th>
+                    )}
+
+                  </tr>
+                </thead>
+
+                {/* ── TBODY: STRUCTURED SPECIFICATION SECTIONS ── */}
+                <tbody>
+                  {SPEC_SECTIONS.map((section, sIdx) => {
+                    const SectionIcon = section.icon;
+
+                    return (
+                      <React.Fragment key={sIdx}>
+                        
+                        {/* Section Header Divider */}
+                        <tr className="bg-slate-100/90 dark:bg-slate-800/80 border-t-2 border-b border-slate-200 dark:border-slate-700/80">
+                          <td
+                            colSpan={selectedVehicles.length + (selectedVehicles.length < 4 ? 2 : 1)}
+                            className="px-5 py-2"
+                          >
+                            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                              <SectionIcon size={13} className="text-[#22c55e]" />
+                              <span>{section.title}</span>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* Section Spec Rows */}
+                        {section.fields.map((field, fIdx) => {
+                          let isDifferent = false;
+                          if (selectedVehicles.length > 1 && field.getRawValue) {
+                            const values = selectedVehicles.map(v => field.getRawValue!(v));
+                            const firstVal = values[0];
+                            isDifferent = values.some(v => v !== firstVal);
+                          }
+
+                          const highlightRow = highlightDiffs && isDifferent;
+
+                          return (
+                            <tr
+                              key={`${sIdx}-${fIdx}`}
+                              className={`border-b border-slate-100 dark:border-slate-800/80 transition-colors ${
+                                highlightRow
+                                  ? "bg-amber-500/10 dark:bg-amber-500/15"
+                                  : "hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                              }`}
+                            >
+                              {/* Sticky Spec Label */}
+                              <td className="w-44 md:w-52 px-5 py-2.5 sticky left-0 z-20 bg-slate-50/98 dark:bg-slate-900/98 border-r border-slate-200 dark:border-slate-800 shadow-[3px_0_10px_rgba(0,0,0,0.06)] align-middle">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 leading-tight">
+                                    {field.label}
+                                  </span>
+                                  {highlightRow && (
+                                    <span className="text-[9px] font-black uppercase text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/80 px-1 py-0.2 rounded shrink-0">
+                                      Diff
+                                    </span>
+                                  )}
+                                </div>
                               </td>
-                            ))}
 
-                            {/* Empty column balance */}
-                            {selectedVehicles.length < 4 && (
-                              <td className="p-3 text-center text-slate-300 dark:text-slate-700">
-                                —
-                              </td>
-                            )}
-                          </tr>
-                        );
-                      })}
+                              {/* Spec Values for each vehicle */}
+                              {selectedVehicles.map(v => (
+                                <td
+                                  key={v.id}
+                                  className="px-5 py-2.5 text-xs text-slate-700 dark:text-slate-300 align-middle border-r border-slate-100 dark:border-slate-800/80 last:border-r-0"
+                                >
+                                  {field.getValue(v)}
+                                </td>
+                              ))}
 
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
+                              {/* Empty column balance */}
+                              {selectedVehicles.length < 4 && (
+                                <td className="p-3 text-center text-slate-300 dark:text-slate-700">
+                                  —
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
 
-            </table>
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+
+              </table>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
 
