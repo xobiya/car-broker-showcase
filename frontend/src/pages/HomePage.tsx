@@ -411,10 +411,10 @@ export default function HomePage({
       return dbBrands.map((b) => ({
         name: b.name,
         count: `${b.count} ${b.count === 1 ? "Car" : "Cars"}`,
-        tagline: b.models.slice(0, 3).join(", ") || DEFAULT_BRAND_TAGS[b.name] || "Available in Ethiopia",
+        tagline: (Array.isArray(b.models) ? b.models.slice(0, 3).join(", ") : "") || DEFAULT_BRAND_TAGS[b.name] || "Available in Ethiopia",
         svg: BRAND_LOGOS[b.name] || (
           <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md uppercase">
-            {b.name.slice(0, 4)}
+            {(b.name || "").slice(0, 4)}
           </div>
         )
       }));

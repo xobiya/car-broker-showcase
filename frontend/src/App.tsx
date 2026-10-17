@@ -22,10 +22,8 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
 const BrokerDashboard = lazy(() => import("./dashboards/BrokerDashboard"));
-const SellerDashboard = lazy(() => import("./dashboards/SellerDashboard"));
 const AdminPanel = lazy(() => import("./dashboards/AdminPanel"));
 const AdminProfilePage = lazy(() => import("./dashboards/AdminProfilePage"));
-const NotificationsPage = lazy(() => import("./dashboards/NotificationsPage"));
 const BrokerProfilePage = lazy(() => import("./dashboards/BrokerProfilePage"));
 const BuyerProfilePage = lazy(() => import("./dashboards/BuyerProfilePage"));
 const ChooseRolePage = lazy(() => import("./pages/ChooseRolePage"));
@@ -50,7 +48,7 @@ function PageLoader() {
   );
 }
 
-const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/seller-dashboard", "/admin", "/admin/profile", "/admin/notifications"];
+const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/admin", "/admin/profile"];
 
 function useToast() {
   const toasts = useStore(s => s.toasts);
@@ -145,7 +143,7 @@ export default function App() {
     setUser(user);
     if (user.role === "admin") navigate("/admin");
     else if (user.role === "broker") navigate("/broker-dashboard");
-    else if (user.role === "seller") navigate("/seller-dashboard");
+    else if (user.role === "seller") navigate("/profile?section=listings");
     else navigate("/profile");
   }, [navigate, setUser]);
 
@@ -578,17 +576,12 @@ export default function App() {
               </ul>
             </div>
             <div className="space-y-6">
-              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">For Sellers</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Marketplace</h4>
               <ul className="space-y-3">
                 <li><button onClick={() => user ? navigate("/profile?section=listings&action=new") : navigate("/login")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Sell Your Car</button></li>
-                {['Pricing Guide', 'Listing Tips'].map(link => (
-                  <li key={link}>
-                    <button onClick={() => addToast("Coming soon!", "info")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer">
-                      <span className="w-1 h-1 rounded-full bg-slate-600" /> {link}
-                    </button>
-                  </li>
-                ))}
-                <li><button onClick={() => navigate("/help")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Help Center</button></li>
+                <li><button onClick={() => navigate("/browse")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Showroom</button></li>
+                <li><button onClick={() => navigate("/compare")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Compare Vehicles</button></li>
+                <li><button onClick={() => navigate("/help")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Help & Support</button></li>
               </ul>
             </div>
             <div className="space-y-6">

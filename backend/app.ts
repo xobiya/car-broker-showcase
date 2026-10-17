@@ -147,7 +147,7 @@ app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
     const { email, password } = req.body;
     const user = await db.getUserByEmail(email);
     if (!user || !user.password_hash) {
-      return res.status(404).json({ error: "Invalid email or password." });
+      return res.status(401).json({ error: "Invalid email or password." });
     }
 
     const match = await comparePassword(password, user.password_hash);

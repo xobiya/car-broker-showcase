@@ -8,7 +8,7 @@ import {
   ExternalLink, Sparkles, ArrowLeft
 } from "lucide-react";
 import { VehicleListing, SavedVehicle, TestDriveRequest, Lead } from "../../../shared/types";
-import { savedVehiclesApi, testDrivesApi, uploadApi, vehiclesApi, leadsApi } from "../lib/api";
+import { savedVehiclesApi, testDrivesApi, uploadApi, vehiclesApi, leadsApi, usersApi } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import Combobox from "../components/ui/Combobox";
 import {
@@ -918,7 +918,7 @@ function VehicleFormModal({
     brand: editing?.brand || "Toyota",
     model: editing?.model || "",
     year: editing?.year || new Date().getFullYear(),
-    regYear: editing?.registrationYear || new Date().getFullYear(),
+    regYear: (editing as any)?.registrationYear || editing?.year || new Date().getFullYear(),
     price: editing?.price || 0,
     originalPrice: editing?.originalPrice || 0,
     mileage: editing?.mileage || 0,
@@ -934,7 +934,7 @@ function VehicleFormModal({
     horsepower: editing?.horsepower || 130,
     location: editing?.location || "Addis Ababa",
     description: editing?.description || "",
-    phone: editing?.phone || "+251 ",
+    phone: (editing as any)?.phone || editing?.brokerPhone || "+251 ",
     chassisNumber: editing?.chassisNumber || "",
   });
 
@@ -1532,7 +1532,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
   );
 }
 
-function ToggleRow({ checked, onChange, label, desc }: { checked: boolean; onChange: () => void; label: string; desc: string }) {
+function ToggleRow({ checked, onChange, label, desc }: { key?: React.Key; checked: boolean; onChange: () => void; label: string; desc: string }) {
   return (
     <div className="flex items-center justify-between py-2.5">
       <div><p className="text-sm font-semibold text-slate-800 dark:text-white">{label}</p><p className="text-xs text-slate-400 dark:text-slate-500">{desc}</p></div>

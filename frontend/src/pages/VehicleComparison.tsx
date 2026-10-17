@@ -28,6 +28,7 @@ import {
   DollarSign,
   Copy,
   Send,
+  CheckCheck,
   MessageCircle,
   ArrowLeftRight,
   Columns,
