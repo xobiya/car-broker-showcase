@@ -131,14 +131,17 @@ export async function initDB() {
     console.log("[MongoDB] Connection restored.");
   });
 
+  const dbName = process.env.MONGODB_DB_NAME || "autobroker_ethiopia";
+
   await mongoose.connect(uri, {
+    dbName,
     serverSelectionTimeoutMS: 15000,
     maxPoolSize: 20,
     minPoolSize: 2,
     socketTimeoutMS: 45000,
     connectTimeoutMS: 15000,
   });
-  console.log("Connected to MongoDB!");
+  console.log(`Connected to MongoDB (database: ${mongoose.connection.name || dbName})!`);
 
   // Migrate any existing files in uploads directory to MongoDB Media collection (safe in all environments)
   try {
