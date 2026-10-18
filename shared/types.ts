@@ -1,4 +1,4 @@
-// --- AUTOBROKER ETHIOPIA SYSTEM TYPES ---
+// --- ARIF CAR SELL ETHIOPIA SYSTEM TYPES ---
 
 export interface User {
   id: string;
@@ -93,6 +93,10 @@ export interface Lead {
   vehicleBrand?: string;
   vehicleModel?: string;
   vehiclePrice?: number;
+  name?: string;
+  phone?: string;
+  email?: string;
+  createdAt?: string;
 }
 
 export interface Sale {

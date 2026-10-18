@@ -37,7 +37,7 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
 
   const res = await fetch(url, init);
 
-  if (res.status === 401) {
+  if (res.status === 401 || (res.status === 403 && !token)) {
     clearSession();
     window.dispatchEvent(new CustomEvent("autobroker:unauthorized"));
   }

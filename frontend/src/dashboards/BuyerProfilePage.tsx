@@ -5,7 +5,7 @@ import {
   Key, Camera, Check, Pencil, Eye, EyeOff, Loader2, ShieldCheck, Bell,
   BadgeCheck, Save, LayoutDashboard, LogOut, ArrowRight, Search,
   Car, Plus, X, AlertCircle, MessageCircle, RefreshCw, Edit3,
-  ExternalLink, Sparkles, ArrowLeft
+  ExternalLink, Sparkles, ArrowLeft, SlidersHorizontal
 } from "lucide-react";
 import { VehicleListing, SavedVehicle, TestDriveRequest, Lead } from "../../../shared/types";
 import { savedVehiclesApi, testDrivesApi, uploadApi, vehiclesApi, leadsApi, usersApi } from "../lib/api";
@@ -65,6 +65,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
   const [myListings, setMyListings] = useState<VehicleListing[]>([]);
   const [inquiries, setInquiries] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   // Listing modal state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -155,19 +156,33 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] transition-colors">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10 pb-28 lg:pb-10">
         
         {/* Top Header Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              My Profile
-            </h1>
-            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium mt-0.5">
-              Welcome back, {user?.name?.split(" ")[0]} — manage your account, saved cars, and marketplace listings.
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                  My Profile
+                </h1>
+                <span className="lg:hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#16a34a] border border-emerald-200/80 dark:border-emerald-800/80">
+                  {user?.role === "broker" ? "Broker" : "Member"}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                Welcome back, {user?.name?.split(" ")[0]} — manage your account & cars.
+              </p>
+            </div>
+            {/* Quick avatar on mobile */}
+            <div 
+              onClick={() => setActiveSection("profile")}
+              className="lg:hidden w-10 h-10 rounded-2xl bg-emerald-500/20 text-[#22c55e] border border-[#22c55e]/30 flex items-center justify-center text-xs font-black shrink-0 overflow-hidden cursor-pointer shadow-xs"
+            >
+              {user?.avatar ? <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" /> : initials}
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+          <div className="hidden sm:flex flex-row items-center gap-2 sm:gap-2.5">
             <button
               onClick={() => { setEditingVehicle(null); setShowAddModal(true); }}
               className="flex items-center justify-center gap-2 text-xs font-black text-slate-950 bg-[#22c55e] hover:bg-[#16a34a] px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
@@ -186,10 +201,10 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Navigation Sidebar / Mobile Horizontal Tabs */}
-          <div className="lg:w-64 shrink-0">
+          {/* Navigation Sidebar (Desktop only) */}
+          <div className="hidden lg:block lg:w-64 shrink-0">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden sticky top-20 sm:top-24 z-20 transition-colors">
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800 hidden lg:block">
+              <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-[#22c55e]/30 text-[#22c55e] flex items-center justify-center text-sm font-black shadow-sm shrink-0 overflow-hidden">
                     {user?.avatar ? (
@@ -206,7 +221,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                   </div>
                 </div>
               </div>
-              <nav className="p-1.5 sm:p-2 flex lg:flex-col gap-1 overflow-x-auto scrollbar-none">
+              <nav className="p-2 flex flex-col gap-1">
                 {sections.map(sec => {
                   const Icon = sec.icon;
                   const counts: Record<string, number> = {
@@ -220,7 +235,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                     <button
                       key={sec.id}
                       onClick={() => setActiveSection(sec.id)}
-                      className={`flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 lg:w-full ${
+                      className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap w-full ${
                         activeSection === sec.id
                           ? "bg-[#22c55e] text-slate-950 font-black shadow-sm shadow-emerald-500/20"
                           : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80"
@@ -293,6 +308,242 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
         </div>
       </div>
 
+      {/* ── MOBILE NATIVE BOTTOM APP BAR (lg:hidden) ────────────────────── */}
+      <nav 
+        aria-label="Mobile Member Navigation"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 py-1.5 flex items-center justify-around shadow-2xl safe-area-bottom"
+      >
+        {/* 1. Dashboard */}
+        <button
+          type="button"
+          onClick={() => { setActiveSection("dashboard"); setMobileMoreOpen(false); }}
+          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer ${
+            activeSection === "dashboard" && !mobileMoreOpen
+              ? "text-[#22c55e] font-black"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+          }`}
+        >
+          <LayoutDashboard size={20} />
+          <span className="text-[10px] tracking-tight mt-0.5">Overview</span>
+        </button>
+
+        {/* 2. Saved */}
+        <button
+          type="button"
+          onClick={() => { setActiveSection("saved"); setMobileMoreOpen(false); }}
+          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer relative ${
+            activeSection === "saved" && !mobileMoreOpen
+              ? "text-[#22c55e] font-black"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+          }`}
+        >
+          <div className="relative">
+            <Heart size={20} />
+            {savedVehicles.length > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                {savedVehicles.length > 9 ? "9+" : savedVehicles.length}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight mt-0.5">Saved</span>
+        </button>
+
+        {/* 3. Center Elevated Action Button: List Car */}
+        <button
+          type="button"
+          onClick={() => { setEditingVehicle(null); setShowAddModal(true); setMobileMoreOpen(false); }}
+          className="flex flex-col items-center -mt-5 cursor-pointer group"
+          title="List a Car for Sale"
+        >
+          <div className="w-12 h-12 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-active:scale-95 transition">
+            <Plus size={22} strokeWidth={3} />
+          </div>
+          <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 tracking-tight mt-1">Sell Car</span>
+        </button>
+
+        {/* 4. Test Drives */}
+        <button
+          type="button"
+          onClick={() => { setActiveSection("testdrives"); setMobileMoreOpen(false); }}
+          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer relative ${
+            activeSection === "testdrives" && !mobileMoreOpen
+              ? "text-[#22c55e] font-black"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+          }`}
+        >
+          <div className="relative">
+            <Calendar size={20} />
+            {testDrives.length > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-emerald-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                {testDrives.length > 9 ? "9+" : testDrives.length}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight mt-0.5">Drives</span>
+        </button>
+
+        {/* 5. More */}
+        <button
+          type="button"
+          onClick={() => setMobileMoreOpen(true)}
+          className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer relative ${
+            mobileMoreOpen || ["listings", "inquiries", "profile", "security"].includes(activeSection)
+              ? "text-[#22c55e] font-black"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+          }`}
+        >
+          <div className="relative">
+            <SlidersHorizontal size={20} />
+            {inquiries.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-white dark:border-slate-950" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight mt-0.5">More</span>
+        </button>
+      </nav>
+
+      {/* ── MOBILE "MORE" BOTTOM SHEET (lg:hidden) ────────────────────── */}
+      {mobileMoreOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center"
+          onClick={() => setMobileMoreOpen(false)}
+        >
+          <div 
+            className="w-full bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Sheet Handle */}
+            <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto" />
+            
+            <div className="flex items-center justify-between pt-1">
+              <div>
+                <h4 className="text-base font-black text-slate-900 dark:text-white">Member Workspace</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Arif Car Sell Customer Portal</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMoreOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Quick Action Grid */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              {[
+                {
+                  id: "listings",
+                  label: "My Listed Cars",
+                  desc: `${myListings.length} Vehicles for sale`,
+                  icon: Car,
+                  color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40",
+                  badge: myListings.length > 0 ? `${myListings.length}` : null
+                },
+                {
+                  id: "inquiries",
+                  label: "Inquiries Received",
+                  desc: `${inquiries.length} Buyer inquiries`,
+                  icon: MessageCircle,
+                  color: "text-amber-600 bg-amber-50 dark:bg-amber-950/40",
+                  badge: inquiries.length > 0 ? `${inquiries.length}` : null
+                },
+                {
+                  id: "profile",
+                  label: "Personal Profile",
+                  desc: "Edit contact & info",
+                  icon: User,
+                  color: "text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/40",
+                  badge: null
+                },
+                {
+                  id: "security",
+                  label: "Password & Security",
+                  desc: "Credentials & security",
+                  icon: Key,
+                  color: "text-purple-600 bg-purple-50 dark:bg-purple-950/40",
+                  badge: null
+                },
+              ].map(item => {
+                const ItemIcon = item.icon;
+                const isActive = activeSection === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveSection(item.id as Section);
+                      setMobileMoreOpen(false);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col gap-2 relative ${
+                      isActive 
+                        ? "border-[#22c55e] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#22c55e]/20" 
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.color}`}>
+                        <ItemIcon size={18} />
+                      </div>
+                      {item.badge && (
+                        <span className="text-[10px] font-black bg-[#22c55e] text-slate-950 px-2 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-800 dark:text-white">{item.label}</p>
+                      <p className="text-[10px] text-slate-400 font-medium truncate">{item.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Quick Link to Public Marketplace */}
+            <button
+              type="button"
+              onClick={() => { setMobileMoreOpen(false); navigate("/browse"); }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-900 dark:text-white text-xs font-bold transition cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Search size={16} className="text-[#22c55e]" />
+                <span>Browse Marketplace Showroom</span>
+              </div>
+              <ArrowRight size={14} className="text-slate-400" />
+            </button>
+
+            {/* User Profile summary & Sign Out */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#22c55e] text-slate-950 font-black flex items-center justify-center text-sm shadow-sm">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover rounded-full" />
+                  ) : initials}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{user?.name || "Customer"}</p>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-700">
+                      {user?.role === "broker" ? "Broker" : "Member"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400">{user?.phone || user?.email || "Verified Member"}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setMobileMoreOpen(false); navigate("/"); }}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                <LogOut size={14} />
+                <span>Home</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add / Edit Vehicle Modal */}
       {showAddModal && (
         <VehicleFormModal
@@ -309,10 +560,15 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
         />
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal (Native Mobile Bottom Sheet on phone) */}
       {deletingVehicleId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+            {/* Sheet Handle */}
+            <div className="sm:hidden -mt-2 pb-1 flex justify-center">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
+            </div>
+
             <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center mx-auto">
               <Trash2 size={22} />
             </div>
@@ -322,14 +578,16 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
             </div>
             <div className="flex gap-2.5 pt-2">
               <button
+                type="button"
                 onClick={() => setDeletingVehicleId(null)}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => handleDeleteListing(deletingVehicleId)}
-                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition cursor-pointer shadow-sm"
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-95"
               >
                 Delete
               </button>
@@ -838,22 +1096,24 @@ function InquiriesSection({
               <div key={lead.id} className="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-sm transition bg-white dark:bg-slate-850/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-slate-900 dark:text-white">{lead.name}</span>
+                    <span className="text-sm font-black text-slate-900 dark:text-white">{lead.buyerName || lead.name || "Customer"}</span>
                     <StatusPill status={lead.status} />
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                    <a href={`tel:${lead.phone}`} className="flex items-center gap-1 font-semibold text-[#22c55e] hover:underline">
-                      <Phone size={12} />
-                      <span>{lead.phone}</span>
-                    </a>
-                    {lead.email && (
-                      <a href={`mailto:${lead.email}`} className="flex items-center gap-1 hover:underline">
+                    {(lead.buyerPhone || lead.phone) && (
+                      <a href={`tel:${lead.buyerPhone || lead.phone}`} className="flex items-center gap-1 font-semibold text-[#22c55e] hover:underline">
+                        <Phone size={12} />
+                        <span>{lead.buyerPhone || lead.phone}</span>
+                      </a>
+                    )}
+                    {(lead.buyerEmail || lead.email) && (
+                      <a href={`mailto:${lead.buyerEmail || lead.email}`} className="flex items-center gap-1 hover:underline">
                         <Mail size={12} />
-                        <span>{lead.email}</span>
+                        <span>{lead.buyerEmail || lead.email}</span>
                       </a>
                     )}
                     <span className="text-[11px] text-slate-400">
-                      {new Date(lead.createdAt).toLocaleDateString()}
+                      {new Date(lead.inquiryDate || lead.createdAt || Date.now()).toLocaleDateString()}
                     </span>
                   </div>
                   {lead.message && (
@@ -1010,8 +1270,12 @@ function VehicleFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[92vh] flex flex-col">
+        {/* Mobile Drag Handle */}
+        <div className="sm:hidden pt-3 pb-1 flex justify-center">
+          <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
+        </div>
         
         {/* Modal Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -1224,7 +1488,7 @@ function VehicleFormModal({
           )}
 
           {/* Stepper Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+          <div className="sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm flex items-center justify-between pt-3 pb-3 px-4 sm:px-6 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 border-t border-slate-100 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={step === 1 ? onClose : () => setStep(s => s - 1)}
@@ -1236,7 +1500,7 @@ function VehicleFormModal({
               <button
                 type="button"
                 onClick={() => setStep(s => s + 1)}
-                className="px-5 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-black transition cursor-pointer shadow-sm active:scale-95"
+                className="px-5 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-slate-950 text-xs font-black transition cursor-pointer shadow-sm active:scale-95"
               >
                 Continue
               </button>
@@ -1244,7 +1508,7 @@ function VehicleFormModal({
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-5 sm:px-6 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-black transition cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm active:scale-95"
+                className="px-5 sm:px-6 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-slate-950 text-xs font-black transition cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm active:scale-95"
               >
                 {submitting && <Loader2 size={13} className="animate-spin" />}
                 <span>{isEditing ? "Save Listing" : "Publish Listing"}</span>

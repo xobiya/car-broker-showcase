@@ -4,7 +4,8 @@ import {
   Edit3, Trash2, Plus, Landmark, TrendingUp,
   Car, ClipboardList, UserCheck, Menu, X, Save,
   Bell, LogOut, ChevronRight, Search, RefreshCw,
-  SlidersHorizontal, Upload, Image as ImageIcon, Sparkles
+  SlidersHorizontal, Upload, Image as ImageIcon, Sparkles,
+  MapPin, Phone, Mail, Eye, Calendar, Gauge, AlertCircle, ArrowUpRight
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
 import { vehiclesApi, brokersApi, leadsApi, salesApi, reportsApi, usersApi, settingsApi, uploadApi } from "../lib/api";
@@ -229,6 +230,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   interface NotificationItem {
     id: string; type: "listing" | "broker" | "report" | "system" | "inquiry";
@@ -417,21 +419,22 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
     if (reportsData) setReports(reportsData);
     if (usersData) setUsers(usersData);
 
-    if (brokersData && vehiclesData && salesData) {
+    const safeSales = Array.isArray(salesData) ? salesData : [];
+    const safeVehicles = Array.isArray(vehiclesData) ? vehiclesData : [];
+    if (brokersData) {
       const enrichedBrokers = brokersData.map((b: any) => {
-        const brokerVehicles = vehiclesData.filter((v: any) => v.brokerId === b.id);
-        const brokerSales = salesData.filter((s: any) => s.brokerId === b.id);
+        const brokerVehicles = safeVehicles.filter((v: any) => v.brokerId === b.id);
+        const brokerSales = safeSales.filter((s: any) => s.brokerId === b.id);
         return {
           ...b,
+          name: b.name || "Broker",
           listings: brokerVehicles.length,
           sales: brokerSales.length,
-          commission: brokerSales.reduce((sum: number, s: any) => sum + s.commission, 0),
+          commission: brokerSales.reduce((sum: number, s: any) => sum + (s.commission || 0), 0),
           joinedAt: b.joinDate ? new Date(b.joinDate).toLocaleDateString() : "Pending",
         };
       });
       setBrokers(enrichedBrokers);
-    } else if (brokersData) {
-      setBrokers(brokersData);
     }
     setLoading(false);
   };
@@ -600,6 +603,41 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
     );
   }
 
+  if (!adminUser || adminUser.role !== "admin") {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-950 border border-slate-800 rounded-3xl p-6 text-center space-y-4 shadow-2xl">
+          <div className="w-14 h-14 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
+            <Shield size={28} />
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-white">Administrator Access Required</h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Please sign in with an Administrator account (e.g. <span className="text-white font-mono">abebe.k@autobroker.et</span>) to access the admin portal.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+            <button
+              onClick={() => {
+                if (onLogout) onLogout();
+                window.location.href = "/choose-role";
+              }}
+              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+            >
+              Sign In as Admin
+            </button>
+            <button
+              onClick={() => window.location.href = "/"}
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer"
+            >
+              Return Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const navItems: { key: AdminTab; label: string; icon: any; badge?: number }[] = [
     { key: "overview", label: "Overview", icon: TrendingUp },
     { key: "notifications", label: "Notifications", icon: Bell, badge: unreadCount || undefined },
@@ -762,15 +800,16 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       <main className="flex-1 flex flex-col h-full overflow-hidden">
 
         {/* ── Unified Top Header Bar ─────────────────────────────────────────── */}
-        <div className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-0 flex items-center justify-between h-16 shadow-sm transition-colors">
+        <div className="shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-0 flex items-center justify-between h-14 sm:h-16 shadow-xs transition-colors z-20">
           {/* Left: Mobile toggle + Breadcrumb + Page Title */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {/* Mobile sidebar toggle */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer shrink-0"
+              className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer shrink-0 active:scale-95"
+              aria-label="Toggle navigation menu"
             >
-              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+              {sidebarOpen ? <X size={19} /> : <Menu size={19} />}
             </button>
 
             {/* Breadcrumb */}
@@ -824,12 +863,21 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           <div className="flex items-center gap-2 shrink-0">
             {/* Quick Add button for Listings */}
             {adminTab === "listings" && (
-              <button
-                onClick={handleOpenCreate}
-                className="hidden sm:flex items-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
-              >
-                <Plus size={13} /> Add Listing
-              </button>
+              <>
+                <button
+                  onClick={handleOpenCreate}
+                  className="hidden sm:flex items-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm active:scale-95"
+                >
+                  <Plus size={13} /> Add Listing
+                </button>
+                <button
+                  onClick={handleOpenCreate}
+                  className="sm:hidden p-2 rounded-xl bg-[#22c55e] text-white active:scale-95 transition shadow-xs"
+                  title="Add Listing"
+                >
+                  <Plus size={16} />
+                </button>
+              </>
             )}
 
             {/* Refresh */}
@@ -936,7 +984,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
         </div>
 
         {/* ── Scrollable page content ────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 md:p-8">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-8 pb-28 lg:pb-8">
 
         {/* Stat Cards Row (visible on overview and listings) */}
         {(adminTab === "overview" || adminTab === "listings") && (
@@ -1114,16 +1162,16 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               </div>
               <div className="divide-y divide-slate-100">
                 {brokers.map((b, i) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-3">
+                  <div key={b.id || i} className="flex items-center gap-3 px-5 py-3">
                     <div className="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                      {b.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                      {(b.name || "BR").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800">{b.name}</p>
-                      <p className="text-[10px] text-slate-400 font-bold">{b.listings} listings · {b.sales} sold</p>
+                      <p className="text-xs font-bold text-slate-800">{b.name || "Broker"}</p>
+                      <p className="text-[10px] text-slate-400 font-bold">{b.listings ?? 0} listings · {b.sales ?? 0} sold</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-black text-orange-500">{b.commission.toLocaleString()} ETB</p>
+                      <p className="text-xs font-black text-orange-500">{(b.commission ?? 0).toLocaleString()} ETB</p>
                       {b.verified
                         ? <span className="text-[9px] font-black text-emerald-600 uppercase">✓ Verified</span>
                         : <span className="text-[9px] font-black text-slate-400 uppercase">Unverified</span>}
@@ -1140,48 +1188,157 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {adminTab === "listings" && (
         <div className="space-y-4">
           {/* Filtering and Search Actions */}
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
-            {/* Status Tabs */}
-            <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 sm:p-4 rounded-2xl shadow-xs">
+            {/* Status Tabs - Mobile Scrollable Pill Bar */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scroll-smooth no-scrollbar w-full md:w-auto shrink-0">
               {["all", "draft", "pending", "approved", "rejected", "sold"].map((st) => {
                 const count = st === "all" ? vehicles.length : vehicles.filter(v => v.status === st).length;
                 return (
                   <button
                     key={st}
                     onClick={() => setListingStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                       listingStatusFilter === st
-                        ? "bg-blue-900 text-white shadow-sm"
-                        : "bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                        ? "bg-[#22c55e] text-white shadow-xs"
+                        : "bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                     }`}
                   >
-                    {st} <span className="opacity-60 ml-0.5">({count})</span>
+                    {st} <span className="opacity-70 ml-0.5 font-bold">({count})</span>
                   </button>
                 );
               })}
             </div>
             {/* Search Input */}
             <div className="relative md:w-80 shrink-0">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={listingSearch}
                 onChange={e => setListingSearch(e.target.value)}
                 placeholder="Search brand, model, location..."
-                className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
               />
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
                 {filteredVehiclesList.length} Vehicle{filteredVehiclesList.length !== 1 ? "s" : ""} Found
               </p>
+              <button
+                onClick={handleOpenCreate}
+                className="sm:hidden text-xs font-bold text-[#22c55e] flex items-center gap-1 active:scale-95"
+              >
+                <Plus size={14} /> Add Car
+              </button>
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Mobile App Cards View (md:hidden) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60 p-3 space-y-3">
+              {(() => {
+                const paginatedVehicles = filteredVehiclesList.slice((listingPage - 1) * ITEMS_PER_PAGE, listingPage * ITEMS_PER_PAGE);
+                if (paginatedVehicles.length === 0) {
+                  return <div className="p-8 text-center text-xs text-slate-400 font-bold">No listings found.</div>;
+                }
+                return paginatedVehicles.map(v => (
+                  <div key={v.id} className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-3 shadow-xs">
+                    <div className="flex gap-3 items-start">
+                      <div className="relative w-24 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
+                        <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 left-1 bg-black/75 text-white text-[9px] font-mono font-bold px-1.5 py-0.5 rounded">
+                          {v.year}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-1">
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
+                            {v.brand} {v.model}
+                          </h4>
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase shrink-0 border ${
+                            v.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800"
+                            : v.status === "sold" ? "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800"
+                            : v.status === "rejected" ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-800"
+                            : v.status === "draft" ? "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                            : "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800"
+                          }`}>
+                            {v.status}
+                          </span>
+                        </div>
+                        <p className="text-sm font-black text-[#22c55e] mt-1">
+                          {v.price.toLocaleString()} <span className="text-[10px] font-bold text-slate-400">ETB</span>
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                          <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-100 dark:border-slate-700 font-medium">{v.fuelType}</span>
+                          <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-100 dark:border-slate-700 font-medium">{v.transmission}</span>
+                          {v.location && (
+                            <span className="flex items-center gap-0.5 text-slate-400 truncate max-w-[110px]">
+                              <MapPin size={10} className="shrink-0 text-slate-400" /> {v.location}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Bar for Mobile Card */}
+                    <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center gap-2">
+                      {v.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => handleApprove(v.id)}
+                            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-xs active:scale-95 transition"
+                          >
+                            <Check size={14} /> Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectListing(v.id)}
+                            className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-xs active:scale-95 transition"
+                          >
+                            <X size={14} /> Reject
+                          </button>
+                        </>
+                      )}
+                      {v.status === "approved" && (
+                        <button
+                          onClick={() => handleMarkSold(v.id)}
+                          className="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-xs active:scale-95 transition"
+                        >
+                          <Award size={13} /> Mark Sold
+                        </button>
+                      )}
+                      {(v.status === "sold" || v.status === "rejected") && (
+                        <button
+                          onClick={() => handleReject(v.id)}
+                          className="flex-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-2 rounded-xl text-xs hover:bg-slate-50 transition"
+                        >
+                          Revert to Pending
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleOpenEdit(v)}
+                        className="p-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition"
+                        title="Edit Listing"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(v.id)}
+                        className="p-2 border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-800 rounded-xl text-rose-500 hover:bg-rose-50 transition"
+                        title="Delete Listing"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Desktop Full Data Table View (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs min-w-[800px]">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 uppercase tracking-wider text-[10px]">
                     <th className="p-4">Vehicle</th>
                     <th className="p-4">Year</th>
                     <th className="p-4">Price (ETB)</th>
@@ -1190,30 +1347,30 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                   {(() => {
                     const paginatedVehicles = filteredVehiclesList.slice((listingPage - 1) * ITEMS_PER_PAGE, listingPage * ITEMS_PER_PAGE);
                     return paginatedVehicles.map(v => (
-                    <tr key={v.id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={v.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <img src={v.imageUrl} alt="" className="w-16 h-12 object-cover rounded-lg bg-slate-100 shrink-0" />
+                          <img src={v.imageUrl} alt="" className="w-16 h-12 object-cover rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0" />
                           <div>
-                            <p className="font-bold text-slate-800">{v.brand} {v.model}</p>
+                            <p className="font-bold text-slate-800 dark:text-white">{v.brand} {v.model}</p>
                             <p className="text-[10px] text-slate-400 uppercase">{v.fuelType} · {v.transmission}</p>
                           </div>
                         </div>
                       </td>
                       <td className="p-4 font-mono">{v.year}</td>
                       <td className="p-4 font-bold font-mono">{v.price.toLocaleString()}</td>
-                      <td className="p-4 text-slate-500">{v.location}</td>
+                      <td className="p-4 text-slate-500 dark:text-slate-400">{v.location}</td>
                       <td className="p-4">
                         <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border ${
-                          v.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                          : v.status === "sold" ? "bg-blue-50 text-blue-800 border-blue-100"
-                          : v.status === "rejected" ? "bg-rose-50 text-rose-700 border-rose-100"
-                          : v.status === "draft" ? "bg-slate-50 text-slate-500 border-slate-200"
-                          : "bg-amber-50 text-amber-600 border-amber-100"
+                          v.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400"
+                          : v.status === "sold" ? "bg-blue-50 text-blue-800 border-blue-100 dark:bg-blue-950/40 dark:text-blue-400"
+                          : v.status === "rejected" ? "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/40 dark:text-rose-400"
+                          : v.status === "draft" ? "bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                          : "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-950/40 dark:text-amber-400"
                         }`}>
                           {v.status}
                         </span>
@@ -1224,12 +1381,12 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             <>
                               <button
                                 onClick={() => handleApprove(v.id)}
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition"
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition active:scale-95"
                                 title="Approve"
                               >Approve</button>
                               <button
                                 onClick={() => handleRejectListing(v.id)}
-                                className="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition"
+                                className="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition active:scale-95"
                                 title="Reject"
                               >Reject</button>
                             </>
@@ -1237,25 +1394,25 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           {v.status === "approved" && (
                             <button
                               onClick={() => handleMarkSold(v.id)}
-                              className="bg-blue-900 hover:bg-blue-800 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition"
+                              className="bg-blue-900 hover:bg-blue-800 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition active:scale-95"
                               title="Mark as Sold"
                             >Mark Sold</button>
                           )}
                           {(v.status === "sold" || v.status === "rejected") && (
                             <button
                               onClick={() => handleReject(v.id)}
-                              className="border border-slate-200 hover:bg-slate-50 text-slate-500 px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition"
+                              className="border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-500 px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition"
                               title="Revert to Pending"
                             >Revert</button>
                           )}
                           <button
                             onClick={() => handleOpenEdit(v)}
-                            className="p-1.5 text-slate-400 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-blue-900 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
                             title="Edit"
                           ><Edit3 size={13} /></button>
                           <button
                             onClick={() => handleDelete(v.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
                             title="Delete"
                           ><Trash2 size={13} /></button>
                         </div>
@@ -1278,41 +1435,144 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {adminTab === "brokers" && (
         <div className="space-y-4">
           {/* Summary cards */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Brokers</p>
-              <p className="text-2xl font-black text-slate-800 mt-1">{brokers.length}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs">
+              <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Brokers</p>
+              <p className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-0.5 sm:mt-1">{brokers.length}</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Verified</p>
-              <p className="text-2xl font-black text-emerald-600 mt-1">{brokers.filter(b => b.verified).length}</p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs">
+              <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider">Verified</p>
+              <p className="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5 sm:mt-1">{brokers.filter(b => b.verified).length}</p>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-amber-500 tracking-wider">Pending Review</p>
-              <p className="text-2xl font-black text-amber-600 mt-1">{brokers.filter(b => !b.verified).length}</p>
+            <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-3 sm:p-4 shadow-xs">
+              <p className="text-[9px] sm:text-[10px] font-black uppercase text-amber-500 tracking-wider">Pending</p>
+              <p className="text-xl sm:text-2xl font-black text-amber-600 mt-0.5 sm:mt-1">{brokers.filter(b => !b.verified).length}</p>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 sm:p-4 rounded-2xl shadow-xs">
             <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
               {brokers.length} Broker{brokers.length !== 1 ? "s" : ""} Registered
             </p>
             <div className="relative md:w-72 shrink-0">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={brokerSearch}
                 onChange={e => setBrokerSearch(e.target.value)}
                 placeholder="Search by name, email, phone..."
-                className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
               />
             </div>
           </div>
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            {/* Mobile Cards View (md:hidden) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60 p-3 space-y-3">
+              {(() => {
+                const filtered = brokers.filter(b =>
+                  !brokerSearch || `${b.name} ${b.email} ${b.phone}`.toLowerCase().includes(brokerSearch.toLowerCase())
+                );
+                const paginated = filtered.slice((brokerPage - 1) * ITEMS_PER_PAGE, brokerPage * ITEMS_PER_PAGE);
+                if (paginated.length === 0) {
+                  return <div className="p-8 text-center text-xs text-slate-400 font-bold">No brokers found.</div>;
+                }
+                return paginated.map(b => (
+                  <div
+                    key={b.id}
+                    className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-3 shadow-xs cursor-pointer"
+                    onClick={() => setSelectedBroker(b)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm shrink-0 text-white shadow-xs ${
+                          b.verified ? "bg-gradient-to-tr from-emerald-500 to-emerald-600" : "bg-gradient-to-tr from-slate-500 to-slate-600"
+                        }`}>
+                          {(b.name || "?").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight">{b.name}</h4>
+                          {b.licenseNumber && (
+                            <span className="text-[10px] text-slate-400 font-mono block">LIC: {b.licenseNumber}</span>
+                          )}
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
+                        b.verified ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400" : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400"
+                      }`}>
+                        {b.verified ? "✓ Verified" : "⏳ Pending"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs">
+                      {b.phone && (
+                        <a
+                          href={`tel:${b.phone}`}
+                          onClick={e => e.stopPropagation()}
+                          className="flex-1 py-1.5 px-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold"
+                        >
+                          <Phone size={12} className="text-[#22c55e]" /> Call
+                        </a>
+                      )}
+                      {b.email && (
+                        <a
+                          href={`mailto:${b.email}`}
+                          onClick={e => e.stopPropagation()}
+                          className="flex-1 py-1.5 px-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold truncate"
+                        >
+                          <Mail size={12} className="text-blue-500 shrink-0" /> Email
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 bg-white dark:bg-slate-800/80 p-2.5 rounded-xl text-center border border-slate-100 dark:border-slate-700/60">
+                      <div>
+                        <p className="text-[9px] font-black uppercase text-slate-400">Listings</p>
+                        <p className="text-xs font-black text-slate-800 dark:text-slate-200 mt-0.5">{b.listings ?? 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase text-slate-400">Sold</p>
+                        <p className="text-xs font-black text-slate-800 dark:text-slate-200 mt-0.5">{b.sales ?? 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase text-slate-400">Commission</p>
+                        <p className="text-xs font-black text-[#22c55e] mt-0.5">{(b.commission ?? 0).toLocaleString()} ETB</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1" onClick={e => e.stopPropagation()}>
+                      {!b.verified ? (
+                        <button
+                          onClick={() => handleBrokerApprove(b.id)}
+                          className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-xs active:scale-95"
+                        >
+                          <Check size={14} /> Approve & Verify
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleBrokerReject(b.id)}
+                          className="flex-1 border border-rose-200 dark:border-rose-900/60 text-rose-500 hover:bg-rose-50 font-bold py-2 rounded-xl text-xs transition"
+                        >
+                          Revoke Verification
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setSelectedBroker(b)}
+                        className="px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs flex items-center gap-1"
+                      >
+                        Profile <ChevronRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Desktop Table View (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs min-w-[820px]">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 uppercase tracking-wider text-[10px]">
                     <th className="p-4">Broker</th>
                     <th className="p-4">Contact</th>
                     <th className="p-4">Listings</th>
@@ -1323,14 +1583,14 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                   {(() => {
                     const filtered = brokers.filter(b =>
                       !brokerSearch || `${b.name} ${b.email} ${b.phone}`.toLowerCase().includes(brokerSearch.toLowerCase())
                     );
                     const paginated = filtered.slice((brokerPage - 1) * ITEMS_PER_PAGE, brokerPage * ITEMS_PER_PAGE);
                     return paginated.map((b, idx) => (
-                      <tr key={b.id || idx} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => setSelectedBroker(b)}>
+                      <tr key={b.id || idx} className="hover:bg-blue-50/30 dark:hover:bg-slate-800/40 transition-colors cursor-pointer" onClick={() => setSelectedBroker(b)}>
                         <td className="p-4">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 text-white ${
@@ -1339,24 +1599,24 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                               {b.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                             </div>
                             <div>
-                              <p className="font-bold text-slate-800">{b.name}</p>
+                              <p className="font-bold text-slate-800 dark:text-white">{b.name}</p>
                               {b.licenseNumber && <p className="text-[9px] text-slate-400 font-mono">LIC: {b.licenseNumber}</p>}
                             </div>
                           </div>
                         </td>
                         <td className="p-4">
-                          <p className="font-mono text-slate-600">{b.phone}</p>
+                          <p className="font-mono text-slate-600 dark:text-slate-300">{b.phone}</p>
                           <p className="text-[10px] text-slate-400">{b.email}</p>
                         </td>
                         <td className="p-4 font-mono font-bold text-center">{b.listings ?? 0}</td>
                         <td className="p-4 font-mono font-bold text-center">{b.sales ?? 0}</td>
-                        <td className="p-4 font-bold font-mono text-orange-500">{(b.commission ?? 0).toLocaleString()}</td>
+                        <td className="p-4 font-bold font-mono text-[#22c55e]">{(b.commission ?? 0).toLocaleString()}</td>
                         <td className="p-4 font-mono text-slate-400">{b.joinedAt}</td>
                         <td className="p-4">
                           <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
                             b.verified
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400"
+                              : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400"
                           }`}>
                             {b.verified ? "✓ Verified" : "⏳ Pending"}
                           </span>
@@ -1366,7 +1626,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             {!b.verified ? (
                               <button
                                 onClick={() => handleBrokerApprove(b.id)}
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition flex items-center gap-1"
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition flex items-center gap-1 active:scale-95"
                               >
                                 <Check size={10} /> Approve
                               </button>
@@ -1380,7 +1640,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             )}
                             <button
                               onClick={() => setSelectedBroker(b)}
-                              className="p-1.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                              className="p-1.5 text-slate-400 hover:text-[#22c55e] hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition"
                               title="View Details"
                             >
                               <ChevronRight size={14} />
@@ -1404,41 +1664,109 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {adminTab === "buyers" && (
         <div className="space-y-4">
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Registered Buyers</p>
-              <p className="text-2xl font-black text-slate-800 mt-1">{users.filter(u => u.role === "buyer").length}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs">
+              <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider">Registered</p>
+              <p className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-0.5 sm:mt-1">{users.filter(u => u.role === "buyer").length}</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Inquiries</p>
-              <p className="text-2xl font-black text-blue-900 mt-1">{leads.length}</p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs">
+              <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider">Inquiries</p>
+              <p className="text-xl sm:text-2xl font-black text-[#22c55e] mt-0.5 sm:mt-1">{leads.length}</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Negotiations</p>
-              <p className="text-2xl font-black text-orange-500 mt-1">{leads.filter(l => l.status === "negotiating").length}</p>
+            <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-3 sm:p-4 shadow-xs">
+              <p className="text-[9px] sm:text-[10px] font-black uppercase text-amber-500 tracking-wider">Negotiating</p>
+              <p className="text-xl sm:text-2xl font-black text-amber-600 mt-0.5 sm:mt-1">{leads.filter(l => l.status === "negotiating").length}</p>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 sm:p-4 rounded-2xl shadow-xs">
             <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
-              {users.filter(u => u.role === "buyer").length} Registered Buyer{users.filter(u => u.role === "buyer").length !== 1 ? "s" : ""} · {leads.length} Total Inquir{leads.length !== 1 ? "ies" : "y"}
+              {users.filter(u => u.role === "buyer").length} Buyer{users.filter(u => u.role === "buyer").length !== 1 ? "s" : ""} · {leads.length} Inquir{leads.length !== 1 ? "ies" : "y"}
             </p>
             <div className="relative md:w-72 shrink-0">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={buyerSearch}
                 onChange={e => setBuyerSearch(e.target.value)}
                 placeholder="Search by name, email, phone..."
-                className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
               />
             </div>
           </div>
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            {/* Mobile Cards View (md:hidden) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60 p-3 space-y-3">
+              {(() => {
+                const buyers = users.filter(u => u.role === "buyer");
+                const filtered = buyers.filter(b =>
+                  !buyerSearch || `${b.name} ${b.email} ${(b as any).phone}`.toLowerCase().includes(buyerSearch.toLowerCase())
+                );
+                const paginated = filtered.slice((buyerPage - 1) * ITEMS_PER_PAGE, buyerPage * ITEMS_PER_PAGE);
+                if (paginated.length === 0) {
+                  return <div className="p-8 text-center text-xs text-slate-400 font-bold">No registered buyers found.</div>;
+                }
+                return paginated.map((b: any, idx: number) => {
+                  const buyerLeads = leads.filter(l => l.buyerEmail?.toLowerCase() === b.email?.toLowerCase());
+                  const lastLead = buyerLeads.sort((x, y) => new Date(y.inquiryDate).getTime() - new Date(x.inquiryDate).getTime())[0];
+                  return (
+                    <div
+                      key={b.id || idx}
+                      className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-3 shadow-xs cursor-pointer"
+                      onClick={() => setSelectedBuyer({ ...b, leads: buyerLeads })}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-teal-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+                            {(b.name || "?").charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight">{b.name}</h4>
+                            <span className="text-[10px] text-slate-400 mt-0.5 block">{b.email}</span>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+                          {buyerLeads.length} Inquir{buyerLeads.length !== 1 ? "ies" : "y"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs">
+                        {b.phone && (
+                          <a
+                            href={`tel:${b.phone}`}
+                            onClick={e => e.stopPropagation()}
+                            className="flex-1 py-1.5 px-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold"
+                          >
+                            <Phone size={12} className="text-[#22c55e]" /> Call
+                          </a>
+                        )}
+                        <a
+                          href={`mailto:${b.email}`}
+                          onClick={e => e.stopPropagation()}
+                          className="flex-1 py-1.5 px-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold"
+                        >
+                          <Mail size={12} className="text-blue-500" /> Email
+                        </a>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/80 dark:border-slate-800">
+                        <span>Last Active: <strong className="text-slate-700 dark:text-slate-300">{lastLead ? new Date(lastLead.inquiryDate).toLocaleDateString() : "—"}</strong></span>
+                        <span className="text-[#22c55e] font-bold flex items-center gap-0.5">
+                          View Activity <ChevronRight size={13} />
+                        </span>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Desktop Table View (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 uppercase tracking-wider text-[10px]">
                     <th className="p-4">Buyer</th>
                     <th className="p-4">Contact</th>
                     <th className="p-4">Joined</th>
@@ -1448,7 +1776,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     <th className="p-4 text-right">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                   {(() => {
                     const buyers = users.filter(u => u.role === "buyer");
                     const filtered = buyers.filter(b =>
@@ -1457,22 +1785,22 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     const paginated = filtered.slice((buyerPage - 1) * ITEMS_PER_PAGE, buyerPage * ITEMS_PER_PAGE);
                     return paginated.map((b: any, idx: number) => {
                       const buyerLeads = leads.filter(l => l.buyerEmail?.toLowerCase() === b.email?.toLowerCase());
-                      const lastLead = buyerLeads.sort((a, b) => new Date(b.inquiryDate).getTime() - new Date(a.inquiryDate).getTime())[0];
+                      const lastLead = buyerLeads.sort((x, y) => new Date(y.inquiryDate).getTime() - new Date(x.inquiryDate).getTime())[0];
                       return (
-                      <tr key={b.id || idx} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => setSelectedBuyer({ ...b, leads: buyerLeads })}>
+                      <tr key={b.id || idx} className="hover:bg-blue-50/30 dark:hover:bg-slate-800/40 transition-colors cursor-pointer" onClick={() => setSelectedBuyer({ ...b, leads: buyerLeads })}>
                         <td className="p-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 text-white flex items-center justify-center text-[11px] font-black shrink-0">
                               {(b.name || "?").charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-bold text-slate-800">{b.name}</p>
+                              <p className="font-bold text-slate-800 dark:text-white">{b.name}</p>
                               {buyerLeads.length > 0 && <p className="text-[9px] text-teal-600 font-black uppercase tracking-wider">{buyerLeads.length} inquiry{buyerLeads.length !== 1 ? "ies" : ""}</p>}
                             </div>
                           </div>
                         </td>
                         <td className="p-4">
-                          <p className="text-slate-600">{b.email}</p>
+                          <p className="text-slate-600 dark:text-slate-300">{b.email}</p>
                           {b.phone && <p className="text-[10px] text-slate-400 font-mono mt-0.5">{b.phone}</p>}
                         </td>
                         <td className="p-4 font-mono text-slate-400">
@@ -1480,7 +1808,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-black text-slate-700">{buyerLeads.length}</span>
+                            <span className="font-mono font-black text-slate-700 dark:text-slate-200">{buyerLeads.length}</span>
                             {buyerLeads.filter(l => l.status === "negotiating").length > 0 && (
                               <span className="text-[8px] font-black px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded-full uppercase">
                                 {buyerLeads.filter(l => l.status === "negotiating").length} active
@@ -1492,12 +1820,12 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           {lastLead ? new Date(lastLead.inquiryDate).toLocaleDateString() : "—"}
                         </td>
                         <td className="p-4">
-                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
+                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400">Active</span>
                         </td>
                         <td className="p-4 text-right">
                           <button
                             onClick={e => { e.stopPropagation(); setSelectedBuyer({ ...b, leads: buyerLeads }); }}
-                            className="p-1.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-[#22c55e] hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition"
                           >
                             <ChevronRight size={14} />
                           </button>
@@ -1521,26 +1849,47 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {adminTab === "commissions" && (
         <div className="space-y-4">
           {/* Summary Banner */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Sales</p>
-              <p className="text-2xl font-black text-slate-800 mt-1">{sales.length || 22}</p>
+              <p className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-1">{sales.length || 22}</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Revenue</p>
-              <p className="text-2xl font-black text-blue-900 mt-1">{(totalRevenue || 48500000).toLocaleString()} ETB</p>
+              <p className="text-xl sm:text-2xl font-black text-blue-900 dark:text-blue-400 mt-1">{(totalRevenue || 48500000).toLocaleString()} ETB</p>
             </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-orange-400 tracking-wider">Total Commission</p>
-              <p className="text-2xl font-black text-orange-500 mt-1">{(totalCommission || 485000).toLocaleString()} ETB</p>
+            <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-4 sm:p-5 shadow-xs">
+              <p className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">Total Commission</p>
+              <p className="text-xl sm:text-2xl font-black text-[#22c55e] mt-1">{(totalCommission || 485000).toLocaleString()} ETB</p>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            {/* Mobile View for Commissions (md:hidden) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60 p-3 space-y-2.5">
+              {sales.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400 font-bold">No sales recorded yet.</div>
+              ) : (
+                sales.map((s, idx) => (
+                  <div key={idx} className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-black text-slate-900 dark:text-white">{s.vehicleBrand} {s.vehicleModel}</h4>
+                      <span className="text-xs font-black text-[#22c55e]">+{s.commission.toLocaleString()} ETB</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/80 dark:border-slate-800">
+                      <span>Price: <strong className="text-slate-800 dark:text-slate-200">{s.salePrice.toLocaleString()} ETB</strong></span>
+                      <span className="text-[10px] text-slate-400 font-mono">{new Date(s.saleDate).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop Table View (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs min-w-[600px]">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 uppercase tracking-wider text-[10px]">
                     <th className="p-4">Vehicle</th>
                     <th className="p-4">Sale Price (ETB)</th>
                     <th className="p-4">Commission Type</th>
@@ -1548,13 +1897,13 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     <th className="p-4">Sale Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                   {sales.map((s, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/50">
-                      <td className="p-4 font-bold text-slate-800">{s.vehicleBrand} {s.vehicleModel}</td>
+                    <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                      <td className="p-4 font-bold text-slate-800 dark:text-white">{s.vehicleBrand} {s.vehicleModel}</td>
                       <td className="p-4 font-bold font-mono">{s.salePrice.toLocaleString()}</td>
                       <td className="p-4 text-slate-400 font-semibold uppercase text-[10px]">Flat Rate (1%)</td>
-                      <td className="p-4 font-black font-mono text-orange-500">{s.commission.toLocaleString()}</td>
+                      <td className="p-4 font-black font-mono text-[#22c55e]">{s.commission.toLocaleString()}</td>
                       <td className="p-4 font-mono text-slate-400">{new Date(s.saleDate).toLocaleDateString()}</td>
                     </tr>
                   ))}
@@ -1570,19 +1919,104 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
       {/* ── REPORTS TAB ──────────────────────────────────────────────────────── */}
       {adminTab === "reports" && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+          <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
               {reports.length} Report{reports.length !== 1 ? "s" : ""} Submitted
             </p>
-            <span className="text-[10px] text-slate-400 font-bold">
+            <span className="text-[10px] text-amber-500 font-bold">
               {reports.filter(r => r.status === "pending").length} pending
             </span>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Mobile View for Reports (md:hidden) */}
+          <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60 p-3 space-y-3">
+            {reports.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-400 font-bold">No reports submitted.</div>
+            ) : (
+              reports.map((r, idx) => (
+                <div key={r.id || idx} className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-2.5 shadow-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">{r.reason}</span>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">By {r.reporterName}</h4>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                      r.status === "resolved" ? "bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-400"
+                      : r.status === "dismissed" ? "bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                      : r.status === "reviewed" ? "bg-blue-50 text-blue-800 border border-blue-100 dark:bg-blue-950/50 dark:text-blue-400"
+                      : "bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/50 dark:text-amber-400"
+                    }`}>
+                      {r.status}
+                    </span>
+                  </div>
+                  {r.description && (
+                    <p className="text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700 italic">
+                      "{r.description}"
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                    <span>Target: {r.targetType}</span>
+                    <span>{new Date(r.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {r.status === "pending" && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await reportsApi.updateStatus(r.id, "reviewed");
+                          onNotify("Report marked as reviewed", "info");
+                          fetchData();
+                        } catch (err: any) {
+                          onNotify(err?.message || "Failed to update report", "error");
+                        }
+                      }}
+                      className="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-xs"
+                    >
+                      Mark Reviewed
+                    </button>
+                  )}
+                  {r.status === "reviewed" && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await reportsApi.updateStatus(r.id, "resolved");
+                            onNotify("Report marked as resolved", "success");
+                            fetchData();
+                          } catch (err: any) {
+                            onNotify(err?.message || "Failed to resolve report", "error");
+                          }
+                        }}
+                        className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-xs"
+                      >
+                        Resolve
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await reportsApi.updateStatus(r.id, "dismissed");
+                            onNotify("Report dismissed", "info");
+                            fetchData();
+                          } catch (err: any) {
+                            onNotify(err?.message || "Failed to dismiss report", "error");
+                          }
+                        }}
+                        className="flex-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-2 rounded-xl text-xs transition"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View (hidden on mobile) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs min-w-[800px]">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 uppercase tracking-wider text-[10px]">
                   <th className="p-4">Reporter</th>
                   <th className="p-4">Target</th>
                   <th className="p-4">Reason</th>
@@ -1592,23 +2026,23 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                 {reports.map((r, idx) => (
-                  <tr key={r.id || idx} className="hover:bg-slate-50/50">
-                    <td className="p-4 font-bold text-slate-800">{r.reporterName}</td>
+                  <tr key={r.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                    <td className="p-4 font-bold text-slate-800 dark:text-white">{r.reporterName}</td>
                     <td className="p-4">
-                      <span className="text-[10px] font-semibold uppercase text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded mr-1">{r.targetType}</span>
-                      <span className="text-slate-600">{r.targetId}</span>
+                      <span className="text-[10px] font-semibold uppercase text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded mr-1">{r.targetType}</span>
+                      <span className="text-slate-600 dark:text-slate-300">{r.targetId}</span>
                     </td>
                     <td className="p-4 font-semibold">{r.reason}</td>
-                    <td className="p-4 max-w-[200px] truncate text-slate-500">{r.description || "—"}</td>
+                    <td className="p-4 max-w-[200px] truncate text-slate-500 dark:text-slate-400">{r.description || "—"}</td>
                     <td className="p-4 font-mono text-slate-400">{new Date(r.createdAt).toLocaleDateString()}</td>
                     <td className="p-4">
                       <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
-                        r.status === "resolved" ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                        : r.status === "dismissed" ? "bg-slate-100 text-slate-400 border border-slate-200"
-                        : r.status === "reviewed" ? "bg-blue-50 text-blue-800 border border-blue-100"
-                        : "bg-amber-50 text-amber-600 border border-amber-100"
+                        r.status === "resolved" ? "bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400"
+                        : r.status === "dismissed" ? "bg-slate-100 text-slate-400 border border-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                        : r.status === "reviewed" ? "bg-blue-50 text-blue-800 border border-blue-100 dark:bg-blue-950/40 dark:text-blue-400"
+                        : "bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/40 dark:text-amber-400"
                       }`}>
                         {r.status}
                       </span>
@@ -1673,33 +2107,80 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {/* ── USERS TAB ────────────────────────────────────────────────────────── */}
       {adminTab === "users" && (
         <div className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 sm:p-4 rounded-2xl shadow-xs">
             <p className="text-xs font-black uppercase text-slate-500 tracking-wider">
               {users.length} Registered Member{users.length !== 1 ? "s" : ""}
             </p>
-            <div className="flex items-center gap-3">
-              <div className="relative md:w-72 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 md:w-72 shrink-0">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={userSearch}
                   onChange={e => setUserSearch(e.target.value)}
                   placeholder="Search by name, email, phone, role..."
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition"
+                  className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
                 />
               </div>
               <button
                 onClick={fetchData}
-                className="text-xs font-bold text-blue-900 hover:text-blue-700 flex items-center gap-1 cursor-pointer transition"
+                className="text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#22c55e] p-2 sm:px-3 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1 cursor-pointer transition shrink-0"
               >
-                <RefreshCw size={11} /> Refresh
+                <RefreshCw size={13} /> <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
           </div>
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            {/* Mobile Cards View (md:hidden) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60 p-3 space-y-3">
+              {(() => {
+                const filtered = users.filter(u =>
+                  !userSearch || `${u.name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(userSearch.toLowerCase())
+                );
+                const paginated = filtered.slice((userPage - 1) * ITEMS_PER_PAGE, userPage * ITEMS_PER_PAGE);
+                if (paginated.length === 0) {
+                  return <div className="p-8 text-center text-xs text-slate-400 font-bold">No members found.</div>;
+                }
+                return paginated.map((u: any, idx: number) => (
+                  <div key={u.id || idx} className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 text-white shadow-xs ${
+                          u.role === "admin" ? "bg-gradient-to-tr from-indigo-600 to-blue-700"
+                          : u.role === "broker" ? "bg-gradient-to-tr from-orange-500 to-orange-600"
+                          : "bg-gradient-to-tr from-slate-600 to-slate-700"
+                        }`}>
+                          {(u.name || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight">{u.name}</h4>
+                          <span className="text-[10px] text-slate-400 mt-0.5 block">{u.email}</span>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border ${
+                        u.role === "admin" ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-400"
+                        : u.role === "broker" ? "bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/60 dark:text-orange-400"
+                        : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                      }`}>
+                        {u.role}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/80 dark:border-slate-800">
+                      <span>Phone: <strong className="text-slate-700 dark:text-slate-300 font-mono">{u.phone || "—"}</strong></span>
+                      <span>Joined: {u.joinDate ? new Date(u.joinDate).toLocaleDateString() : "—"}</span>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Desktop Table View (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs min-w-[650px]">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 font-black text-slate-500 uppercase tracking-wider text-[10px]">
                     <th className="p-4">Member</th>
                     <th className="p-4">Contact</th>
                     <th className="p-4">Role</th>
@@ -1707,14 +2188,14 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     <th className="p-4">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                   {(() => {
                     const filtered = users.filter(u =>
                       !userSearch || `${u.name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(userSearch.toLowerCase())
                     );
                     const paginated = filtered.slice((userPage - 1) * ITEMS_PER_PAGE, userPage * ITEMS_PER_PAGE);
                     return paginated.map((u: any, idx: number) => (
-                      <tr key={u.id || idx} className="hover:bg-slate-50/50">
+                      <tr key={u.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
                         <td className="p-4">
                           <div className="flex items-center gap-3">
                             <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-black shrink-0 text-white ${
@@ -1724,18 +2205,18 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             }`}>
                               {(u.name || "?").charAt(0).toUpperCase()}
                             </div>
-                            <span className="font-bold text-slate-800">{u.name}</span>
+                            <span className="font-bold text-slate-800 dark:text-white">{u.name}</span>
                           </div>
                         </td>
                         <td className="p-4">
-                          <p className="text-slate-600">{u.email}</p>
+                          <p className="text-slate-600 dark:text-slate-300">{u.email}</p>
                           {u.phone && <p className="text-[10px] text-slate-400 font-mono mt-0.5">{u.phone}</p>}
                         </td>
                         <td className="p-4">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase border ${
-                            u.role === "admin" ? "bg-indigo-50 text-indigo-700 border-indigo-100"
-                            : u.role === "broker" ? "bg-orange-50 text-orange-600 border-orange-100"
-                            : "bg-slate-100 text-slate-500 border-slate-200"
+                            u.role === "admin" ? "bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-400"
+                            : u.role === "broker" ? "bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-950/40 dark:text-orange-400"
+                            : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400"
                           }`}>
                             {u.role}
                           </span>
@@ -1744,7 +2225,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           {u.joinDate ? new Date(u.joinDate).toLocaleDateString() : "—"}
                         </td>
                         <td className="p-4">
-                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100">Active</span>
+                          <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400">Active</span>
                         </td>
                       </tr>
                     ));
@@ -1924,16 +2405,28 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
       {/* ── FORM MODAL ───────────────────────────────────────────────────────── */}
       {showFormModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-100 overflow-hidden h-[94vh] sm:h-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col">
+            {/* Mobile Sheet Handle */}
+            <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 shrink-0">
+              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+            </div>
+
+            <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-slate-50 shrink-0">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Landmark size={16} />
+                <Landmark size={16} className="text-[#22c55e]" />
                 {editingVehicle ? "Edit Listing" : "Add New Listing"}
               </h3>
-              <button onClick={() => setShowFormModal(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
+              <button 
+                type="button" 
+                onClick={() => setShowFormModal(false)} 
+                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <form onSubmit={handleSaveListing} className="p-6 space-y-5 overflow-y-auto">
+            <form onSubmit={handleSaveListing} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
               {/* ── Basic Info ── */}
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Basic Information</p>
@@ -2126,10 +2619,22 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
-                <button type="button" onClick={() => setShowFormModal(false)} className="text-sm text-slate-500 hover:text-slate-800 px-4 py-2 cursor-pointer">Cancel</button>
-                <button type="submit" className="flex items-center gap-1.5 text-sm bg-blue-900 hover:bg-blue-800 text-white font-semibold px-5 py-2 rounded-lg transition cursor-pointer">
-                  <Save size={14} /> {editingVehicle ? "Save Changes" : "Create Listing"}
+              </div>
+
+              {/* Sticky Safe-Area Action Bar */}
+              <div className="p-3.5 sm:p-4 bg-white/95 backdrop-blur-sm border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                <button 
+                  type="button" 
+                  onClick={() => setShowFormModal(false)} 
+                  className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex items-center gap-1.5 text-xs sm:text-sm bg-blue-900 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl shadow-md active:scale-95 transition cursor-pointer"
+                >
+                  <Save size={15} /> {editingVehicle ? "Save Changes" : "Create Listing"}
                 </button>
               </div>
             </form>
@@ -2139,16 +2644,27 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
       {/* ── BROKER DETAIL MODAL ────────────────────────────────────────────────── */}
       {selectedBroker && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-100 overflow-hidden h-[94vh] sm:h-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col">
+            {/* Mobile Sheet Handle */}
+            <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 shrink-0">
+              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+            </div>
+
+            <div className="flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50 shrink-0">
               <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-wider">
                 <UserCheck size={16} className="text-indigo-600" />
                 Broker Profile Detail
               </h3>
-              <button onClick={() => setSelectedBroker(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
+              <button 
+                type="button" 
+                onClick={() => setSelectedBroker(null)} 
+                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div className="p-6 space-y-6 overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1">
               
               {/* Profile Card & Info */}
               <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -2280,10 +2796,16 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 </div>
 
               </div>
-              
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onClick={() => setSelectedBroker(null)} className="text-xs font-bold text-slate-500 hover:text-slate-800 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">Close Profile</button>
-              </div>
+            </div>
+            
+            <div className="p-3.5 sm:p-4 bg-white/95 backdrop-blur-sm border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+              <button 
+                type="button" 
+                onClick={() => setSelectedBroker(null)} 
+                className="w-full sm:w-auto text-xs font-bold text-slate-600 hover:text-slate-800 px-5 py-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer text-center"
+              >
+                Close Profile
+              </button>
             </div>
           </div>
         </div>
@@ -2291,16 +2813,27 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
       {/* ── BUYER DETAIL MODAL ────────────────────────────────────────────────── */}
       {selectedBuyer && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-4xl border border-slate-100 overflow-hidden h-[94vh] sm:h-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col">
+            {/* Mobile Sheet Handle */}
+            <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 shrink-0">
+              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+            </div>
+
+            <div className="flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50 shrink-0">
               <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-wider">
                 <Users size={16} className="text-teal-600" />
                 Buyer Activity Detail
               </h3>
-              <button onClick={() => setSelectedBuyer(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer"><X size={18} /></button>
+              <button 
+                type="button" 
+                onClick={() => setSelectedBuyer(null)} 
+                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div className="p-6 space-y-6 overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1">
               
               {/* Profile Card & Info */}
               <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -2388,14 +2921,258 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onClick={() => setSelectedBuyer(null)} className="text-xs font-bold text-slate-500 hover:text-slate-800 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer">Close Activity</button>
-              </div>
+            </div>
+
+            <div className="p-3.5 sm:p-4 bg-white/95 backdrop-blur-sm border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+              <button 
+                type="button" 
+                onClick={() => setSelectedBuyer(null)} 
+                className="w-full sm:w-auto text-xs font-bold text-slate-600 hover:text-slate-800 px-5 py-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer text-center"
+              >
+                Close Activity
+              </button>
             </div>
           </div>
         </div>
       )}
       </div>{/* end scrollable content */}
+
+      {/* ── NATIVE MOBILE APP BOTTOM NAVIGATION BAR ─────────────────────────── */}
+      <nav 
+        aria-label="Mobile Navigation"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 shadow-[0_-8px_25px_rgba(0,0,0,0.08)]"
+      >
+        <div className="grid grid-cols-5 items-center max-w-lg mx-auto">
+          {/* 1. Overview */}
+          <button
+            type="button"
+            onClick={() => { setAdminTab("overview"); setMobileMoreOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer ${
+              adminTab === "overview" && !mobileMoreOpen
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition ${adminTab === "overview" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <Landmark size={20} />
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Overview</span>
+          </button>
+
+          {/* 2. Listings */}
+          <button
+            type="button"
+            onClick={() => { setAdminTab("listings"); setMobileMoreOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
+              adminTab === "listings" && !mobileMoreOpen
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition relative ${adminTab === "listings" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <Car size={20} />
+              {vehicles.filter(v => v.status === "pending").length > 0 && (
+                <span className="absolute -top-1 -right-1.5 bg-amber-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                  {vehicles.filter(v => v.status === "pending").length}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Listings</span>
+          </button>
+
+          {/* 3. Center Action Floating Button: + Add Car */}
+          <div className="flex justify-center -mt-5">
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              aria-label="Add New Car Listing"
+              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#22c55e] to-emerald-400 text-white shadow-lg shadow-[#22c55e]/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-slate-950"
+            >
+              <Plus size={24} strokeWidth={2.5} />
+            </button>
+          </div>
+
+          {/* 4. Brokers */}
+          <button
+            type="button"
+            onClick={() => { setAdminTab("brokers"); setMobileMoreOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
+              adminTab === "brokers" && !mobileMoreOpen
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition relative ${adminTab === "brokers" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <UserCheck size={20} />
+              {brokers.filter(b => !b.verified).length > 0 && (
+                <span className="absolute -top-1 -right-1.5 bg-blue-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                  {brokers.filter(b => !b.verified).length}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Brokers</span>
+          </button>
+
+          {/* 5. More / Control Center */}
+          <button
+            type="button"
+            onClick={() => setMobileMoreOpen(true)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
+              mobileMoreOpen || ["buyers", "commissions", "reports", "users", "settings", "notifications"].includes(adminTab)
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition relative ${mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <SlidersHorizontal size={20} />
+              {(reports.filter(r => r.status === "pending").length > 0 || unreadCount > 0) && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white dark:border-slate-950" />
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">More</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* ── MOBILE "MORE" BOTTOM SHEET ────────────────────────────────────────── */}
+      {mobileMoreOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center"
+          onClick={() => setMobileMoreOpen(false)}
+        >
+          <div 
+            className="w-full bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Sheet Handle */}
+            <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto" />
+            
+            <div className="flex items-center justify-between pt-1">
+              <div>
+                <h4 className="text-base font-black text-slate-900 dark:text-white">Admin Management</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Arif Car Sell Quick Control Center</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMoreOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Quick Action Grid */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              {[
+                {
+                  id: "buyers",
+                  label: "Buyer Inquiries",
+                  desc: `${leads.length} Active leads`,
+                  icon: Users,
+                  color: "text-teal-600 bg-teal-50 dark:bg-teal-950/40",
+                  badge: leads.filter(l => l.status === "new").length > 0 ? `${leads.filter(l => l.status === "new").length} New` : null
+                },
+                {
+                  id: "commissions",
+                  label: "Commissions",
+                  desc: "Sales & revenue",
+                  icon: DollarSign,
+                  color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40",
+                  badge: null
+                },
+                {
+                  id: "reports",
+                  label: "Safety Reports",
+                  desc: "Flagged content",
+                  icon: AlertCircle,
+                  color: "text-rose-600 bg-rose-50 dark:bg-rose-950/40",
+                  badge: reports.filter(r => r.status === "pending").length > 0 ? `${reports.filter(r => r.status === "pending").length}` : null
+                },
+                {
+                  id: "users",
+                  label: "User Accounts",
+                  desc: `${users.length} Registered`,
+                  icon: Users,
+                  color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40",
+                  badge: null
+                },
+                {
+                  id: "notifications",
+                  label: "Notifications",
+                  desc: `${unreadCount} Alerts`,
+                  icon: Bell,
+                  color: "text-amber-600 bg-amber-50 dark:bg-amber-950/40",
+                  badge: unreadCount > 0 ? `${unreadCount}` : null
+                },
+                {
+                  id: "settings",
+                  label: "Hero & Settings",
+                  desc: "Showroom customization",
+                  icon: SlidersHorizontal,
+                  color: "text-purple-600 bg-purple-50 dark:bg-purple-950/40",
+                  badge: null
+                }
+              ].map(item => {
+                const ItemIcon = item.icon;
+                const isActive = adminTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setAdminTab(item.id as AdminTab);
+                      setMobileMoreOpen(false);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col gap-2 relative ${
+                      isActive 
+                        ? "border-[#22c55e] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#22c55e]/20" 
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.color}`}>
+                        <ItemIcon size={18} />
+                      </div>
+                      {item.badge && (
+                        <span className="text-[10px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-800 dark:text-white">{item.label}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{item.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Quick Profile & Logout */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black flex items-center justify-center text-sm">
+                  {adminUser?.name ? adminUser.name[0].toUpperCase() : "A"}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{adminUser?.name || "Administrator"}</p>
+                  <p className="text-[10px] text-slate-400">{adminUser?.email || "admin@arifcarsell.et"}</p>
+                </div>
+              </div>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={() => { setMobileMoreOpen(false); onLogout(); }}
+                  className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                >
+                  <LogOut size={14} />
+                  <span>Exit</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
     </div>
   );

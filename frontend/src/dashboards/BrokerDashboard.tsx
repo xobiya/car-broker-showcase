@@ -5,7 +5,7 @@ import {
   Bell, X, Save, Menu, LayoutDashboard, List, MessageSquare,
   Calculator, FileText, ClipboardCheck, Send, AlertTriangle, BarChart3,
   ChevronDown, ChevronLeft, ChevronRight, Clock, User, Camera, Check, CheckCheck,
-  Mail, AlertCircle, CheckCircle2, XCircle,
+  Mail, AlertCircle, CheckCircle2, XCircle, SlidersHorizontal, LogOut, Phone, MapPin, Gauge,
 } from "lucide-react";
 import { VehicleListing, Lead, Sale, VehicleDocument } from "../../../shared/types";
 import { api, vehiclesApi, leadsApi, salesApi, brokersApi } from "../lib/api";
@@ -192,13 +192,27 @@ function VehicleFormModal({ editing, onSave, onCancel }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[92vh] sm:max-h-[90vh] flex flex-col my-auto transition-colors">
-        <div className="flex justify-between items-center px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 shrink-0">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editing ? "Edit Listing" : "Add New Listing"}</h3>
-          <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1"><X size={18} /></button>
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-200 dark:border-slate-800 overflow-hidden h-[94vh] sm:h-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col transition-colors">
+        {/* Mobile Sheet Handle */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 dark:bg-slate-850 shrink-0">
+          <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
         </div>
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
+        <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 shrink-0">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <Car size={16} className="text-[#22c55e]" />
+            {editing ? "Edit Listing" : "Add New Listing"}
+          </h3>
+          <button 
+            type="button" 
+            onClick={onCancel} 
+            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mb-3">Basic Information</p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -365,12 +379,24 @@ function VehicleFormModal({ editing, onSave, onCancel }: {
             <textarea value={f.description} onChange={e => upd("description", e.target.value)} rows={3} placeholder="Vehicle history, condition, imported features, tax status..." className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400 resize-none" />
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Listings are saved as draft until submitted for approval.</p>
-            <div className="flex items-center justify-end gap-2.5">
-              <button type="button" onClick={onCancel} className="text-xs sm:text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white px-3 sm:px-4 py-2 rounded-lg cursor-pointer transition">Cancel</button>
-              <button type="submit" className="flex items-center justify-center gap-1.5 text-xs sm:text-sm bg-[#22c55e] hover:bg-emerald-600 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95">
-                <Save size={14} /> {editing ? "Save Changes" : "Save as Draft"}
+          </div>
+
+          {/* Sticky Safe-Area Action Bar */}
+          <div className="p-3.5 sm:p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium hidden sm:block">Listings are saved as draft until submitted for approval.</p>
+            <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto">
+              <button 
+                type="button" 
+                onClick={onCancel} 
+                className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="flex items-center justify-center gap-1.5 text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-[#22c55e] hover:from-emerald-700 hover:to-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-emerald-600/20 active:scale-95"
+              >
+                <Save size={15} /> {editing ? "Save Changes" : "Save as Draft"}
               </button>
             </div>
           </div>
@@ -411,6 +437,8 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
   const [docFileData, setDocFileData] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+  const [listingFilter, setListingFilter] = useState("all");
   const [readNotifs, setReadNotifs] = useState<Set<string>>(new Set());
   const [notifFilter, setNotifFilter] = useState<"all" | "unread">("all");
 
@@ -777,7 +805,15 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               {NAV_ITEMS.find(n => n.id === tab)?.label || "Dashboard"}
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => { setEditingVehicle(null); setShowForm(true); }}
+              className="lg:hidden flex items-center gap-1 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-sm active:scale-95 transition cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Add</span>
+            </button>
             <div className="relative">
               <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                 <Bell size={18} />
@@ -839,7 +875,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         </header>
 
         {tab === "dashboard" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard icon={<Car size={18} />} label="Active Listings" value={String(activeListings)} trend={activeListings > 0 ? `${activeListings} active` : undefined} trendUp={activeListings > 0} />
               <StatCard icon={<List size={18} />} label="Pending Approval" value={String(pendingListings)} />
@@ -968,68 +1004,119 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "listings" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8 space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-slate-800">My Listings</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {vehicles.length} total &middot; {draftListings} drafts &middot; {pendingListings} pending
+                <h2 className="text-base font-bold text-slate-800 dark:text-white">My Vehicle Listings</h2>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  {vehicles.length} total &middot; {draftListings} drafts &middot; {pendingListings} pending approval
                 </p>
               </div>
-              <button onClick={() => { setEditingVehicle(null); setShowForm(true); }}
-                className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shadow-sm cursor-pointer">
-                <Plus size={14} /> Add Listing
+              <button 
+                type="button"
+                onClick={() => { setEditingVehicle(null); setShowForm(true); }}
+                className="flex items-center justify-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer active:scale-95 w-full sm:w-auto"
+              >
+                <Plus size={16} /> Add New Listing
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {vehicles.map(v => (
-                <div key={v.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition group">
-                  <div className="relative h-40 overflow-hidden bg-slate-100">
+            {/* Horizontal Filter Pill Bar (Native Mobile Feel) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+              {[
+                { id: "all", label: "All Vehicles", count: vehicles.length },
+                { id: "approved", label: "Approved", count: activeListings },
+                { id: "pending", label: "Pending", count: pendingListings },
+                { id: "draft", label: "Drafts", count: draftListings },
+                { id: "rejected", label: "Rejected", count: vehicles.filter(v => v.status === "rejected").length },
+                { id: "sold", label: "Sold", count: vehicles.filter(v => v.status === "sold").length }
+              ].map(f => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setListingFilter(f.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    listingFilter === f.id
+                      ? "bg-[#22c55e] text-white shadow-sm shadow-[#22c55e]/25"
+                      : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750"
+                  }`}
+                >
+                  <span>{f.label}</span>
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    listingFilter === f.id ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                  }`}>
+                    {f.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
+              {vehicles.filter(v => listingFilter === "all" ? true : v.status === listingFilter).map(v => (
+                <div key={v.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+                  <div className="relative h-44 sm:h-40 overflow-hidden bg-slate-100 dark:bg-slate-800">
                     <img src={v.imageUrl} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                    <div className="absolute top-2 right-2"><StatusPill status={v.status} /></div>
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-white text-sm font-bold drop-shadow-sm">{v.brand} {v.model}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                    <div className="absolute top-2.5 right-2.5"><StatusPill status={v.status} /></div>
+                    <div className="absolute bottom-2.5 left-3 right-3">
+                      <p className="text-white text-base sm:text-sm font-black drop-shadow">{v.brand} {v.model}</p>
+                      <p className="text-emerald-300 text-xs font-bold drop-shadow">ETB {fmt(v.price)}</p>
                     </div>
                   </div>
-                  <div className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-bold text-slate-800">ETB {fmt(v.price)}</p>
-                      <p className="text-[11px] text-slate-400">{v.year} &middot; {v.mileage.toLocaleString()} km</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <span>{v.fuelType}</span>
-                      <span>&middot;</span>
-                      <span>{v.transmission}</span>
-                      <span>&middot;</span>
-                      <span>{v.location}</span>
-                    </div>
-                    {(v.status === "rejected" && v.rejectionReason) && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start gap-1.5">
-                        <AlertTriangle size={12} className="text-red-500 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-red-700">{v.rejectionReason}</p>
+                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                      {/* Specs Pills */}
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-medium">{v.year}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-medium">{v.mileage.toLocaleString()} km</span>
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-medium">{v.fuelType}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-medium">{v.transmission}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-medium">{v.location}</span>
                       </div>
-                    )}
-                    <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+
+                      {(v.status === "rejected" && v.rejectionReason) && (
+                        <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl p-2.5 flex items-start gap-2 mt-2.5">
+                          <AlertTriangle size={14} className="text-rose-500 mt-0.5 shrink-0" />
+                          <p className="text-xs text-rose-700 dark:text-rose-300">{v.rejectionReason}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Touch Action Bar */}
+                    <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                       {(v.status === "draft" || v.status === "rejected") && (
-                        <button onClick={() => handleSubmitForApproval(v.id)} className="p-2 rounded-lg border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 text-slate-400 hover:text-indigo-600 transition cursor-pointer" title="Submit for Approval">
+                        <button 
+                          type="button"
+                          onClick={() => handleSubmitForApproval(v.id)} 
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] hover:bg-emerald-100 dark:hover:bg-emerald-950/70 text-xs font-bold transition cursor-pointer"
+                        >
                           <Send size={13} />
+                          <span>Submit</span>
                         </button>
                       )}
-                      <button onClick={() => { setEditingVehicle(v); setShowForm(true); }} className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 transition cursor-pointer" title="Edit">
+                      <button 
+                        type="button"
+                        onClick={() => { setEditingVehicle(v); setShowForm(true); }} 
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
+                      >
                         <Edit3 size={13} />
+                        <span>Edit</span>
                       </button>
-                      <button onClick={() => handleDelete(v.id)} className="p-2 rounded-lg border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-500 transition cursor-pointer" title="Delete">
-                        <Trash2 size={13} />
+                      <button 
+                        type="button"
+                        onClick={() => handleDelete(v.id)} 
+                        className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-200 text-slate-400 hover:text-rose-600 flex items-center justify-center transition cursor-pointer shrink-0" 
+                        title="Delete"
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
                 </div>
               ))}
-              {vehicles.length === 0 && (
-                <div className="col-span-full text-center py-16 bg-white border border-dashed border-slate-200 rounded-xl text-slate-400 text-sm">
-                  No listings yet. Click "Add Listing" to get started.
+              {vehicles.filter(v => listingFilter === "all" ? true : v.status === listingFilter).length === 0 && (
+                <div className="col-span-full text-center py-16 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 text-sm">
+                  No listings found for this filter. Click "Add New Listing" to create one.
                 </div>
               )}
             </div>
@@ -1037,37 +1124,67 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "leads" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8 space-y-4">
             <div>
-              <h2 className="text-base font-bold text-slate-800">Buyer Leads</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{leads.length} total across your listings</p>
+              <h2 className="text-base font-bold text-slate-800 dark:text-white">Buyer Leads & Inquiries</h2>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{leads.length} total inquiries across your vehicle listings</p>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               {leads.length === 0 ? (
-                <div className="py-16 text-center text-slate-400 text-sm">No leads yet.</div>
+                <div className="py-16 text-center text-slate-400 dark:text-slate-500 text-sm">No leads yet. When buyers inquire, they will appear here.</div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {leads.map(l => (
-                    <div key={l.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-bold flex items-center justify-center shrink-0">{l.buyerName.charAt(0)}</div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">{l.buyerName}</p>
-                          <p className="text-xs text-slate-400">{l.buyerEmail} &middot; {l.buyerPhone}</p>
-                          <p className="text-xs text-slate-500 mt-1 italic">"{l.message}"</p>
+                    <div key={l.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#22c55e] text-base font-black flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
+                          {l.buyerName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-black text-slate-800 dark:text-white">{l.buyerName}</p>
+                            <StatusPill status={l.status} />
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                            {l.buyerPhone && (
+                              <a href={`tel:${l.buyerPhone}`} className="flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400 hover:underline">
+                                <Phone size={12} /> {l.buyerPhone}
+                              </a>
+                            )}
+                            {l.buyerEmail && (
+                              <a href={`mailto:${l.buyerEmail}`} className="flex items-center gap-1 text-slate-500 hover:text-slate-800 dark:hover:text-white truncate">
+                                <Mail size={12} /> <span className="truncate">{l.buyerEmail}</span>
+                              </a>
+                            )}
+                          </div>
+                          {l.message && (
+                            <p className="text-xs text-slate-600 dark:text-slate-300 italic bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 mt-1.5">
+                              "{l.message}"
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div className="flex flex-col sm:items-end gap-2 shrink-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-slate-500 font-semibold">{l.vehicleBrand} {l.vehicleModel}</p>
-                          {l.vehiclePrice ? <p className="text-xs font-bold text-indigo-600">ETB {fmt(l.vehiclePrice)}</p> : null}
+
+                      <div className="flex flex-col md:items-end gap-2.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-between md:justify-end gap-2">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{l.vehicleBrand} {l.vehicleModel}</p>
+                          {l.vehiclePrice ? <p className="text-xs font-black text-[#22c55e]">ETB {fmt(l.vehiclePrice)}</p> : null}
                         </div>
-                        <StatusPill status={l.status} />
                         {l.status !== "sold" && l.status !== "cancelled" && (
-                          <div className="flex gap-2 mt-1">
-                            <button onClick={() => handleLeadStatus(l.id, "negotiating")} className="text-xs font-semibold border border-slate-200 text-slate-500 hover:bg-slate-100 px-3 py-1 rounded-lg transition cursor-pointer">Negotiating</button>
-                            <button onClick={() => { setSaleModal(l); setSalePrice(l.vehiclePrice || 0); }} className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer">
-                              <TrendingUp size={12} /> Record Sale
+                          <div className="flex items-center gap-2 w-full md:w-auto">
+                            <button 
+                              type="button"
+                              onClick={() => handleLeadStatus(l.id, "negotiating")} 
+                              className="flex-1 md:flex-initial text-xs font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 px-3.5 py-2 rounded-xl transition cursor-pointer text-center"
+                            >
+                              Negotiating
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => { setSaleModal(l); setSalePrice(l.vehiclePrice || 0); }} 
+                              className="flex-1 md:flex-initial text-xs font-bold bg-[#22c55e] hover:bg-emerald-600 text-white px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-center"
+                            >
+                              <TrendingUp size={13} /> Record Sale
                             </button>
                           </div>
                         )}
@@ -1081,7 +1198,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "earnings" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8 space-y-6">
             <div>
               <h2 className="text-base font-bold text-slate-800">Earnings</h2>
               <p className="text-xs text-slate-400 mt-0.5">Sales and commission breakdown</p>
@@ -1162,7 +1279,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "inspection" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8 space-y-6">
             <div>
               <h2 className="text-base font-bold text-slate-800">Vehicle Inspections</h2>
               <p className="text-xs text-slate-400 mt-0.5">Inspection status for your listings</p>
@@ -1211,7 +1328,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "documents" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8 space-y-6">
             <div>
               <h2 className="text-base font-bold text-slate-800">Vehicle Documents</h2>
               <p className="text-xs text-slate-400 mt-0.5">Upload and manage vehicle paperwork</p>
@@ -1256,7 +1373,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "calculator" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8">
             <div className="max-w-2xl">
               <h2 className="text-base font-bold text-slate-800 mb-4">Commission Calculator</h2>
               <CommissionCalculator />
@@ -1265,7 +1382,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "profile" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8">
             <div className="max-w-2xl mx-auto space-y-6">
               <div>
                 <h2 className="text-base font-bold text-slate-800">Broker Profile</h2>
@@ -1403,7 +1520,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
 
         {tab === "notifications" && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-28 lg:pb-8">
             <div className="max-w-3xl mx-auto space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
@@ -1539,47 +1656,338 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         )}
       </div>
 
+      {/* ── NATIVE MOBILE APP BOTTOM NAVIGATION BAR ─────────────────────────── */}
+      <nav 
+        aria-label="Mobile Navigation"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 shadow-[0_-8px_25px_rgba(0,0,0,0.08)]"
+      >
+        <div className="grid grid-cols-5 items-center max-w-lg mx-auto">
+          {/* 1. Dashboard */}
+          <button
+            type="button"
+            onClick={() => { setTab("dashboard"); setMobileMoreOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer ${
+              tab === "dashboard" && !mobileMoreOpen
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition ${tab === "dashboard" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <LayoutDashboard size={20} />
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Overview</span>
+          </button>
+
+          {/* 2. Listings */}
+          <button
+            type="button"
+            onClick={() => { setTab("listings"); setMobileMoreOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
+              tab === "listings" && !mobileMoreOpen
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition relative ${tab === "listings" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <Car size={20} />
+              {pendingListings > 0 && (
+                <span className="absolute -top-1 -right-1.5 bg-amber-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                  {pendingListings}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Listings</span>
+          </button>
+
+          {/* 3. Center Floating Action Button: + Add Car */}
+          <div className="flex justify-center -mt-5">
+            <button
+              type="button"
+              onClick={() => { setEditingVehicle(null); setShowForm(true); setMobileMoreOpen(false); }}
+              aria-label="Add New Car Listing"
+              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#22c55e] to-emerald-400 text-white shadow-lg shadow-[#22c55e]/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-slate-950"
+            >
+              <Plus size={24} strokeWidth={2.5} />
+            </button>
+          </div>
+
+          {/* 4. Leads */}
+          <button
+            type="button"
+            onClick={() => { setTab("leads"); setMobileMoreOpen(false); }}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
+              tab === "leads" && !mobileMoreOpen
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition relative ${tab === "leads" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <Users size={20} />
+              {newLeads.length > 0 && (
+                <span className="absolute -top-1 -right-1.5 bg-blue-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                  {newLeads.length}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">Leads</span>
+          </button>
+
+          {/* 5. More */}
+          <button
+            type="button"
+            onClick={() => setMobileMoreOpen(true)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
+              mobileMoreOpen || ["earnings", "inspection", "documents", "calculator", "profile", "notifications"].includes(tab)
+                ? "text-[#22c55e] font-bold"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition relative ${mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+              <SlidersHorizontal size={20} />
+              {unreadNotifCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white dark:border-slate-950" />
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight mt-0.5">More</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* ── MOBILE "MORE" BOTTOM SHEET ────────────────────────────────────────── */}
+      {mobileMoreOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center"
+          onClick={() => setMobileMoreOpen(false)}
+        >
+          <div 
+            className="w-full bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Sheet Handle */}
+            <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto" />
+            
+            <div className="flex items-center justify-between pt-1">
+              <div>
+                <h4 className="text-base font-black text-slate-900 dark:text-white">Broker Workspace</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Arif Car Sell Partner Portal</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMoreOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Quick Action Grid */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              {[
+                {
+                  id: "earnings",
+                  label: "Earnings & Sales",
+                  desc: `${sales.length} Closed Deals`,
+                  icon: DollarSign,
+                  color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40",
+                  badge: totalCommission > 0 ? `+ETB ${fmt(totalCommission)}` : null
+                },
+                {
+                  id: "inspection",
+                  label: "Inspections",
+                  desc: "Vehicle checkups",
+                  icon: ClipboardCheck,
+                  color: "text-blue-600 bg-blue-50 dark:bg-blue-950/40",
+                  badge: null
+                },
+                {
+                  id: "documents",
+                  label: "Documents",
+                  desc: `${documents.length} Vehicle papers`,
+                  icon: FileText,
+                  color: "text-purple-600 bg-purple-50 dark:bg-purple-950/40",
+                  badge: null
+                },
+                {
+                  id: "calculator",
+                  label: "Calculator",
+                  desc: "Commission & quotes",
+                  icon: Calculator,
+                  color: "text-amber-600 bg-amber-50 dark:bg-amber-950/40",
+                  badge: null
+                },
+                {
+                  id: "notifications",
+                  label: "Notifications",
+                  desc: `${unreadNotifCount} Alerts`,
+                  icon: Bell,
+                  color: "text-rose-600 bg-rose-50 dark:bg-rose-950/40",
+                  badge: unreadNotifCount > 0 ? `${unreadNotifCount}` : null
+                },
+                {
+                  id: "profile",
+                  label: "Broker Profile",
+                  desc: "License & bio",
+                  icon: User,
+                  color: "text-teal-600 bg-teal-50 dark:bg-teal-950/40",
+                  badge: brokerInfo?.verified ? "Verified" : "Pending"
+                }
+              ].map(item => {
+                const ItemIcon = item.icon;
+                const isActive = tab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setTab(item.id as Tab);
+                      setMobileMoreOpen(false);
+                    }}
+                    className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col gap-2 relative ${
+                      isActive 
+                        ? "border-[#22c55e] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#22c55e]/20" 
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.color}`}>
+                        <ItemIcon size={18} />
+                      </div>
+                      {item.badge && (
+                        <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-800 dark:text-white">{item.label}</p>
+                      <p className="text-[10px] text-slate-400 font-medium truncate">{item.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Quick Profile & Logout */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#22c55e] text-white font-black flex items-center justify-center text-sm shadow-sm">
+                  {(brokerInfo?.name || "B").split(" ").map(w => w[0]).join("")}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{brokerInfo?.name || "Broker"}</p>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${brokerInfo?.verified ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                      {brokerInfo?.verified ? "Verified" : "Pending"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400">{brokerInfo?.phone || brokerInfo?.email || "Licensed Broker"}</p>
+                </div>
+              </div>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={() => { setMobileMoreOpen(false); onLogout(); }}
+                  className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                >
+                  <LogOut size={14} />
+                  <span>Exit</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showForm && <VehicleFormModal editing={editingVehicle} onSave={handleSave} onCancel={() => { setShowForm(false); setEditingVehicle(null); }} />}
 
       {saleModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-sm text-slate-800">Record Sale</h3>
-              <button onClick={() => setSaleModal(null)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={16} /></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+            {/* Sheet Handle */}
+            <div className="sm:hidden -mt-1 pb-1 flex justify-center">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
             </div>
-            <div className="bg-indigo-50 rounded-lg p-3 text-xs text-indigo-800">
+
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-sm text-slate-800 dark:text-white">Record Sale</h3>
+              <button 
+                type="button"
+                onClick={() => setSaleModal(null)} 
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-3 text-xs text-emerald-800 dark:text-emerald-300">
               <strong>{saleModal.buyerName}</strong> &mdash; {saleModal.vehicleBrand} {saleModal.vehicleModel}
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400">Sale Price (ETB)</label>
-              <input type="number" value={salePrice} onChange={e => setSalePrice(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-400" />
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Sale Price (ETB)</label>
+              <input 
+                type="number" 
+                value={salePrice} 
+                onChange={e => setSalePrice(+e.target.value)} 
+                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] font-mono font-bold" 
+              />
             </div>
-            <div className="text-xs text-slate-500">
-              Commission (1%): <strong className="text-emerald-600">ETB {fmt(Math.round(salePrice * 0.01))}</strong>
+            <div className="text-xs text-slate-500 dark:text-slate-400">
+              Commission (1%): <strong className="text-emerald-600 dark:text-emerald-400 font-bold">ETB {fmt(Math.round(salePrice * 0.01))}</strong>
             </div>
-            <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setSaleModal(null)} className="text-sm text-slate-500 px-4 py-2 cursor-pointer">Cancel</button>
-              <button onClick={handleRecordSale} className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-5 py-2 rounded-lg transition cursor-pointer">Confirm Sale</button>
+            <div className="flex gap-2.5 justify-end pt-2">
+              <button 
+                type="button"
+                onClick={() => setSaleModal(null)} 
+                className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={handleRecordSale} 
+                className="bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+              >
+                Confirm Sale
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {docUploadModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+            {/* Sheet Handle */}
+            <div className="sm:hidden -mt-1 pb-1 flex justify-center">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
+            </div>
+
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-sm text-slate-800">Upload Document</h3>
-              <button onClick={() => setDocUploadModal({ vehicleId: "", open: false })} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={16} /></button>
+              <h3 className="font-bold text-sm text-slate-800 dark:text-white">Upload Document</h3>
+              <button 
+                type="button"
+                onClick={() => setDocUploadModal({ vehicleId: "", open: false })} 
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400">Document Name</label>
-              <input type="text" value={docName} onChange={e => setDocName(e.target.value)} placeholder="e.g. Customs Clearance" className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-400" />
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Document Name</label>
+              <input 
+                type="text" 
+                value={docName} 
+                onChange={e => setDocName(e.target.value)} 
+                placeholder="e.g. Customs Clearance" 
+                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e]" 
+              />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400">Document Type</label>
-              <select value={docType} onChange={e => setDocType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-400">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Document Type</label>
+              <select 
+                value={docType} 
+                onChange={e => setDocType(e.target.value)} 
+                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e]"
+              >
                 <option value="title">Title of Ownership</option>
                 <option value="invoice">Invoice</option>
                 <option value="customs">Customs Clearance</option>
@@ -1589,7 +1997,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400">File</label>
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">File</label>
               <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                 onChange={e => {
                   const file = e.target.files?.[0];
@@ -1598,12 +2006,24 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                   reader.onload = () => setDocFileData(reader.result as string);
                   reader.readAsDataURL(file);
                 }}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-indigo-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer cursor-pointer"
+                className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#22c55e] file:text-white hover:file:bg-emerald-600 file:cursor-pointer cursor-pointer"
               />
             </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button onClick={() => setDocUploadModal({ vehicleId: "", open: false })} className="text-sm text-slate-500 px-4 py-2 cursor-pointer">Cancel</button>
-              <button onClick={handleUploadDoc} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-2 rounded-lg transition cursor-pointer">Upload</button>
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button 
+                type="button"
+                onClick={() => setDocUploadModal({ vehicleId: "", open: false })} 
+                className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={handleUploadDoc} 
+                className="bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+              >
+                Upload
+              </button>
             </div>
           </div>
         </div>
