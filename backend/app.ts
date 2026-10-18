@@ -45,7 +45,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production") {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(null, false);
     }
   },
   credentials: true,
@@ -122,6 +122,11 @@ app.get("/uploads/:filename", async (req, res, next) => {
 if (!process.env.VERCEL) {
   app.use("/assets", express.static(path.join(process.cwd(), "assets")));
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+}
+
+// Helper to sanitize regex user input and prevent ReDoS attacks
+export function escapeRegex(text: string): string {
+  return String(text).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 }
 
 // Helper to persist base64 data URLs directly into MongoDB
@@ -282,14 +287,11 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
       if (cached) return res.json(cached);
     }
 
-    const brokers = await db.getBrokers();
-    const users = await db.getUsers();
-
     let dbFilter: any = {};
     if (isPublicOrBuyer) {
       dbFilter = { status: { $in: ["approved", "sold"] } };
     } else if (req.user!.role === "broker") {
-      const broker = brokers.find(b => b.userId === req.user?.id);
+      const broker = await db.getBrokerByUserId(req.user!.id);
       const brokerId = broker ? broker.id : null;
       dbFilter = brokerId
         ? { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: brokerId }] }
@@ -298,23 +300,23 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
       dbFilter = { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: req.user!.id }] };
     }
 
-    // Server-side filtering parameters
+    // Server-side filtering parameters (sanitized against ReDoS)
     if (req.query.brand && req.query.brand !== "Any Brand") dbFilter.brand = req.query.brand;
     if (req.query.model && req.query.model !== "Any Model") dbFilter.model = req.query.model;
     if (req.query.condition && req.query.condition !== "all") dbFilter.condition = req.query.condition;
 
     const bodyType = req.query.bodyType || req.query.body_type;
     if (bodyType && bodyType !== "Any Type") {
-      dbFilter.body_type = { $regex: new RegExp(`^${bodyType}$`, "i") };
+      dbFilter.body_type = { $regex: new RegExp(`^${escapeRegex(String(bodyType))}$`, "i") };
     }
 
     const fuelType = req.query.fuelType || req.query.fuel_type;
     if (fuelType && fuelType !== "Any Fuel") {
-      dbFilter.fuel_type = { $regex: new RegExp(`^${fuelType}$`, "i") };
+      dbFilter.fuel_type = { $regex: new RegExp(`^${escapeRegex(String(fuelType))}$`, "i") };
     }
 
     if (req.query.location && req.query.location !== "Any Location") {
-      dbFilter.location = { $regex: new RegExp(req.query.location as string, "i") };
+      dbFilter.location = { $regex: new RegExp(escapeRegex(String(req.query.location)), "i") };
     }
 
     if (req.query.year) {
@@ -328,7 +330,7 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
     }
 
     if (req.query.search) {
-      const s = String(req.query.search).trim();
+      const s = escapeRegex(String(req.query.search).trim());
       const regex = new RegExp(s, "i");
       dbFilter.$or = [
         { brand: regex },
@@ -359,6 +361,13 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
     }
 
     const filteredVehicles = await db.getVehicles(dbFilter, options);
+
+    const brokers = await db.getBrokers();
+    const relevantUserIds = Array.from(new Set([
+      ...brokers.map(b => b.userId),
+      ...filteredVehicles.map(v => v.brokerId).filter(Boolean) as string[]
+    ]));
+    const users = await db.getUsersByIds(relevantUserIds);
 
     const enriched = filteredVehicles.map(v => {
       const broker = brokers.find(b => b.id === v.brokerId);
@@ -503,15 +512,16 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "b
 
 // Helper checking vehicle ownership
 const verifyVehicleOwnership = async (vehicleId: string, reqUser: any) => {
+  if (!reqUser) return false;
   if (reqUser.role === "admin") return true;
+  if (!vehicleId || vehicleId === "general-inquiry") return false;
   const vehicle = await db.getVehicleById(vehicleId);
   if (!vehicle) return false;
   if (reqUser.role === "seller" || reqUser.role === "buyer") {
     return vehicle.brokerId === reqUser.id;
   }
-  const brokers = await db.getBrokers();
-  const broker = brokers.find(b => b.id === vehicle.brokerId);
-  return broker && broker.userId === reqUser.id;
+  const broker = await db.getBrokerByUserId(reqUser.id);
+  return !!broker && broker.id === vehicle.brokerId;
 };
 
 app.put("/api/vehicles/:id", authenticateToken, validate(vehicleUpdateSchema), async (req: AuthenticatedRequest, res) => {
@@ -834,7 +844,11 @@ app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), vali
     await db.updateVehicle(vehicle_id, { status: "sold" });
     clearCache("vehicles");
     if (leadId) {
-      await db.updateLeadStatus(leadId, "sold");
+      const leads = await db.getLeads();
+      const targetLead = leads.find(l => l.id === leadId);
+      if (targetLead && targetLead.vehicleId === vehicle_id) {
+        await db.updateLeadStatus(leadId, "sold");
+      }
     }
 
     res.status(201).json(newSale);

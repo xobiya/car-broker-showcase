@@ -260,6 +260,12 @@ export const db = {
     return toPlainArray<DBBroker>(docs).map(mapBroker);
   },
 
+  getBrokerByUserId: async (userId: string): Promise<Broker | null> => {
+    const doc = await BrokerModel.findOne({ user_id: userId }).lean();
+    if (!doc) return null;
+    return mapBroker(toPlain<DBBroker>(doc));
+  },
+
   getUserByEmail: async (email: string): Promise<DBUser | null> => {
     const doc = await UserModel.findOne({ email }).lean();
     return toPlain<DBUser>(doc);
@@ -268,6 +274,12 @@ export const db = {
   getUserById: async (id: string): Promise<DBUser | null> => {
     const doc = await UserModel.findOne({ id }).lean();
     return toPlain<DBUser>(doc);
+  },
+
+  getUsersByIds: async (ids: string[]): Promise<User[]> => {
+    if (!ids || ids.length === 0) return [];
+    const docs = await UserModel.find({ id: { $in: ids } }).select("-password_hash").lean();
+    return toPlainArray<DBUser>(docs).map(mapUser);
   },
 
   updateUser: async (id: string, updates: Partial<DBUser>): Promise<boolean> => {
