@@ -655,8 +655,12 @@ export default function App() {
           onNotify={addToast}
         />
       )}
-      <Analytics />
-      <SpeedInsights />
+      {typeof window !== "undefined" && window.location.hostname.includes("vercel.app") && (
+        <>
+          <Analytics />
+          <SpeedInsights />
+        </>
+      )}
     </div>
   );
 }
