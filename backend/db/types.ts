@@ -159,3 +159,13 @@ export interface DBTestDrive {
   status: string;
   requested_at: string;
 }
+
+export interface DBMedia {
+  id: string;
+  filename: string;
+  mimetype: string;
+  folder?: string;
+  data: string;
+  size: number;
+  created_at: string;
+}

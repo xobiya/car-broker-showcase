@@ -87,9 +87,64 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 
+// --- Media Serving Directly from Database ---
+app.get("/api/media/:id", async (req, res) => {
+  try {
+    const media = await db.getMedia(req.params.id);
+    if (!media) {
+      return res.status(404).json({ error: "Media not found in database." });
+    }
+    res.setHeader("Content-Type", media.mimetype);
+    res.setHeader("Content-Length", media.buffer.length);
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.send(media.buffer);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Database-first fallback for legacy /uploads/:filename URLs
+app.get("/uploads/:filename", async (req, res, next) => {
+  try {
+    const media = await db.getMedia(req.params.filename);
+    if (media) {
+      res.setHeader("Content-Type", media.mimetype);
+      res.setHeader("Content-Length", media.buffer.length);
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      return res.send(media.buffer);
+    }
+    next();
+  } catch {
+    next();
+  }
+});
+
 if (!process.env.VERCEL) {
   app.use("/assets", express.static(path.join(process.cwd(), "assets")));
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+}
+
+// Helper to persist base64 data URLs directly into MongoDB
+async function persistBase64Image(dataUri: string, folder = "vehicles"): Promise<string> {
+  if (!dataUri || typeof dataUri !== "string" || !dataUri.startsWith("data:image/")) return dataUri;
+  try {
+    const match = dataUri.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/);
+    if (!match) return dataUri;
+    const mimetype = match[1];
+    const buffer = Buffer.from(match[2], "base64");
+    const ext = mimetype.split("/")[1] || "jpg";
+    const filename = `${folder}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const url = await db.saveMedia({
+      filename,
+      mimetype,
+      folder,
+      buffer,
+    });
+    return url;
+  } catch (err) {
+    console.warn("[Media] Failed to persist base64 image into database:", err);
+    return dataUri;
+  }
 }
 
 
@@ -393,6 +448,23 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "b
       brokerId = "brk-1";
     }
 
+    let finalImageUrl = req.body.image_url;
+    if (finalImageUrl && finalImageUrl.startsWith("data:image/")) {
+      finalImageUrl = await persistBase64Image(finalImageUrl, "vehicles");
+    }
+
+    let finalGallery: string[] | undefined = undefined;
+    if (req.body.gallery_images) {
+      try {
+        const raw = typeof req.body.gallery_images === "string" ? JSON.parse(req.body.gallery_images) : req.body.gallery_images;
+        if (Array.isArray(raw) && raw.length > 0) {
+          finalGallery = await Promise.all(raw.map((img: string) => persistBase64Image(img, "vehicles")));
+        }
+      } catch {}
+    } else if (Array.isArray(req.body.gallery) && req.body.gallery.length > 0) {
+      finalGallery = await Promise.all(req.body.gallery.map((img: string) => persistBase64Image(img, "vehicles")));
+    }
+
     const newVehicle = await db.addVehicle({
       broker_id: brokerId,
       brand: req.body.brand,
@@ -401,7 +473,7 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "b
       mileage: parseInt(req.body.mileage) || 0,
       price: parseFloat(req.body.price),
       original_price: parseFloat(req.body.original_price || req.body.price),
-      image_url: req.body.image_url || "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80",
+      image_url: finalImageUrl || "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80",
       description: req.body.description || "",
       fuel_type: req.body.fuel_type || "Benzine",
       transmission: req.body.transmission || "Automatic",
@@ -419,7 +491,7 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "b
       commission_rate: req.body.commission_rate,
       commission_type: req.body.commission_type,
       video_url: req.body.video_url,
-      gallery: req.body.gallery,
+      gallery: finalGallery,
       cover_photo_index: req.body.cover_photo_index,
     });
     clearCache("vehicles");
@@ -450,6 +522,21 @@ app.put("/api/vehicles/:id", authenticateToken, validate(vehicleUpdateSchema), a
     }
 
     const updates = { ...req.body };
+    if (updates.image_url && typeof updates.image_url === "string" && updates.image_url.startsWith("data:image/")) {
+      updates.image_url = await persistBase64Image(updates.image_url, "vehicles");
+    }
+    if (updates.gallery_images) {
+      try {
+        const raw = typeof updates.gallery_images === "string" ? JSON.parse(updates.gallery_images) : updates.gallery_images;
+        if (Array.isArray(raw) && raw.length > 0) {
+          updates.gallery = await Promise.all(raw.map((img: string) => persistBase64Image(img, "vehicles")));
+        }
+      } catch {}
+      delete updates.gallery_images;
+    } else if (Array.isArray(updates.gallery) && updates.gallery.length > 0) {
+      updates.gallery = await Promise.all(updates.gallery.map((img: string) => persistBase64Image(img, "vehicles")));
+    }
+
     // Non-admins cannot alter system approval status, rejection reasons, or broker assignment
     if (req.user!.role !== "admin") {
       delete updates.status;
@@ -854,6 +941,9 @@ app.put("/api/brokers/:id", authenticateToken, async (req: AuthenticatedRequest,
     }
 
     const updates = { ...req.body };
+    if (updates.avatar && typeof updates.avatar === "string" && updates.avatar.startsWith("data:image/")) {
+      updates.avatar = await persistBase64Image(updates.avatar, "avatars");
+    }
     if (req.user!.role !== "admin") {
       delete updates.verified;
       delete updates.userId;
@@ -936,7 +1026,13 @@ app.put("/api/users/:id", authenticateToken, requireSelfOrAdmin("id"), validate(
     if (req.body.name !== undefined) allowedUpdates.name = req.body.name;
     if (req.body.phone !== undefined) allowedUpdates.phone = req.body.phone;
     if (req.body.bio !== undefined) allowedUpdates.bio = req.body.bio;
-    if (req.body.avatar !== undefined) allowedUpdates.avatar = req.body.avatar;
+    if (req.body.avatar !== undefined) {
+      let avatar = req.body.avatar;
+      if (typeof avatar === "string" && avatar.startsWith("data:image/")) {
+        avatar = await persistBase64Image(avatar, "avatars");
+      }
+      allowedUpdates.avatar = avatar;
+    }
 
     // Only administrative accounts can alter role or verification status
     if (req.user!.role === "admin") {
@@ -1073,7 +1169,12 @@ app.post("/api/documents", authenticateToken, validate(documentSchema), async (r
       return res.status(403).json({ error: "Access denied. You do not own this vehicle." });
     }
 
-    const doc = await db.addDocument({ vehicle_id, name, type, file_url });
+    let finalFileUrl = file_url;
+    if (finalFileUrl && typeof finalFileUrl === "string" && finalFileUrl.startsWith("data:")) {
+      finalFileUrl = await persistBase64Image(finalFileUrl, "documents");
+    }
+
+    const doc = await db.addDocument({ vehicle_id, name, type, file_url: finalFileUrl });
     res.status(201).json(doc);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -1139,12 +1240,12 @@ app.put("/api/inspections/:id", authenticateToken, requireRole(["admin"]), async
   }
 });
 
-// --- Upload (Cloudinary with Local Disk Fallback) ---
+// --- Upload (Stored directly in MongoDB Database) ---
 app.post("/api/upload", authenticateToken, upload.single("file"), async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file provided." });
     const folder = (req.body.folder as string) || "autobroker";
-    const url = await uploadToCloudinary(req.file.buffer, folder, undefined, req.file.mimetype);
+    const url = await uploadToCloudinary(req.file.buffer, folder, undefined, req.file.mimetype, req.file.originalname);
     res.json({ url, filename: req.file.originalname });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -1156,7 +1257,7 @@ app.post("/api/upload/multiple", authenticateToken, upload.array("files", 5), as
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) return res.status(400).json({ error: "No files provided." });
     const folder = (req.body.folder as string) || "autobroker";
-    const urls = await Promise.all(files.map(f => uploadToCloudinary(f.buffer, folder, undefined, f.mimetype)));
+    const urls = await Promise.all(files.map(f => uploadToCloudinary(f.buffer, folder, undefined, f.mimetype, f.originalname)));
     res.json({ urls });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

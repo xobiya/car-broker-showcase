@@ -15,7 +15,6 @@ async function startServer() {
         root: path.join(process.cwd(), "frontend"),
         server: {
           middlewareMode: true,
-          hmr: { port: 24678 },
         },
         appType: "spa",
       });

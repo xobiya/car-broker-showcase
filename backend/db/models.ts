@@ -114,6 +114,18 @@ const settingSchema = new Schema({
   updated_at: String,
 });
 
+const mediaSchema = new Schema({
+  ...baseFields,
+  filename: String,
+  mimetype: String,
+  folder: { type: String, default: 'general' },
+  data: String, // Base64 encoded payload
+  size: Number,
+  created_at: { type: String, default: () => new Date().toISOString() },
+});
+mediaSchema.index({ filename: 1 });
+mediaSchema.index({ folder: 1 });
+
 export const UserModel = mongoose.model('User', userSchema, 'users');
 export const BrokerModel = mongoose.model('Broker', brokerSchema, 'brokers');
 export const VehicleModel = mongoose.model('Vehicle', vehicleSchema, 'vehicles');
@@ -127,6 +139,7 @@ export const ReportModel = mongoose.model('Report', reportSchema, 'reports');
 export const PaymentModel = mongoose.model('Payment', paymentSchema, 'payments');
 export const TestDriveModel = mongoose.model('TestDrive', testDriveSchema, 'test_drives');
 export const SettingModel = mongoose.model('Setting', settingSchema, 'settings');
+export const MediaModel = mongoose.model('Media', mediaSchema, 'media');
 
 export function toPlain<T>(doc: any): T {
   if (!doc) return null as any;

@@ -1,7 +1,6 @@
-import fs from "fs";
-import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
+import { db } from "../db/index";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
@@ -24,24 +23,22 @@ export async function uploadToCloudinary(
   fileBuffer: Buffer,
   folder: string = "autobroker",
   publicId?: string,
-  mimetype?: string
+  mimetype?: string,
+  originalname?: string
 ): Promise<string> {
+  // If Cloudinary credentials are not configured, store directly in MongoDB database
   if (!process.env.CLOUDINARY_CLOUD_NAME) {
     try {
-      const uploadsDir = path.join(process.cwd(), "uploads");
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      const rawExt = mimetype ? (mimetype.split("/")[1] || "jpg").replace("+xml", "") : "jpg";
-      const ext = rawExt === "jpeg" ? "jpg" : rawExt;
-      const safeFolder = folder.replace(/[^a-zA-Z0-9-_]/g, "");
-      const filename = `${safeFolder}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-      const filePath = path.join(uploadsDir, filename);
-      fs.writeFileSync(filePath, fileBuffer);
-      return `/uploads/${filename}`;
+      const url = await db.saveMedia({
+        filename: originalname,
+        mimetype: mimetype || "image/jpeg",
+        folder,
+        buffer: fileBuffer,
+      });
+      return url;
     } catch (e) {
-      console.warn("[Upload] Local disk write fallback failed, using default placeholder:", e);
-      return "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80";
+      console.error("[Upload] Database media save error:", e);
+      throw e;
     }
   }
   return new Promise((resolve, reject) => {

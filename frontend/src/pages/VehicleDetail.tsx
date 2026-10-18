@@ -471,13 +471,18 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
       )}
 
       {showTestDriveModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg border border-slate-100 dark:border-slate-800 overflow-hidden text-slate-900 dark:text-white">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white">Schedule Test Drive</h3>
-              <button onClick={() => setShowTestDriveModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer p-1"><X size={18} /></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-lg border border-slate-100 dark:border-slate-800 overflow-hidden text-slate-900 dark:text-white max-h-[92vh] flex flex-col">
+            {/* Sheet Handle */}
+            <div className="sm:hidden pt-3 pb-1 flex justify-center shrink-0">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
             </div>
-            <form onSubmit={handleSubmitTestDrive} className="p-6 space-y-4">
+
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 shrink-0">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">Schedule Test Drive</h3>
+              <button type="button" onClick={() => setShowTestDriveModal(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer p-1"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleSubmitTestDrive} className="p-6 space-y-4 overflow-y-auto flex-1">
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1 col-span-2 sm:col-span-1">
@@ -555,6 +560,35 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
           </div>
         </section>
       )}
+
+      {/* ── MOBILE STICKY BOTTOM ACTION BAR (lg:hidden) ────────────────── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-3 px-4 flex items-center justify-between gap-3 shadow-2xl safe-area-bottom">
+        <div>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Price</span>
+          <p className="text-base font-black text-slate-950 dark:text-white leading-tight">
+            ETB {fmt(vehicle.price)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {vehicle.brokerPhone && (
+            <a
+              href={`tel:${vehicle.brokerPhone}`}
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:text-[#22c55e] transition flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+              title="Call Broker"
+            >
+              <Phone size={17} className="text-[#22c55e]" />
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowTestDriveModal(true)}
+            className="px-4 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs rounded-xl shadow-md shadow-[#22c55e]/20 active:scale-95 transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+          >
+            <Calendar size={14} strokeWidth={2.5} />
+            <span>Book Test Drive</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

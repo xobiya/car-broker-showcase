@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import mongoose from "mongoose";
 import crypto from "crypto";
 import dotenv from "dotenv";
@@ -9,7 +11,7 @@ import type { DBPayment } from "./types";
 import {
   UserModel, BrokerModel, VehicleModel, LeadModel, SaleModel,
   AuditLogModel, DocumentModel, InspectionModel, SavedVehicleModel,
-  ReportModel, TestDriveModel, PaymentModel, SettingModel, toPlain, toPlainArray
+  ReportModel, TestDriveModel, PaymentModel, SettingModel, MediaModel, toPlain, toPlainArray
 } from "./models";
 import { seedDatabase } from "./seed";
 import type {
@@ -118,6 +120,37 @@ export async function initDB() {
   const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/autobroker_ethiopia";
   await mongoose.connect(uri);
   console.log("Connected to MongoDB!");
+
+  // Migrate any existing files in uploads directory to MongoDB Media collection
+  try {
+    const uploadsDir = path.join(process.cwd(), "uploads");
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      for (const file of files) {
+        const filePath = path.join(uploadsDir, file);
+        if (fs.statSync(filePath).isFile()) {
+          const existing = await MediaModel.findOne({ filename: file });
+          if (!existing) {
+            const buffer = fs.readFileSync(filePath);
+            const ext = path.extname(file).replace(".", "").toLowerCase();
+            const mimetype = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : ext === "pdf" ? "application/pdf" : "image/jpeg";
+            await MediaModel.create({
+              id: file.replace(/\.[^/.]+$/, ""),
+              filename: file,
+              mimetype,
+              folder: file.startsWith("avatars") ? "avatars" : "general",
+              data: buffer.toString("base64"),
+              size: buffer.length,
+              created_at: new Date().toISOString()
+            });
+            console.log(`[Media Migration] Imported existing ${file} into database.`);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("[Media Migration] Notice:", e);
+  }
 
   // Never overwrite or seed in production unless explicitly forced
   if (process.env.NODE_ENV !== "production") {
@@ -476,5 +509,38 @@ export const db = {
       result[d.key] = d.value;
     });
     return result;
+  },
+
+  // --- Media & File Storage (in Database) ---
+  saveMedia: async (data: { filename?: string; mimetype?: string; folder?: string; buffer: Buffer }): Promise<string> => {
+    const safeFolder = (data.folder || "general").replace(/[^a-zA-Z0-9-_]/g, "");
+    const rawExt = data.mimetype ? (data.mimetype.split("/")[1] || "jpg").replace("+xml", "") : "jpg";
+    const ext = rawExt === "jpeg" ? "jpg" : rawExt;
+    const filename = data.filename || `${safeFolder}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const id = genId("media");
+
+    await MediaModel.create({
+      id,
+      filename,
+      mimetype: data.mimetype || "image/jpeg",
+      folder: safeFolder,
+      data: data.buffer.toString("base64"),
+      size: data.buffer.length,
+      created_at: new Date().toISOString(),
+    });
+
+    return `/api/media/${id}`;
+  },
+
+  getMedia: async (idOrFilename: string): Promise<{ mimetype: string; buffer: Buffer; filename: string } | null> => {
+    const doc = await MediaModel.findOne({
+      $or: [{ id: idOrFilename }, { filename: idOrFilename }]
+    }).lean();
+    if (!doc || !(doc as any).data) return null;
+    return {
+      mimetype: (doc as any).mimetype || "image/jpeg",
+      buffer: Buffer.from((doc as any).data, "base64"),
+      filename: (doc as any).filename || "image.jpg",
+    };
   },
 };
