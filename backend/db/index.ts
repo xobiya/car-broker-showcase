@@ -117,33 +117,39 @@ function mapTestDrive(t: DBTestDrive): TestDriveRequest {
 }
 
 export async function initDB() {
+  if (mongoose.connection.readyState === 1) return;
+
   const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/autobroker_ethiopia";
-  await mongoose.connect(uri);
+  await mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 15000,
+  });
   console.log("Connected to MongoDB!");
 
-  // Migrate any existing files in uploads directory to MongoDB Media collection
+  // Migrate any existing files in uploads directory to MongoDB Media collection (safe in all environments)
   try {
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    if (fs.existsSync(uploadsDir)) {
-      const files = fs.readdirSync(uploadsDir);
-      for (const file of files) {
-        const filePath = path.join(uploadsDir, file);
-        if (fs.statSync(filePath).isFile()) {
-          const existing = await MediaModel.findOne({ filename: file });
-          if (!existing) {
-            const buffer = fs.readFileSync(filePath);
-            const ext = path.extname(file).replace(".", "").toLowerCase();
-            const mimetype = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : ext === "pdf" ? "application/pdf" : "image/jpeg";
-            await MediaModel.create({
-              id: file.replace(/\.[^/.]+$/, ""),
-              filename: file,
-              mimetype,
-              folder: file.startsWith("avatars") ? "avatars" : "general",
-              data: buffer.toString("base64"),
-              size: buffer.length,
-              created_at: new Date().toISOString()
-            });
-            console.log(`[Media Migration] Imported existing ${file} into database.`);
+    if (!process.env.VERCEL) {
+      const uploadsDir = path.join(process.cwd(), "uploads");
+      if (fs.existsSync(uploadsDir)) {
+        const files = fs.readdirSync(uploadsDir);
+        for (const file of files) {
+          const filePath = path.join(uploadsDir, file);
+          if (fs.statSync(filePath).isFile()) {
+            const existing = await MediaModel.findOne({ filename: file });
+            if (!existing) {
+              const buffer = fs.readFileSync(filePath);
+              const ext = path.extname(file).replace(".", "").toLowerCase();
+              const mimetype = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : ext === "pdf" ? "application/pdf" : "image/jpeg";
+              await MediaModel.create({
+                id: file.replace(/\.[^/.]+$/, ""),
+                filename: file,
+                mimetype,
+                folder: file.startsWith("avatars") ? "avatars" : "general",
+                data: buffer.toString("base64"),
+                size: buffer.length,
+                created_at: new Date().toISOString()
+              });
+              console.log(`[Media Migration] Imported existing ${file} into database.`);
+            }
           }
         }
       }
@@ -152,18 +158,20 @@ export async function initDB() {
     console.warn("[Media Migration] Notice:", e);
   }
 
-  // Never overwrite or seed in production unless explicitly forced
-  if (process.env.NODE_ENV !== "production") {
-    if (process.env.SEED_DB === "true") {
-      console.log("SEED_DB flag detected. Running database seeder...");
+  // Auto-populate initial catalog and tables if database is fresh (0 vehicles or 0 users) or if SEED_DB=true
+  try {
+    const vehicleCount = await VehicleModel.countDocuments();
+    const userCount = await UserModel.countDocuments();
+    if (process.env.SEED_DB === "true" || vehicleCount === 0 || userCount === 0) {
+      console.log(`[Database Init] Initializing collections & seeding catalog (Vehicles: ${vehicleCount}, Users: ${userCount})...`);
       await seedDatabase();
-    } else {
-      const vehicleCount = await VehicleModel.countDocuments();
-      if (vehicleCount < 18) {
-        console.log(`Database has ${vehicleCount} vehicles. Syncing complete vehicle catalog...`);
-        await seedDatabase();
-      }
+      console.log("[Database Init] Successfully seeded initial catalog, users, and brokers!");
+    } else if (process.env.NODE_ENV !== "production" && vehicleCount < 18) {
+      console.log(`Database has ${vehicleCount} vehicles. Syncing complete vehicle catalog...`);
+      await seedDatabase();
     }
+  } catch (err) {
+    console.warn("[Database Init] Auto-seeding notice:", err);
   }
 }
 

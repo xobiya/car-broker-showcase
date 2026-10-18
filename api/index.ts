@@ -19,6 +19,10 @@ export default async function handler(req: any, res: any) {
     await dbPromise;
     return app(req, res);
   } catch (err: any) {
-    return res.status(500).json({ error: "Database connection failed" });
+    return res.status(500).json({
+      error: "Database connection failed",
+      message: err?.message,
+      suggestion: "Check MONGODB_URI and verify MongoDB Atlas Network Access allows 0.0.0.0/0."
+    });
   }
 }
