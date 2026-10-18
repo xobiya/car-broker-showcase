@@ -78,17 +78,17 @@ const seedTestDrives = [
 ];
 
 export async function seedDatabase() {
-  console.log("Seeding database...");
-  for (const u of seedUsers) await UserModel.updateOne({ id: u.id }, { $set: u }, { upsert: true });
-  for (const b of seedBrokers) await BrokerModel.updateOne({ id: b.id }, { $set: b }, { upsert: true });
-  for (const v of seedVehicles) await VehicleModel.updateOne({ id: v.id }, { $set: v }, { upsert: true });
-  for (const l of seedLeads) await LeadModel.updateOne({ id: l.id }, { $set: l }, { upsert: true });
-  for (const s of seedSales) await SaleModel.updateOne({ id: s.id }, { $set: s }, { upsert: true });
-  for (const a of seedAuditLogs) await AuditLogModel.updateOne({ id: a.id }, { $set: a }, { upsert: true });
-  for (const d of seedDocuments) await DocumentModel.updateOne({ id: d.id }, { $set: d }, { upsert: true });
-  for (const i of seedInspections) await InspectionModel.updateOne({ id: i.id }, { $set: i }, { upsert: true });
-  for (const r of seedReports) await ReportModel.updateOne({ id: r.id }, { $set: r }, { upsert: true });
-  for (const sv of seedSavedVehicles) await SavedVehicleModel.updateOne({ id: sv.id }, { $set: sv }, { upsert: true });
-  for (const t of seedTestDrives) await TestDriveModel.updateOne({ id: t.id }, { $set: t }, { upsert: true });
-  console.log("Database seeded.");
+  console.log("Seeding database (inserting initial records if not existing)...");
+  for (const u of seedUsers) await UserModel.updateOne({ id: u.id }, { $setOnInsert: u }, { upsert: true });
+  for (const b of seedBrokers) await BrokerModel.updateOne({ id: b.id }, { $setOnInsert: b }, { upsert: true });
+  for (const v of seedVehicles) await VehicleModel.updateOne({ id: v.id }, { $setOnInsert: v }, { upsert: true });
+  for (const l of seedLeads) await LeadModel.updateOne({ id: l.id }, { $setOnInsert: l }, { upsert: true });
+  for (const s of seedSales) await SaleModel.updateOne({ id: s.id }, { $setOnInsert: s }, { upsert: true });
+  for (const a of seedAuditLogs) await AuditLogModel.updateOne({ id: a.id }, { $setOnInsert: a }, { upsert: true });
+  for (const d of seedDocuments) await DocumentModel.updateOne({ id: d.id }, { $setOnInsert: d }, { upsert: true });
+  for (const i of seedInspections) await InspectionModel.updateOne({ id: i.id }, { $setOnInsert: i }, { upsert: true });
+  for (const r of seedReports) await ReportModel.updateOne({ id: r.id }, { $setOnInsert: r }, { upsert: true });
+  for (const sv of seedSavedVehicles) await SavedVehicleModel.updateOne({ id: sv.id }, { $setOnInsert: sv }, { upsert: true });
+  for (const t of seedTestDrives) await TestDriveModel.updateOne({ id: t.id }, { $setOnInsert: t }, { upsert: true });
+  console.log("Database seeded safely with $setOnInsert.");
 }

@@ -231,25 +231,27 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Quick Demo Credentials for Evaluation */}
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-left space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
-              1-Click Demo Accounts:
-            </span>
-            <div className="grid grid-cols-2 gap-1.5">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.label}
-                  type="button"
-                  onClick={() => fillDemoAccount(acc.email)}
-                  className="p-1.5 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-300 dark:hover:border-emerald-700 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] text-slate-700 dark:text-slate-300 font-semibold transition cursor-pointer text-left truncate flex items-center gap-1.5"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] shrink-0" />
-                  <span className="truncate">{acc.label}</span>
-                </button>
-              ))}
+          {/* Quick Demo Credentials for Evaluation (Dev Mode Only) */}
+          {(import.meta as any).env?.DEV && (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-left space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                1-Click Demo Accounts (Dev Only):
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {DEMO_ACCOUNTS.map((acc) => (
+                  <button
+                    key={acc.label}
+                    type="button"
+                    onClick={() => fillDemoAccount(acc.email)}
+                    className="p-1.5 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-300 dark:hover:border-emerald-700 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] text-slate-700 dark:text-slate-300 font-semibold transition cursor-pointer text-left truncate flex items-center gap-1.5"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] shrink-0" />
+                    <span className="truncate">{acc.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Link to Register */}
           <div className="text-center pt-1 text-xs text-slate-600 dark:text-slate-400">
