@@ -15,11 +15,13 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
   _isRetry?: boolean;
 }
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
 let refreshPromise: Promise<string | null> | null = null;
 
 async function requestRefreshToken(): Promise<string | null> {
   try {
-    const res = await fetch("/api/auth/refresh", {
+    const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +57,7 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  let url = path;
+  let url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
   if (options.params) {
     const qs = new URLSearchParams(options.params).toString();
     url += `?${qs}`;
