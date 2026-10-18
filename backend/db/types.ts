@@ -11,6 +11,7 @@ export interface DBUser {
   bio?: string;
   avatar?: string;
   join_date?: string;
+  token_version?: number;
 }
 
 export interface DBBroker {

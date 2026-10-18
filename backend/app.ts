@@ -9,7 +9,9 @@ import { db } from "./db/index";
 import {
   hashPassword,
   comparePassword,
-  generateToken,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
   authenticateToken,
   optionalAuth,
   requireRole,
@@ -19,7 +21,8 @@ import {
 import { validate } from "./middleware/validate";
 import {
   registerSchema, loginSchema, vehicleSchema, vehicleUpdateSchema, userUpdateSchema, leadSchema,
-  saleSchema, testDriveSchema, reportSchema, documentSchema, inspectionSchema
+  saleSchema, testDriveSchema, reportSchema, documentSchema, inspectionSchema,
+  changePasswordSchema, contactSchema, brokerUpdateSchema
 } from "./validators/index";
 import { upload, uploadToCloudinary } from "./services/cloudinary";
 import { sendEmail, notifyNewLead, notifyListingApproved, notifyListingRejected } from "./services/notifications";
@@ -42,7 +45,13 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production") {
+    if (
+      !origin ||
+      process.env.NODE_ENV !== "production" ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app") ||
+      origin.endsWith(".onrender.com")
+    ) {
       callback(null, true);
     } else {
       callback(null, false);
@@ -86,6 +95,22 @@ app.use("/api/auth", authLimiter);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
+
+// --- Observability: Structured Request Logger ---
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    const start = Date.now();
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      const status = res.statusCode;
+      const logLevel = status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO";
+      if (process.env.NODE_ENV !== "test") {
+        console.log(`[${logLevel}] ${req.method} ${req.originalUrl || req.url} ${status} - ${duration}ms`);
+      }
+    });
+  }
+  next();
+});
 
 // --- Media Serving Directly from Database ---
 app.get("/api/media/:id", async (req, res) => {
@@ -168,7 +193,38 @@ app.get("/api/status", async (req, res) => {
   }
 });
 
-// --- Auth ---
+// --- Auth Lifecycle & Token Management ---
+const isProduction = process.env.NODE_ENV === "production";
+
+function setAuthCookies(res: express.Response, user: { id: string; name: string; email: string; role: any; token_version?: number }) {
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+
+  // Short-lived access token cookie (15 minutes)
+  res.cookie("autobroker_token", accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 15 * 60 * 1000,
+  });
+
+  // Long-lived rotating refresh token cookie (7 days) scoped to auth endpoints
+  res.cookie("autobroker_refresh_token", refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/api/auth",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return { accessToken, refreshToken };
+}
+
+function clearAuthCookies(res: express.Response) {
+  res.clearCookie("autobroker_token");
+  res.clearCookie("autobroker_refresh_token", { path: "/api/auth" });
+}
+
 app.post("/api/auth/register", validate(registerSchema), async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
@@ -183,20 +239,18 @@ app.post("/api/auth/register", validate(registerSchema), async (req, res) => {
       email,
       password_hash,
       phone: phone || "",
-      role
+      role,
+      token_version: 0,
     });
 
-    const token = generateToken(db.mapUser(newUser));
+    const { accessToken } = setAuthCookies(res, newUser);
     const { password_hash: _, ...userWithoutPassword } = newUser;
 
-    res.cookie("autobroker_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+    res.status(201).json({
+      user: db.mapUser(userWithoutPassword as any),
+      token: accessToken,
+      accessToken,
     });
-
-    res.status(201).json({ user: db.mapUser(userWithoutPassword as any), token });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -215,37 +269,81 @@ app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password." });
     }
 
-    const token = generateToken(db.mapUser(user));
+    const { accessToken } = setAuthCookies(res, user);
     const { password_hash: _, ...userWithoutPassword } = user;
 
-    res.cookie("autobroker_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+    res.json({
+      user: db.mapUser(userWithoutPassword as any),
+      token: accessToken,
+      accessToken,
     });
-
-    res.json({ user: db.mapUser(userWithoutPassword as any), token });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post("/api/auth/logout", (_req, res) => {
-  res.clearCookie("autobroker_token");
-  res.json({ message: "Logged out successfully" });
+app.post("/api/auth/refresh", async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.autobroker_refresh_token || req.body?.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ error: "Refresh token required. Please log in." });
+    }
+
+    const decoded = verifyRefreshToken(refreshToken);
+    if (!decoded || !decoded.id) {
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Invalid or expired refresh token. Please log in again." });
+    }
+
+    const user = await db.getUserById(decoded.id);
+    if (!user) {
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "User account no longer exists." });
+    }
+
+    if ((user.token_version ?? 0) !== decoded.tokenVersion) {
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Session has been invalidated. Please log in again." });
+    }
+
+    // Refresh access token & rotate refresh token
+    const { accessToken } = setAuthCookies(res, user);
+    const { password_hash: _, ...userWithoutPassword } = user;
+
+    res.json({
+      user: db.mapUser(userWithoutPassword as any),
+      token: accessToken,
+      accessToken,
+    });
+  } catch (error: any) {
+    clearAuthCookies(res);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-app.post("/api/auth/change-password", authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.post("/api/auth/logout", async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.autobroker_refresh_token;
+    if (refreshToken) {
+      const decoded = verifyRefreshToken(refreshToken);
+      if (decoded?.id) {
+        const user = await db.getUserById(decoded.id);
+        if (user) {
+          await db.updateUser(user.id, { token_version: (user.token_version ?? 0) + 1 });
+        }
+      }
+    }
+  } catch {
+    // Non-fatal, cleanup cookies regardless
+  } finally {
+    clearAuthCookies(res);
+    res.json({ message: "Logged out successfully" });
+  }
+});
+
+app.post("/api/auth/change-password", authenticateToken, validate(changePasswordSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: "Current password and new password are required." });
-    }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: "New password must be at least 6 characters." });
-    }
-
     const user = await db.getUserById(req.user!.id);
     if (!user || !user.password_hash) {
       return res.status(404).json({ error: "User not found." });
@@ -257,8 +355,19 @@ app.post("/api/auth/change-password", authenticateToken, async (req: Authenticat
     }
 
     const password_hash = await hashPassword(newPassword);
-    await db.updateUser(req.user!.id, { password_hash });
-    res.json({ message: "Password changed successfully." });
+    const nextTokenVersion = (user.token_version ?? 0) + 1;
+    // Invalidate all existing sessions by bumping token_version
+    await db.updateUser(req.user!.id, { password_hash, token_version: nextTokenVersion });
+
+    // Issue fresh tokens for the current caller
+    const updatedUser = { ...user, token_version: nextTokenVersion };
+    const { accessToken } = setAuthCookies(res, updatedUser);
+
+    res.json({
+      message: "Password changed successfully.",
+      token: accessToken,
+      accessToken,
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -362,10 +471,11 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
 
     const filteredVehicles = await db.getVehicles(dbFilter, options);
 
-    const brokers = await db.getBrokers();
+    const relevantBrokerIds = Array.from(new Set(filteredVehicles.map(v => v.brokerId).filter(Boolean) as string[]));
+    const brokers = await db.getBrokersByIds(relevantBrokerIds);
     const relevantUserIds = Array.from(new Set([
       ...brokers.map(b => b.userId),
-      ...filteredVehicles.map(v => v.brokerId).filter(Boolean) as string[]
+      ...relevantBrokerIds
     ]));
     const users = await db.getUsersByIds(relevantUserIds);
 
@@ -408,12 +518,21 @@ app.get("/api/vehicles/:id", optionalAuth, async (req: AuthenticatedRequest, res
     const v = await db.getVehicleById(req.params.id);
     if (!v) return res.status(404).json({ error: "Vehicle not found" });
 
-    const brokers = await db.getBrokers();
-    const users = await db.getUsers();
+    let broker: any = null;
+    let user: any = null;
 
-    const broker = brokers.find(b => b.id === v.brokerId);
-    const sellerUser = broker ? null : users.find(u => u.id === v.brokerId && u.role === "seller");
-    const user = broker ? users.find(u => u.id === broker.userId) : sellerUser || null;
+    if (v.brokerId) {
+      broker = (await db.getBrokersByIds([v.brokerId]))[0] || null;
+      if (broker) {
+        user = (await db.getUsersByIds([broker.userId]))[0] || null;
+      } else {
+        const sellerUser = (await db.getUsersByIds([v.brokerId]))[0] || null;
+        if (sellerUser && sellerUser.role === "seller") {
+          user = sellerUser;
+        }
+      }
+    }
+
     const isOwner = req.user && (broker ? broker.userId === req.user.id : v.brokerId === req.user.id);
     const isAdmin = req.user && req.user.role === "admin";
 
@@ -444,11 +563,10 @@ app.get("/api/vehicles/:id", optionalAuth, async (req: AuthenticatedRequest, res
 
 app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "buyer", "admin"]), validate(vehicleSchema), async (req: AuthenticatedRequest, res) => {
   try {
-    const brokers = await db.getBrokers();
     let brokerId = req.body.broker_id;
 
     if (req.user!.role === "broker") {
-      const broker = brokers.find(b => b.userId === req.user!.id);
+      const broker = await db.getBrokerByUserId(req.user!.id);
       if (!broker) return res.status(403).json({ error: "Broker profile not found. Complete your profile registration first." });
       brokerId = broker.id;
     } else if (req.user!.role === "seller" || req.user!.role === "buyer") {
@@ -605,11 +723,9 @@ app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin"]), 
       clearCache("vehicles");
       const vehicle = await db.getVehicleById(req.params.id);
       if (vehicle) {
-        const brokers = await db.getBrokers();
-        const broker = brokers.find(b => b.id === vehicle.brokerId);
+        const broker = (await db.getBrokersByIds([vehicle.brokerId]))[0];
         if (broker) {
-          const users = await db.getUsers();
-          const brokerUser = users.find(u => u.id === broker.userId);
+          const brokerUser = await db.getUserById(broker.userId);
           if (brokerUser?.email) {
             notifyListingApproved(vehicle.brand, vehicle.model, brokerUser.email);
           }
@@ -640,11 +756,9 @@ app.put("/api/vehicles/:id/reject", authenticateToken, requireRole(["admin"]), a
       clearCache("vehicles");
       const vehicle = await db.getVehicleById(req.params.id);
       if (vehicle) {
-        const brokers = await db.getBrokers();
-        const broker = brokers.find(b => b.id === vehicle.brokerId);
+        const broker = (await db.getBrokersByIds([vehicle.brokerId]))[0];
         if (broker) {
-          const users = await db.getUsers();
-          const brokerUser = users.find(u => u.id === broker.userId);
+          const brokerUser = await db.getUserById(broker.userId);
           if (brokerUser?.email) {
             notifyListingRejected(vehicle.brand, vehicle.model, reason || "No reason specified", brokerUser.email);
           }
@@ -681,24 +795,33 @@ app.put("/api/vehicles/:id/submit", authenticateToken, async (req: Authenticated
 // --- Leads ---
 app.get("/api/leads", authenticateToken, requireRole(["broker", "seller", "buyer", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
-    const leads = await db.getLeads();
-    const vehicles = await db.getVehicles();
-    const brokers = await db.getBrokers();
-
-    let filteredLeads = leads;
+    let filteredLeads: any[] = [];
 
     if (req.user!.role === "broker") {
-      const broker = brokers.find(b => b.userId === req.user!.id);
+      const broker = await db.getBrokerByUserId(req.user!.id);
       const brokerId = broker ? broker.id : null;
-      const brokerVehicles = vehicles.filter(v => v.brokerId === brokerId).map(v => v.id);
-      filteredLeads = leads.filter(l => brokerVehicles.includes(l.vehicleId));
+      if (!brokerId) return res.json([]);
+      const brokerVehicles = await db.getVehicles({ broker_id: brokerId });
+      const vehicleIds = brokerVehicles.map(v => v.id);
+      filteredLeads = await db.getLeads({ vehicle_id: { $in: vehicleIds } });
     } else if (req.user!.role === "seller" || req.user!.role === "buyer") {
-      const customerVehicles = vehicles.filter(v => v.brokerId === req.user!.id).map(v => v.id);
-      filteredLeads = leads.filter(l => customerVehicles.includes(l.vehicleId));
+      const customerVehicles = await db.getVehicles({ broker_id: req.user!.id });
+      const vehicleIds = customerVehicles.map(v => v.id);
+      filteredLeads = await db.getLeads({
+        $or: [
+          { vehicle_id: { $in: vehicleIds } },
+          { buyer_id: req.user!.id }
+        ]
+      });
+    } else {
+      filteredLeads = await db.getLeads();
     }
 
+    const leadVehicleIds = Array.from(new Set(filteredLeads.map(l => l.vehicleId).filter(Boolean)));
+    const relevantVehicles = leadVehicleIds.length > 0 ? await db.getVehicles({ id: { $in: leadVehicleIds } }) : [];
+
     const enriched = filteredLeads.map(l => {
-      const v = vehicles.find(veh => veh.id === l.vehicleId);
+      const v = relevantVehicles.find(veh => veh.id === l.vehicleId);
       return {
         ...l,
         vehicleBrand: v?.brand || "Archived Vehicle",
@@ -723,11 +846,9 @@ app.post("/api/leads", optionalAuth, validate(leadSchema), async (req: Authentic
       return res.status(404).json({ error: "Vehicle listing not found." });
     }
 
-    const brokers = await db.getBrokers();
-    const broker = brokers.find(b => b.id === vehicle.brokerId);
+    const broker = (await db.getBrokersByIds([vehicle.brokerId]))[0];
     if (broker) {
-      const users = await db.getUsers();
-      const brokerUser = users.find(u => u.id === broker.userId);
+      const brokerUser = await db.getUserById(broker.userId);
       if (brokerUser?.email) {
         notifyNewLead(
           { buyerName: buyer_name, buyerEmail: buyer_email, vehicleBrand: vehicle.brand, vehicleModel: vehicle.model },
@@ -755,8 +876,7 @@ app.put("/api/leads/:id/status", authenticateToken, requireRole(["broker", "sell
     const { status } = req.body;
     if (!status) return res.status(400).json({ error: "Status is required." });
 
-    const leads = await db.getLeads();
-    const lead = leads.find(l => l.id === req.params.id);
+    const lead = await db.getLeadById(req.params.id);
     if (!lead) return res.status(404).json({ error: "Lead not found." });
 
     const isOwnerOrAdmin = await verifyVehicleOwnership(lead.vehicleId, req.user!);
@@ -773,12 +893,9 @@ app.put("/api/leads/:id/status", authenticateToken, requireRole(["broker", "sell
 });
 
 // --- General Contact Inquiries ---
-app.post("/api/contact", optionalAuth, async (req: AuthenticatedRequest, res) => {
+app.post("/api/contact", optionalAuth, validate(contactSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const { name, phone, email, topic, vehicleRef, message } = req.body;
-    if (!name || (!phone && !email)) {
-      return res.status(400).json({ error: "Name and either phone or email are required." });
-    }
 
     const lead = await db.addLead({
       vehicle_id: vehicleRef || "general-inquiry",
@@ -798,20 +915,22 @@ app.post("/api/contact", optionalAuth, async (req: AuthenticatedRequest, res) =>
 // --- Sales ---
 app.get("/api/sales", authenticateToken, requireRole(["broker", "admin"]), async (req: AuthenticatedRequest, res) => {
   try {
-    const sales = await db.getSales();
-    const vehicles = await db.getVehicles();
-    const brokers = await db.getBrokers();
-
-    let filteredSales = sales;
+    let sales: any[] = [];
 
     if (req.user!.role === "broker") {
-      const broker = brokers.find(b => b.userId === req.user!.id);
+      const broker = await db.getBrokerByUserId(req.user!.id);
       const brokerId = broker ? broker.id : null;
-      filteredSales = sales.filter(s => s.brokerId === brokerId);
+      if (!brokerId) return res.json([]);
+      sales = await db.getSales({ broker_id: brokerId });
+    } else {
+      sales = await db.getSales();
     }
 
-    const enriched = filteredSales.map(s => {
-      const v = vehicles.find(veh => veh.id === s.vehicleId);
+    const saleVehicleIds = Array.from(new Set(sales.map(s => s.vehicleId).filter(Boolean)));
+    const relevantVehicles = saleVehicleIds.length > 0 ? await db.getVehicles({ id: { $in: saleVehicleIds } }) : [];
+
+    const enriched = sales.map(s => {
+      const v = relevantVehicles.find(veh => veh.id === s.vehicleId);
       return { ...s, vehicleBrand: v?.brand, vehicleModel: v?.model };
     });
     res.json(enriched);
@@ -844,8 +963,7 @@ app.post("/api/sales", authenticateToken, requireRole(["broker", "admin"]), vali
     await db.updateVehicle(vehicle_id, { status: "sold" });
     clearCache("vehicles");
     if (leadId) {
-      const leads = await db.getLeads();
-      const targetLead = leads.find(l => l.id === leadId);
+      const targetLead = await db.getLeadById(leadId);
       if (targetLead && targetLead.vehicleId === vehicle_id) {
         await db.updateLeadStatus(leadId, "sold");
       }
@@ -862,8 +980,7 @@ app.get("/api/payments", authenticateToken, requireRole(["broker", "admin"]), as
   try {
     let brokerId: string | undefined;
     if (req.user!.role === "broker") {
-      const brokers = await db.getBrokers();
-      const me = brokers.find(b => b.userId === req.user!.id);
+      const me = await db.getBrokerByUserId(req.user!.id);
       if (!me) {
         return res.status(403).json({ error: "Broker profile not found." });
       }
@@ -944,10 +1061,9 @@ app.get("/api/brokers/:id", async (req, res) => {
   }
 });
 
-app.put("/api/brokers/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.put("/api/brokers/:id", authenticateToken, validate(brokerUpdateSchema), async (req: AuthenticatedRequest, res) => {
   try {
-    const brokers = await db.getBrokers();
-    const broker = brokers.find(b => b.id === req.params.id);
+    const broker = await db.getBrokerById(req.params.id);
     if (!broker) return res.status(404).json({ error: "Broker profile not found." });
 
     if (req.user!.role !== "admin" && broker.userId !== req.user!.id) {
@@ -974,8 +1090,7 @@ app.put("/api/brokers/:id", authenticateToken, async (req: AuthenticatedRequest,
 // Admin: Approve/Verify a broker
 app.put("/api/brokers/:id/approve", authenticateToken, requireRole(["admin"]), async (req: AuthenticatedRequest, res) => {
   try {
-    const brokers = await db.getBrokers();
-    const broker = brokers.find(b => b.id === req.params.id);
+    const broker = await db.getBrokerById(req.params.id);
     if (!broker) return res.status(404).json({ error: "Broker not found." });
 
     const success = await db.updateBroker(req.params.id, { verified: true });
@@ -992,8 +1107,7 @@ app.put("/api/brokers/:id/approve", authenticateToken, requireRole(["admin"]), a
 // Admin: Reject/Suspend a broker
 app.put("/api/brokers/:id/reject", authenticateToken, requireRole(["admin"]), async (req: AuthenticatedRequest, res) => {
   try {
-    const brokers = await db.getBrokers();
-    const broker = brokers.find(b => b.id === req.params.id);
+    const broker = await db.getBrokerById(req.params.id);
     if (!broker) return res.status(404).json({ error: "Broker not found." });
 
     const success = await db.updateBroker(req.params.id, { verified: false });
@@ -1289,7 +1403,8 @@ app.get("/api/saved-vehicles", authenticateToken, async (req: AuthenticatedReque
     }
 
     const items = await db.getSavedVehicles(userId);
-    const vehicles = await db.getVehicles();
+    const vehicleIds = items.map(s => s.vehicleId);
+    const vehicles = vehicleIds.length > 0 ? await db.getVehicles({ id: { $in: vehicleIds } }) : [];
     const enriched = items
       .map(s => ({ ...s, vehicle: vehicles.find(v => v.id === s.vehicleId) }))
       .filter(s => s.vehicle !== undefined);
@@ -1338,22 +1453,25 @@ app.delete("/api/saved-vehicles", authenticateToken, async (req: AuthenticatedRe
 // --- Test Drives ---
 app.get("/api/test-drives", authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const all = await db.getTestDrives();
-    const vehicles = await db.getVehicles();
-    const brokers = await db.getBrokers();
-
-    let filtered = all;
+    let filtered: any[] = [];
     if (req.user!.role === "buyer") {
-      filtered = all.filter(t => t.userId === req.user!.id);
+      filtered = await db.getTestDrives({ user_id: req.user!.id });
     } else if (req.user!.role === "broker") {
-      const broker = brokers.find(b => b.userId === req.user!.id);
+      const broker = await db.getBrokerByUserId(req.user!.id);
       const brokerId = broker ? broker.id : null;
-      const brokerVehicles = vehicles.filter(v => v.brokerId === brokerId).map(v => v.id);
-      filtered = all.filter(t => brokerVehicles.includes(t.vehicleId));
+      if (!brokerId) return res.json([]);
+      const brokerVehicles = await db.getVehicles({ broker_id: brokerId });
+      const vehicleIds = brokerVehicles.map(v => v.id);
+      filtered = await db.getTestDrives({ vehicle_id: { $in: vehicleIds } });
+    } else {
+      filtered = await db.getTestDrives();
     }
 
+    const testVehicleIds = Array.from(new Set(filtered.map(t => t.vehicleId).filter(Boolean)));
+    const relevantVehicles = testVehicleIds.length > 0 ? await db.getVehicles({ id: { $in: testVehicleIds } }) : [];
+
     const enriched = filtered.map(t => {
-      const v = vehicles.find(veh => veh.id === t.vehicleId);
+      const v = relevantVehicles.find(veh => veh.id === t.vehicleId);
       return { ...t, vehicleBrand: v?.brand, vehicleModel: v?.model, vehiclePrice: v?.price };
     });
 
@@ -1389,8 +1507,7 @@ app.put("/api/test-drives/:id/status", authenticateToken, requireRole(["broker",
     const { status } = req.body;
     if (!status) return res.status(400).json({ error: "Status is required." });
 
-    const all = await db.getTestDrives();
-    const drive = all.find(d => d.id === req.params.id);
+    const drive = await db.getTestDriveById(req.params.id);
     if (!drive) return res.status(404).json({ error: "Test drive request not found." });
 
     const isOwnerOrAdmin = await verifyVehicleOwnership(drive.vehicleId, req.user!);

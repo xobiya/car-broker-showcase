@@ -6,6 +6,7 @@ const userSchema = new Schema({
   ...baseFields, name: String, email: { type: String, unique: true }, password_hash: String, phone: String,
   role: { type: String, enum: ['buyer', 'broker', 'seller', 'admin'] }, verified: Boolean,
   verification_status: String, id_document: String, bio: String, avatar: String, join_date: String,
+  token_version: { type: Number, default: 0 },
 });
 
 const brokerSchema = new Schema({
@@ -74,10 +75,19 @@ const testDriveSchema = new Schema({
 });
 
 // Indexes for query performance and data integrity
+userSchema.index({ role: 1 });
+userSchema.index({ verification_status: 1 });
+
 brokerSchema.index({ user_id: 1 });
+brokerSchema.index({ verified: 1 });
 
 vehicleSchema.index({ status: 1 });
 vehicleSchema.index({ status: 1, price: 1 });
+vehicleSchema.index({ status: 1, price: -1 });
+vehicleSchema.index({ status: 1, year: -1 });
+vehicleSchema.index({ status: 1, brand: 1, model: 1 });
+vehicleSchema.index({ status: 1, condition: 1 });
+vehicleSchema.index({ status: 1, location: 1 });
 vehicleSchema.index({ broker_id: 1, status: 1 });
 vehicleSchema.index({ broker_id: 1 });
 vehicleSchema.index({ brand: 1, model: 1 });
@@ -87,15 +97,19 @@ vehicleSchema.index({ location: 1 });
 leadSchema.index({ vehicle_id: 1, status: 1 });
 leadSchema.index({ vehicle_id: 1 });
 leadSchema.index({ buyer_id: 1 });
+leadSchema.index({ buyer_id: 1, inquiry_date: -1 });
 leadSchema.index({ status: 1 });
 leadSchema.index({ inquiry_date: -1 });
 
 saleSchema.index({ broker_id: 1, sale_date: -1 });
 saleSchema.index({ broker_id: 1 });
 saleSchema.index({ vehicle_id: 1 });
+saleSchema.index({ buyer_id: 1 });
 saleSchema.index({ sale_date: -1 });
 
 auditLogSchema.index({ timestamp: -1 });
+auditLogSchema.index({ admin_id: 1, timestamp: -1 });
+auditLogSchema.index({ target_type: 1, target_id: 1 });
 documentSchema.index({ vehicle_id: 1 });
 inspectionSchema.index({ vehicle_id: 1 });
 
@@ -105,6 +119,7 @@ reportSchema.index({ status: 1 });
 reportSchema.index({ created_at: -1 });
 
 paymentSchema.index({ broker_id: 1, status: 1 });
+paymentSchema.index({ sale_id: 1 });
 testDriveSchema.index({ vehicle_id: 1 });
 testDriveSchema.index({ user_id: 1 });
 

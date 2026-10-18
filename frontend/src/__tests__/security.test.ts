@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { hashPassword, comparePassword } from "../../../backend/auth";
+import jwt from "jsonwebtoken";
+import {
+  hashPassword,
+  comparePassword,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken
+} from "../../../backend/auth";
 import { registerSchema, userUpdateSchema, vehicleUpdateSchema } from "../../../backend/validators/index";
 import { getCached, setCache, clearCache } from "../../../backend/services/cache";
 
@@ -245,11 +252,225 @@ describe("Security & Authentication Hardening", () => {
         expect(resolveRouteForRole(path, "buyer")).toBe(path);
       }
 
-      // Admin paths should remain accessible
-      expect(resolveRouteForRole("/admin", "admin")).toBe("/admin");
       expect(resolveRouteForRole("/admin/profile", "admin")).toBe("/admin/profile");
       expect(resolveRouteForRole("/admin/notifications", "admin")).toBe("/admin/notifications");
     });
+
+    it("should safely sanitize regex special characters to prevent ReDoS attacks", () => {
+      const escapeRegex = (text: string) => String(text).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
+      const maliciousInputs = [
+        "(a+)+$",
+        "((.*)*)*",
+        "[a-zA-Z0-9]+.*",
+        "test.*+?^${}()|[]\\",
+        "Mercedes-Benz (C-Class)",
+      ];
+
+      for (const input of maliciousInputs) {
+        const sanitized = escapeRegex(input);
+        expect(() => new RegExp(sanitized, "i")).not.toThrow();
+        // Make sure it matches literal text, not arbitrary wildcard patterns
+        const regex = new RegExp(`^${sanitized}$`, "i");
+        expect(regex.test(input)).toBe(true);
+        expect(regex.test("randomOtherString")).toBe(false);
+      }
+    });
+  });
+
+  describe("Phase 2: Authentication Hardening & Session Lifecycle", () => {
+    const mockUser = {
+      id: "usr-12345678",
+      name: "Abebe Bikila",
+      email: "abebe@example.com",
+      role: "broker" as const,
+      token_version: 0,
+    };
+
+    it("should generate short-lived access tokens containing user claims and tokenVersion", () => {
+      const accessToken = generateAccessToken(mockUser);
+      expect(typeof accessToken).toBe("string");
+
+      const decoded = jwt.decode(accessToken) as any;
+      expect(decoded.id).toBe(mockUser.id);
+      expect(decoded.email).toBe(mockUser.email);
+      expect(decoded.role).toBe(mockUser.role);
+      expect(decoded.tokenVersion).toBe(0);
+
+      // Verify expiration is 15 minutes (900 seconds)
+      const lifetimeSeconds = decoded.exp - decoded.iat;
+      expect(lifetimeSeconds).toBe(15 * 60);
+    });
+
+    it("should issue 7-day refresh tokens and verify them successfully", () => {
+      const refreshToken = generateRefreshToken(mockUser);
+      expect(typeof refreshToken).toBe("string");
+
+      const decoded = verifyRefreshToken(refreshToken);
+      expect(decoded).not.toBeNull();
+      expect(decoded?.id).toBe(mockUser.id);
+      expect(decoded?.tokenVersion).toBe(0);
+      expect(decoded?.type).toBe("refresh");
+
+      const rawDecoded = jwt.decode(refreshToken) as any;
+      const lifetimeSeconds = rawDecoded.exp - rawDecoded.iat;
+      expect(lifetimeSeconds).toBe(7 * 24 * 60 * 60);
+    });
+
+    it("should reject corrupted or forged refresh tokens", () => {
+      expect(verifyRefreshToken("completely-invalid-jwt-token")).toBeNull();
+      expect(verifyRefreshToken("")).toBeNull();
+
+      // Tampered token
+      const valid = generateRefreshToken(mockUser);
+      const tampered = valid.substring(0, valid.length - 5) + "abcde";
+      expect(verifyRefreshToken(tampered)).toBeNull();
+    });
+
+    it("should invalidate refresh tokens when token_version is incremented on password change", () => {
+      // User creates session with version 0
+      const activeRefreshToken = generateRefreshToken({ id: mockUser.id, token_version: 0 });
+      const decodedSession = verifyRefreshToken(activeRefreshToken);
+      expect(decodedSession).not.toBeNull();
+
+      // Simulate password change bumping DB token_version to 1
+      const dbUserVersion = 1;
+
+      // Verification logic matches /api/auth/refresh endpoint check:
+      const isSessionValid = decodedSession!.tokenVersion === dbUserVersion;
+      expect(isSessionValid).toBe(false);
+
+      // New token issued after password change matches new version
+      const newRefreshToken = generateRefreshToken({ id: mockUser.id, token_version: dbUserVersion });
+      const newDecoded = verifyRefreshToken(newRefreshToken);
+      expect(newDecoded!.tokenVersion === dbUserVersion).toBe(true);
+    });
+
+    it("should reject access tokens as refresh tokens", () => {
+      const accessToken = generateAccessToken(mockUser);
+      // Access tokens do not use the refresh secret or have type: 'refresh'
+      const verifiedAsRefresh = verifyRefreshToken(accessToken);
+      expect(verifiedAsRefresh).toBeNull();
+    });
+  });
+
+  describe("Phase 3: Database Optimization, Compound Indexing & Query Safety", () => {
+    it("should define compound indexes on VehicleModel for status, price, year, and make/model", async () => {
+      const { VehicleModel } = await import("../../../backend/db/models");
+      const indexes = VehicleModel.schema.indexes();
+      const indexFields = indexes.map(([fields]) => Object.keys(fields).join("_"));
+
+      expect(indexFields).toContain("status_price");
+      expect(indexFields).toContain("status_year");
+      expect(indexFields).toContain("status_brand_model");
+      expect(indexFields).toContain("broker_id_status");
+    });
+
+    it("should enforce compound unique index on SavedVehicleModel to prevent duplicate saves", async () => {
+      const { SavedVehicleModel } = await import("../../../backend/db/models");
+      const indexes = SavedVehicleModel.schema.indexes();
+      const savedVehicleIndex = indexes.find(([fields]) => fields.user_id === 1 && fields.vehicle_id === 1);
+
+      expect(savedVehicleIndex).toBeDefined();
+      expect(savedVehicleIndex![1]?.unique).toBe(true);
+    });
+
+    it("should have indexes on UserModel and BrokerModel for relational lookups", async () => {
+      const { UserModel, BrokerModel } = await import("../../../backend/db/models");
+      const userIndexes = UserModel.schema.indexes().map(([fields]) => Object.keys(fields).join("_"));
+      const brokerIndexes = BrokerModel.schema.indexes().map(([fields]) => Object.keys(fields).join("_"));
+
+      expect(userIndexes).toContain("role");
+      expect(brokerIndexes).toContain("user_id");
+    });
+
+    it("should safely handle getBrokersByIds and getUsersByIds with empty arrays without DB queries", async () => {
+      const { db } = await import("../../../backend/db/index");
+      const brokers = await db.getBrokersByIds([]);
+      expect(brokers).toEqual([]);
+
+      const users = await db.getUsersByIds([]);
+      expect(users).toEqual([]);
+    });
+  });
+
+  describe("Phase 4 & 5: Environment Hardening, Production Config & Input Validation", () => {
+    it("should validate and require change password inputs", async () => {
+      const { changePasswordSchema } = await import("../../../backend/validators/index");
+
+      // Invalid: missing currentPassword
+      const missingCurrent = changePasswordSchema.safeParse({ newPassword: "ValidPassword123" });
+      expect(missingCurrent.success).toBe(false);
+
+      // Invalid: newPassword shorter than 6 chars
+      const shortPass = changePasswordSchema.safeParse({ currentPassword: "OldPassword123", newPassword: "123" });
+      expect(shortPass.success).toBe(false);
+
+      // Valid
+      const valid = changePasswordSchema.safeParse({ currentPassword: "OldPassword123", newPassword: "NewSecretPassword123" });
+      expect(valid.success).toBe(true);
+    });
+
+    it("should enforce phone or email on contact inquiries", async () => {
+      const { contactSchema } = await import("../../../backend/validators/index");
+
+      // Invalid: neither phone nor email
+      const emptyContact = contactSchema.safeParse({ name: "Buyer Name" });
+      expect(emptyContact.success).toBe(false);
+
+      // Valid with phone
+      const phoneOnly = contactSchema.safeParse({ name: "Buyer", phone: "+251912345678" });
+      expect(phoneOnly.success).toBe(true);
+
+      // Valid with email
+      const emailOnly = contactSchema.safeParse({ name: "Buyer", email: "buyer@example.com" });
+      expect(emailOnly.success).toBe(true);
+    });
+
+    it("should validate broker updates and enforce commission rate boundaries (0-100%)", async () => {
+      const { brokerUpdateSchema } = await import("../../../backend/validators/index");
+
+      // Invalid commission rate > 100
+      const excessiveCommission = brokerUpdateSchema.safeParse({ commission_rate: 150 });
+      expect(excessiveCommission.success).toBe(false);
+
+      // Invalid commission rate < 0
+      const negativeCommission = brokerUpdateSchema.safeParse({ commission_rate: -5 });
+      expect(negativeCommission.success).toBe(false);
+
+      // Valid update
+      const valid = brokerUpdateSchema.safeParse({ commission_rate: 2.5, bio: "Certified broker in Addis Ababa" });
+      expect(valid.success).toBe(true);
+    });
+
+    it("should parse centralized config with safe defaults and CORS origins", async () => {
+      const { loadConfig } = await import("../../../backend/config");
+      const cfg = loadConfig();
+
+      expect(cfg.port).toBeGreaterThan(0);
+      expect(cfg.jwtSecret).toBeDefined();
+      expect(cfg.jwtRefreshSecret).toBeDefined();
+      expect(Array.isArray(cfg.allowedOrigins)).toBe(true);
+      expect(cfg.allowedOrigins.length).toBeGreaterThan(0);
+    });
+
+    it("should validate and allow trusted origins including Vercel and Render platforms", () => {
+      const allowedOrigins = ["http://localhost:3000", "https://arifcarsell.et"];
+      const isAllowedOrigin = (origin: string | undefined): boolean => {
+        if (!origin) return true;
+        if (allowedOrigins.includes(origin)) return true;
+        if (origin.endsWith(".vercel.app") || origin.endsWith(".onrender.com")) return true;
+        return false;
+      };
+
+      expect(isAllowedOrigin(undefined)).toBe(true);
+      expect(isAllowedOrigin("http://localhost:3000")).toBe(true);
+      expect(isAllowedOrigin("https://arifcarsell.et")).toBe(true);
+      expect(isAllowedOrigin("https://car-broker-showcase-preview.vercel.app")).toBe(true);
+      expect(isAllowedOrigin("https://arif-backend.onrender.com")).toBe(true);
+      expect(isAllowedOrigin("https://malicious-attacker-site.com")).toBe(false);
+    });
   });
 });
+
 

@@ -120,8 +120,23 @@ export async function initDB() {
   if (mongoose.connection.readyState === 1) return;
 
   const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/autobroker_ethiopia";
+
+  mongoose.connection.on("error", (err) => {
+    console.error("[MongoDB] Connection error:", err);
+  });
+  mongoose.connection.on("disconnected", () => {
+    console.warn("[MongoDB] Connection lost. Reconnecting...");
+  });
+  mongoose.connection.on("reconnected", () => {
+    console.log("[MongoDB] Connection restored.");
+  });
+
   await mongoose.connect(uri, {
     serverSelectionTimeoutMS: 15000,
+    maxPoolSize: 20,
+    minPoolSize: 2,
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 15000,
   });
   console.log("Connected to MongoDB!");
 
@@ -218,9 +233,15 @@ export const db = {
   },
 
   // --- Leads ---
-  getLeads: async (): Promise<Lead[]> => {
-    const docs = await LeadModel.find().sort({ inquiry_date: -1 }).lean();
+  getLeads: async (filter: any = {}): Promise<Lead[]> => {
+    const docs = await LeadModel.find(filter).sort({ inquiry_date: -1 }).lean();
     return toPlainArray<DBLead>(docs).map(mapLead);
+  },
+
+  getLeadById: async (id: string): Promise<Lead | null> => {
+    const doc = await LeadModel.findOne({ id }).lean();
+    if (!doc) return null;
+    return mapLead(toPlain<DBLead>(doc));
   },
 
   addLead: async (l: Omit<DBLead, "id" | "inquiry_date" | "status">): Promise<Lead> => {
@@ -237,8 +258,8 @@ export const db = {
   },
 
   // --- Sales ---
-  getSales: async (): Promise<Sale[]> => {
-    const docs = await SaleModel.find().sort({ sale_date: -1 }).lean();
+  getSales: async (filter: any = {}): Promise<Sale[]> => {
+    const docs = await SaleModel.find(filter).sort({ sale_date: -1 }).lean();
     return toPlainArray<DBSale>(docs).map(mapSale);
   },
 
@@ -251,13 +272,25 @@ export const db = {
 
   // --- Users & Brokers ---
   getUsers: async (): Promise<User[]> => {
-    const docs = await UserModel.find().lean();
+    const docs = await UserModel.find().select("-password_hash").lean();
     return toPlainArray<DBUser>(docs).map(mapUser);
   },
 
   getBrokers: async (): Promise<Broker[]> => {
     const docs = await BrokerModel.find().lean();
     return toPlainArray<DBBroker>(docs).map(mapBroker);
+  },
+
+  getBrokersByIds: async (ids: string[]): Promise<Broker[]> => {
+    if (!ids || ids.length === 0) return [];
+    const docs = await BrokerModel.find({ id: { $in: ids } }).lean();
+    return toPlainArray<DBBroker>(docs).map(mapBroker);
+  },
+
+  getBrokerById: async (id: string): Promise<Broker | null> => {
+    const doc = await BrokerModel.findOne({ id }).lean();
+    if (!doc) return null;
+    return mapBroker(toPlain<DBBroker>(doc));
   },
 
   getBrokerByUserId: async (userId: string): Promise<Broker | null> => {
@@ -414,10 +447,16 @@ export const db = {
   },
 
   // --- Test Drives ---
-  getTestDrives: async (userId?: string): Promise<TestDriveRequest[]> => {
-    const query = userId ? { user_id: userId } : {};
+  getTestDrives: async (filter?: any): Promise<TestDriveRequest[]> => {
+    const query = typeof filter === "string" ? { user_id: filter } : (filter || {});
     const docs = await TestDriveModel.find(query).sort({ requested_at: -1 }).lean();
     return toPlainArray<DBTestDrive>(docs).map(mapTestDrive);
+  },
+
+  getTestDriveById: async (id: string): Promise<TestDriveRequest | null> => {
+    const doc = await TestDriveModel.findOne({ id }).lean();
+    if (!doc) return null;
+    return mapTestDrive(toPlain<DBTestDrive>(doc));
   },
 
   addTestDrive: async (t: Omit<DBTestDrive, "id" | "requested_at" | "status">): Promise<TestDriveRequest> => {

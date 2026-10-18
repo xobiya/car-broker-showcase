@@ -97,6 +97,29 @@ export const userUpdateSchema = z.object({
   avatar: z.string().optional().or(z.literal("")),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+});
+
+export const contactSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  phone: z.string().optional(),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  topic: z.string().optional(),
+  vehicleRef: z.string().optional(),
+  message: z.string().optional(),
+}).refine(data => !!data.phone || !!data.email, {
+  message: "Either phone or email must be provided",
+});
+
+export const brokerUpdateSchema = z.object({
+  bio: z.string().optional(),
+  avatar: z.string().optional().or(z.literal("")),
+  commission_rate: z.coerce.number().min(0).max(100).optional(),
+  license_number: z.string().optional(),
+});
+
 export const vehicleUpdateSchema = vehicleSchema.partial();
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -104,3 +127,5 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type VehicleInput = z.infer<typeof vehicleSchema>;
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 export type VehicleUpdateInput = z.infer<typeof vehicleUpdateSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ContactInput = z.infer<typeof contactSchema>;

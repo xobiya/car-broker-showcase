@@ -17,15 +17,25 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_DEV_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || (process.env.JWT_SECRET ? process.env.JWT_SECRET + "_refresh" : "super-secret-refresh-dev-key-for-autobroker-ethiopia");
+
+export interface TokenPayload {
+  id: string;
+  name: string;
+  email: string;
+  role: "buyer" | "broker" | "seller" | "admin";
+  tokenVersion?: number;
+}
+
+export interface RefreshTokenPayload {
+  id: string;
+  tokenVersion: number;
+  type: "refresh";
+}
 
 // Request extension to hold authenticated user info
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-    role: "buyer" | "broker" | "seller" | "admin";
-  };
+  user?: TokenPayload;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -36,14 +46,41 @@ export async function comparePassword(password: string, hash: string): Promise<b
   return bcrypt.compare(password, hash);
 }
 
-export function generateToken(user: User): string {
-  const payload = {
+export function generateAccessToken(user: { id: string; name: string; email: string; role: any; token_version?: number }): string {
+  const payload: TokenPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role,
+    tokenVersion: user.token_version ?? 0,
   };
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+}
+
+export function generateRefreshToken(user: { id: string; token_version?: number }): string {
+  const payload: RefreshTokenPayload = {
+    id: user.id,
+    tokenVersion: user.token_version ?? 0,
+    type: "refresh",
+  };
+  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: "7d" });
+}
+
+export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
+  try {
+    const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as RefreshTokenPayload;
+    if (decoded && decoded.type === "refresh" && decoded.id) {
+      return decoded;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Backwards-compatible alias for existing code
+export function generateToken(user: any): string {
+  return generateAccessToken(user);
 }
 
 export function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {

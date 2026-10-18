@@ -31,6 +31,31 @@ async function startServer() {
       console.log(`\n🚀 Arif Car Sell — server ready at http://localhost:${PORT}\n`);
     });
 
+    const shutdown = async (signal: string) => {
+      console.log(`\n[Server] Received ${signal}. Starting graceful shutdown...`);
+      server.close(async () => {
+        console.log("[Server] HTTP server closed.");
+        try {
+          const mongoose = await import("mongoose");
+          await mongoose.default.connection.close();
+          console.log("[MongoDB] Connection closed safely.");
+          process.exit(0);
+        } catch (err) {
+          console.error("[MongoDB] Error during disconnect:", err);
+          process.exit(1);
+        }
+      });
+
+      // Force exit if shutdown hangs over 10s
+      setTimeout(() => {
+        console.error("[Server] Graceful shutdown timed out. Forcing process exit.");
+        process.exit(1);
+      }, 10000);
+    };
+
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGINT", () => shutdown("SIGINT"));
+
     server.on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
         console.error(

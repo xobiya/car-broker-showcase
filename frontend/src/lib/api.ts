@@ -12,6 +12,38 @@ export const clearSession = (): void => {
 interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   params?: Record<string, string>;
+  _isRetry?: boolean;
+}
+
+let refreshPromise: Promise<string | null> | null = null;
+
+async function requestRefreshToken(): Promise<string | null> {
+  try {
+    const res = await fetch("/api/auth/refresh", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    if (data?.token) {
+      setToken(data.token);
+      if (data.user && typeof localStorage !== "undefined") {
+        localStorage.setItem("autobroker_user", JSON.stringify(data.user));
+      }
+      return data.token;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -32,14 +64,36 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
   const init: RequestInit = {
     ...options,
     headers,
+    credentials: options.credentials ?? "include",
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   };
 
   const res = await fetch(url, init);
 
+  // If 401 received, transparently attempt a token refresh before giving up
+  const isAuthRoute = path.startsWith("/api/auth/login") ||
+                      path.startsWith("/api/auth/register") ||
+                      path.startsWith("/api/auth/refresh") ||
+                      path.startsWith("/api/auth/logout");
+
+  if (res.status === 401 && !options._isRetry && !isAuthRoute) {
+    if (!refreshPromise) {
+      refreshPromise = requestRefreshToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const newToken = await refreshPromise;
+    if (newToken) {
+      return apiFetch<T>(path, { ...options, _isRetry: true });
+    }
+  }
+
   if (res.status === 401 || (res.status === 403 && !token)) {
     clearSession();
-    window.dispatchEvent(new CustomEvent("autobroker:unauthorized"));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("autobroker:unauthorized"));
+    }
   }
 
   if (!res.ok) {
@@ -67,10 +121,12 @@ export const authApi = {
     api.post<{ user: User; token: string }>("/api/auth/login", { email, password }),
   register: (payload: { name: string; email: string; password: string; phone?: string; role: "buyer" | "broker" | "seller" }) =>
     api.post<{ user: User; token: string }>("/api/auth/register", payload),
+  refresh: () =>
+    api.post<{ user: User; token: string }>("/api/auth/refresh"),
   logout: () => api.post<{ message: string }>("/api/auth/logout"),
   me: () => api.get<{ user: User }>("/api/auth/me"),
   changePassword: (currentPassword: string, newPassword: string) =>
-    api.post<{ message: string }>("/api/auth/change-password", { currentPassword, newPassword }),
+    api.post<{ message: string; token?: string }>("/api/auth/change-password", { currentPassword, newPassword }),
 };
 
 export const vehiclesApi = {
