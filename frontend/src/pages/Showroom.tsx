@@ -786,10 +786,17 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
       {/* 1. Image Container */}
       <div className="relative h-32 xs:h-36 sm:h-48 md:h-52 bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <img
-          src={car.imageUrl}
+          src={car.imageUrl || "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80"}
           alt={`${car.brand} ${car.model}`}
           loading="lazy"
           decoding="async"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.dataset.fallbackApplied) {
+              target.dataset.fallbackApplied = "true";
+              target.src = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80";
+            }
+          }}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 

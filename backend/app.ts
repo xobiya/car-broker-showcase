@@ -64,10 +64,25 @@ app.use(cors({
 
 // --- Security Middleware ---
 app.use(helmet({
-  // Allow inline scripts/styles needed by React SPA in dev
-  contentSecurityPolicy: process.env.NODE_ENV === "production"
-    ? undefined  // Helmet default strict CSP in production
-    : false,      // Relaxed in development
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://images.unsplash.com",
+        "https://*.unsplash.com",
+        "https://res.cloudinary.com",
+        "https://*.cloudinary.com",
+        "https:"
+      ],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+      fontSrc: ["'self'", "https:", "data:"],
+      connectSrc: ["'self'", "https:", "wss:", "ws:"],
+    },
+  },
   crossOriginEmbedderPolicy: false, // Allow embedding images from external CDNs
 }));
 

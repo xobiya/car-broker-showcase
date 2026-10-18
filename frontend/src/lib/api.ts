@@ -101,8 +101,16 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
   if (!res.ok) {
     const contentType = res.headers.get("content-type") ?? "";
     if (contentType.includes("application/json")) {
-      const err = await res.json();
-      throw new Error(err.error || `Request failed with status ${res.status}`);
+      const err = await res.json().catch(() => ({}));
+      const msg = typeof err?.error === "string"
+        ? err.error
+        : typeof err?.message === "string"
+        ? err.message
+        : JSON.stringify(err);
+      const errorObj = new Error(msg || `Request failed with status ${res.status}`);
+      (errorObj as any).data = err;
+      (errorObj as any).status = res.status;
+      throw errorObj;
     }
     throw new Error(`Request failed with status ${res.status}`);
   }
