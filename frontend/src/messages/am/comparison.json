@@ -1,0 +1,26 @@
+{
+  "title": "የጎን ለጎን የመኪና ንፅፅር",
+  "subtitle": "እስከ 4 የሚደርሱ መኪኖችን ዝርዝር፣ ሁኔታና ዋጋ በቀላሉ ያወዳድሩ።",
+  "addVehicle": "ለማወዳደር መኪና ይጨምሩ",
+  "searchPlaceholder": "ለማወዳደር ብራንድ ወይም ሞዴል ይፈልጉ...",
+  "clearAll": "ንፅፅሩን አጽዳ",
+  "highlightDifferences": "ልዩነቶችን ብቻ ለይተህ አሳይ",
+  "showAllSpecs": "ሁሉንም መመዘኛዎች አሳይ",
+  "emptyStateTitle": "ለማወዳደር የተመረጠ መኪና የለም",
+  "emptyStateDesc": "ዝርዝራቸውን ጎን ለጎን ለማወዳደር ከመኪና ማሳያው ቢያንስ ሁለት መኪኖችን ይምረጡ።",
+  "browseVehiclesCta": "ለመምረጥ ወደ ማሳያው ይሂዱ",
+  "specs": {
+    "price": "የተጠየቀው ዋጋ",
+    "year": "የተመረተበት ዓመት",
+    "makeModel": "ብራንድና ሞዴል",
+    "bodyType": "የመኪናው ቅርፅ",
+    "mileage": "የተጓዘው ርቀት",
+    "fuelType": "የነዳጅ ዓይነት",
+    "engine": "የሞተር መጠን",
+    "transmission": "የማርሽ ዓይነት",
+    "condition": "ሁኔታ",
+    "location": "የሚገኝበት ቦታ",
+    "inspected": "የምርመራ ሁኔታ",
+    "broker": "የመኪናው ደላላ"
+  }
+}

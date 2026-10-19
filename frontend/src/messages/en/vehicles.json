@@ -1,0 +1,60 @@
+{
+  "catalog": {
+    "title": "Vehicle Showroom",
+    "subtitle": "Explore verified car listings across Ethiopia with guaranteed legal ownership and mechanic check.",
+    "searchPlaceholder": "Search by make, model, year, or keyword...",
+    "showingResults": "Showing {{count}} verified vehicles",
+    "showingFilteredResults": "Showing {{filtered}} of {{total}} listings",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "newest": "Newest Listings",
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low",
+      "mileageLow": "Lowest Mileage",
+      "yearNew": "Newest Year"
+    },
+    "filterHeading": "Filters",
+    "priceRange": "Price Range (ETB)",
+    "yearRange": "Year Range",
+    "condition": "Condition",
+    "fuelType": "Fuel Type",
+    "transmission": "Transmission",
+    "bodyType": "Body Type",
+    "location": "Location",
+    "brand": "Make / Brand",
+    "model": "Model",
+    "clearAll": "Reset All",
+    "noVehiclesTitle": "No vehicles found",
+    "noVehiclesDesc": "We couldn't find any vehicles matching your current search criteria. Try relaxing your filters.",
+    "resetFiltersButton": "Clear All Filters"
+  },
+  "detail": {
+    "backToShowroom": "Back to Showroom",
+    "overview": "Overview & History",
+    "technicalSpecs": "Technical Specifications",
+    "features": "Features & Equipment",
+    "inspectionReport": "Mechanic Inspection Report",
+    "verifiedLibre": "Libre (Title Deed) Verified",
+    "certifiedInspected": "50-Point Certified Inspection",
+    "price": "Price",
+    "negotiable": "Price is negotiable",
+    "fixedPrice": "Firm / Fixed Price",
+    "contactBrokerTitle": "Contact Listing Broker",
+    "brokerVerified": "Licensed Broker",
+    "callBroker": "Call Broker",
+    "chatWhatsApp": "WhatsApp Chat",
+    "scheduleTestDrive": "Schedule Physical Test Drive",
+    "makeInquiry": "Send Inquiry",
+    "inquiryForm": {
+      "title": "Send Inquiry for {{vehicle}}",
+      "nameLabel": "Your Name",
+      "phoneLabel": "Your Phone Number",
+      "messageLabel": "Your Message",
+      "messagePlaceholder": "Hello, I am interested in this vehicle. Please let me know if it is available for inspection.",
+      "submitButton": "Send Inquiry to Broker",
+      "submitting": "Sending...",
+      "successMessage": "Your inquiry has been sent to the broker. They will call you shortly."
+    },
+    "reportListing": "Report an Issue with This Listing"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "login": {
+    "title": "እንኳን ደህና መጡ",
+    "subtitle": "ዳሽቦርድዎን፣ ያስቀመጧቸውን መኪኖችና መልዕክቶችዎን ለማግኘት ይግቡ።",
+    "roleSelector": "የመለያ አይነት",
+    "roles": {
+      "buyer": "ደንበኛ / ገዢ",
+      "seller": "የመኪና ሻጭ",
+      "broker": "ህጋዊ ደላላ",
+      "admin": "አስተዳዳሪ"
+    },
+    "emailLabel": "የኢሜይል አድራሻ",
+    "emailPlaceholder": "ከመለያዎ ጋር የተያያዘውን ኢሜይል ያስገቡ",
+    "passwordLabel": "የይለፍ ቃል",
+    "passwordPlaceholder": "የይለፍ ቃልዎን ያስገቡ",
+    "rememberMe": "ይህን መሳሪያ ለ30 ቀናት አስታውስ",
+    "forgotPassword": "የይለፍ ቃል ረሱ?",
+    "submitButton": "ወደ መለያዬ ግባ",
+    "submittingButton": "በማረጋገጥ ላይ...",
+    "noAccountPrompt": "እስካሁን መለያ የለዎትም?",
+    "createAccountLink": "አዲስ መለያ ይፍጠሩ",
+    "quickFill": "የሙከራ መለያዎች ፈጣን መግቢያ፡"
+  },
+  "register": {
+    "title": "አዲስ መለያ ይፍጠሩ",
+    "subtitle": "የኢትዮጵያ አስተማማኝ የመኪና ገበያን ዛሬ ይቀላቀሉ።",
+    "roleSelectionTitle": "የመለያዬ ሚና፡",
+    "roles": {
+      "buyer": "ደንበኛ",
+      "seller": "የመኪና ሻጭ",
+      "broker": "የመኪና ደላላ"
+    },
+    "rolesTagline": {
+      "buyer": "በተሟላ የቴክኒክ ፍተሻ መኪና ይፈልጉ፣ ይግዙ ወይም የእርስዎን ይሽጡ።",
+      "seller": "መኪናዎን ለሽያጭ ያቅርቡ፣ የገዢዎችን ጥያቄ ይከታተሉ፣ ቀጥታ ስልክ ይቀበሉ።",
+      "broker": "የደላሎች ኔትወርክን ይቀላቀሉ፣ በርካታ መኪኖችን ያስተዳድሩ፣ ኮሚሽን ያግኙ።"
+    },
+    "nameLabel": "ሙሉ ስም",
+    "namePlaceholder": "ለምሳሌ፡ ዳዊት ለማ",
+    "emailLabel": "የኢሜይል አድራሻ",
+    "emailPlaceholder": "name@example.com",
+    "phoneLabel": "ስልክ ቁጥር",
+    "phonePlaceholder": "+251 911 234 567",
+    "passwordLabel": "የይለፍ ቃል",
+    "passwordPlaceholder": "ቢያንስ 6 ፊደላት ወይም ቁጥሮች",
+    "termsPrompt": "ስምምነቴን አረጋግጣለሁ ለ",
+    "termsLink": "የአገልግሎት ውል",
+    "andWord": "እና",
+    "privacyLink": "የግላዊነት ፖሊሲ",
+    "submitButton": "መለያዬን ፍጠር",
+    "submittingButton": "መለያ በመፍጠር ላይ...",
+    "alreadyHaveAccount": "ቀደም ሲል ተመዝግበዋል?",
+    "signInLink": "እዚህ ይግቡ"
+  },
+  "modal": {
+    "signInTab": "ይግቡ",
+    "registerTab": "አዲስ ይመዝገቡ"
+  }
+}

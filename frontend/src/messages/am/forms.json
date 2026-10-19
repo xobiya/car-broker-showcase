@@ -1,0 +1,25 @@
+{
+  "labels": {
+    "name": "ሙሉ ስም",
+    "email": "የኢሜይል አድራሻ",
+    "phone": "ስልክ ቁጥር",
+    "password": "የይለፍ ቃል",
+    "confirmPassword": "የይለፍ ቃል ማረጋገጫ",
+    "message": "መልዕክት / ማስታወሻ",
+    "notes": "ተጨማሪ ማስታወሻዎች",
+    "selectPlaceholder": "እባክዎ አንዱን ይምረጡ",
+    "uploadFiles": "የመኪናውን ፎቶዎች ይጫኑ",
+    "dropFiles": "ፎቶዎችን እዚህ ይጎትቱ ወይም ለመምረጥ ጠቅ ያድርጉ",
+    "search": "ለመፈለግ እዚህ ይፃፉ..."
+  },
+  "buttons": {
+    "save": "ለውጦችን መዝግብ",
+    "saving": "በመመዝገብ ላይ...",
+    "submit": "ጥያቄውን አስገባ",
+    "submitting": "በማስገባት ላይ...",
+    "cancel": "ይቅር",
+    "clear": "አጽዳ",
+    "apply": "ማጣሪያዎችን ተግብር",
+    "close": "ዝጋ"
+  }
+}

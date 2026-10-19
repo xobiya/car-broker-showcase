@@ -1,0 +1,20 @@
+{
+  "auth": {
+    "loginSuccess": "እንኳን ደህና መጡ፣ {{name}}! በተሳካ ሁኔታ ገብተዋል።",
+    "logoutSuccess": "በተሳካ ሁኔታ ወጥተዋል።",
+    "registerSuccess": "መለያዎ በተሳካ ሁኔታ ተፈጥሯል! ወደ አሪፍ ካር ሴል እንኳን ደህና መጡ፣ {{name}}።",
+    "invalidCredentials": "በተሰጡት መረጃዎች መግባት አልተቻለም። ኢሜይልዎንና የይለፍ ቃልዎን አረጋግጠው እንደገና ይሞክሩ።"
+  },
+  "vehicles": {
+    "inquirySent": "ስለ {{vehicle}} ያቀረቡት ጥያቄ ለደላላው ደርሷል።",
+    "savedToFavorites": "{{vehicle}} ወደ ወደዷቸው መኪኖች ዝርዝር ተጨምሯል።",
+    "removedFromFavorites": "{{vehicle}} ከወደዷቸው መኪኖች ዝርዝር ወጥቷል።",
+    "testDriveScheduled": "ስለ {{vehicle}} የሙከራ ጉዞ ጥያቄ ቀርቧል። ደላላው ቀጠሮውን ለማረጋገጥ ይደውልልዎታል።",
+    "reportSubmitted": "እናመሰግናለን። ጥቆማዎ ለአስተዳዳሪው እንዲገመገም ተልኳል።"
+  },
+  "common": {
+    "linkCopied": "ማስፈንጠሪያው ተቀድቷል!",
+    "profileUpdated": "የመለያዎ መረጃ በተሳካ ሁኔታ ተመዝግቧል።",
+    "actionFailed": "ተግባሩን ማጠናቀቅ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
+  }
+}

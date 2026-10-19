@@ -1,0 +1,52 @@
+{
+  "topBanner": {
+    "announcement": "የተረጋገጠ የኢትዮጵያ የመኪና ገበያና የቴክኒካል ምርመራ ማዕከል",
+    "callUs": "ለድጋፍ ይደውሉ",
+    "phoneNumber": "+251 911 234 567",
+    "supportEmail": "support@arifcarsell.com"
+  },
+  "menu": {
+    "home": "ዋና ገጽ",
+    "vehicles": "መኪኖች",
+    "services": "አገልግሎቶች",
+    "compare": "አወዳድር",
+    "about": "ስለ እኛ",
+    "contact": "ያግኙን",
+    "admin": "የአስተዳዳሪ ክፍል",
+    "brokerDashboard": "የደላላ ዳሽቦርድ",
+    "buyerDashboard": "የደንበኛ ፖርታል",
+    "signIn": "ይግቡ",
+    "register": "ይመዝገቡ",
+    "signOut": "ውጣ",
+    "profile": "የግል መለያዬ"
+  },
+  "roles": {
+    "admin": "የሲስተም አስተዳዳሪ",
+    "broker": "ህጋዊ ፍቃድ ያለው ደላላ",
+    "seller": "የመኪና ባለቤትና ሻጭ",
+    "buyer": "ደንበኛ / ገዢ"
+  },
+  "theme": {
+    "switchToDark": "ወደ ጨለማ ገጽታ ቀይር",
+    "switchToLight": "ወደ ብሩህ ገጽታ ቀይር",
+    "currentTheme": "አሁን ያለው ገጽታ፡ {{theme}}"
+  },
+  "language": {
+    "selectLanguage": "ቋንቋ ይምረጡ",
+    "currentLanguage": "የተመረጠው ቋንቋ፡ {{language}}"
+  },
+  "footer": {
+    "tagline": "በኢትዮጵያ ግንባር ቀደም የሆነ አስተማማኝ የመኪና ግብይት መድረክ። የጎዳና ላይ ደላላ ማጭበርበርን በባለሙያ ቴክኒካል ምርመራና በባንክ ዋስትና ክፍያ እናስቀራለን።",
+    "quickLinksTitle": "ፈጣን ማውጫ",
+    "servicesTitle": "አገልግሎቶቻችን",
+    "legalTitle": "ህጋዊና የደህንነት መረጃ",
+    "contactTitle": "የአዲስ አበባ ዋና ቢሮ",
+    "address": "ቦሌ ክ/ከተማ፣ ኤድና ሞል አጠገብ፣ አዲስ አበባ፣ ኢትዮጵያ",
+    "workingHours": "ከሰኞ - ቅዳሜ፡ ከጠዋቱ 2:00 - ከሰዓት 12:30",
+    "terms": "የአገልግሎት ውል",
+    "privacy": "የግላዊነት ፖሊሲ",
+    "help": "የድጋፍና እርዳታ ማዕከል",
+    "allRightsReserved": "መብቱ በህግ የተጠበቀ ነው።",
+    "certifiedBrokerNetwork": "በኢፌዲሪ ንግድና ኢንዱስትሪ ሚኒስቴር ህግና ደንብ መሰረት የተመዘገበ።"
+  }
+}
