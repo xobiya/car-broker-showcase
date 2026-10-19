@@ -620,7 +620,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             <button
               onClick={() => {
                 if (onLogout) onLogout();
-                window.location.href = "/choose-role";
+                window.location.href = "/login";
               }}
               className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition cursor-pointer"
             >

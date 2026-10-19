@@ -37,6 +37,8 @@ import {
 } from "lucide-react";
 import { VehicleListing } from "../../../shared/types";
 import { vehiclesApi } from "../lib/api";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "../i18n/useLocale";
 
 interface VehicleComparisonProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -116,6 +118,8 @@ interface SpecSection {
 }
 
 export default function VehicleComparison({ onNotify, onViewDetails }: VehicleComparisonProps) {
+  const { t } = useTranslation(["comparison", "common", "navigation", "vehicles"]);
+  const { formatCurrency } = useLocale();
   const [allVehicles, setAllVehicles] = useState<VehicleListing[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
     // 1. Try URL parameters first (?ids=id1,id2)
@@ -530,9 +534,9 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
         
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-          <span className="hover:text-[#22c55e] cursor-pointer" onClick={() => window.location.href = "/"}>Home</span>
+          <span className="hover:text-[#22c55e] cursor-pointer" onClick={() => window.location.href = "/"}>{t("navigation:home")}</span>
           <ChevronRight size={12} />
-          <span className="text-slate-700 dark:text-slate-200">Vehicle Comparison</span>
+          <span className="text-slate-700 dark:text-slate-200">{t("navigation:comparison")}</span>
         </div>
 
         {/* Title & Toolbar Row */}
@@ -540,13 +544,13 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider mb-1">
               <Sparkles size={13} />
-              <span>Automotive Comparator</span>
+              <span>{t("comparison:title")}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 dark:text-white tracking-tight">
-              Compare Vehicles
+              {t("comparison:title")}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium max-w-2xl mt-0.5">
-              Side-by-side specification benchmark, pricing evaluation, and legal Libre status check.
+              {t("comparison:subtitle")}
             </p>
           </div>
 
@@ -708,9 +712,9 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
             <Car size={28} />
           </div>
           <div className="space-y-1">
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">No Vehicles in Comparison</h2>
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{t("comparison:emptyStateTitle")}</h2>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Select vehicles from inventory or load one of the top Ethiopian matchups below.
+              {t("comparison:emptyStateDesc")}
             </p>
           </div>
           <button
@@ -719,7 +723,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
             className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#22c55e]/25 active:scale-95 inline-flex items-center gap-1.5"
           >
             <Plus size={15} strokeWidth={3} />
-            <span>Select Vehicles</span>
+            <span>{t("comparison:addVehicle")}</span>
           </button>
         </div>
 

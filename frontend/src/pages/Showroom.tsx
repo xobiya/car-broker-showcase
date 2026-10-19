@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, ChevronLeft, ChevronRight, Star, SlidersHorizontal, Filter, Gauge, Fuel, Settings2, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "../i18n/useLocale";
 import { VehicleListing } from "../../../shared/types";
 import { vehiclesApi } from "../lib/api";
+import { ShowroomSkeleton } from "../components/ui/Skeleton";
+import { ScrollReveal } from "../components/ui/ScrollAnimations";
 
 interface ShowroomProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -38,6 +42,8 @@ interface SavedSearch {
 }
 
 export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
+  const { t } = useTranslation(["vehicles", "common", "navigation"]);
+  const { formatCurrency } = useLocale();
   const location = useLocation();
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -289,7 +295,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center py-20 text-slate-400 font-semibold text-xs">Loading Inventory...</div>;
+    return <ShowroomSkeleton />;
   }
 
   const renderCheckItem = (label: string, selected: boolean, onChange: () => void, count?: number) => (
@@ -426,7 +432,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                 onKeyDown={e => e.key === "Escape" && setOpenDropdown(null)}
                 placeholder={
                   quickFilters.length === 0 && Object.values(facets).every(v => v.length === 0)
-                    ? "Search make, model, year, or location..."
+                    ? t("vehicles:catalog.searchPlaceholder")
                     : ""
                 }
                 className="flex-1 min-w-[100px] sm:min-w-[140px] bg-transparent text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none py-1"
@@ -434,16 +440,18 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
             </div>
 
             {/* Result count */}
-            <span className="hidden sm:inline-block text-[11px] text-slate-400 font-bold whitespace-nowrap shrink-0 px-2">{sorted.length} cars</span>
+            <span className="hidden sm:inline-block text-[11px] text-slate-400 font-bold whitespace-nowrap shrink-0 px-2">
+              {t("vehicles:catalog.showingResults", { count: sorted.length })}
+            </span>
 
             {/* Sort */}
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 shrink-0" />
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
               className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-transparent focus:outline-none appearance-none cursor-pointer px-2 py-3 shrink-0 max-w-[85px] sm:max-w-none"
             >
-              <option className="dark:bg-slate-900">Newest</option>
-              <option className="dark:bg-slate-900">Price: Low to High</option>
-              <option className="dark:bg-slate-900">Price: High to Low</option>
+              <option value="Newest" className="dark:bg-slate-900">{t("vehicles:catalog.sortOptions.newest")}</option>
+              <option value="Price: Low to High" className="dark:bg-slate-900">{t("vehicles:catalog.sortOptions.priceLow")}</option>
+              <option value="Price: High to Low" className="dark:bg-slate-900">{t("vehicles:catalog.sortOptions.priceHigh")}</option>
             </select>
 
             {/* Chevron toggle */}
@@ -452,7 +460,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               className="px-3 py-3 border-l border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer flex items-center gap-1"
               title="Toggle filters panel"
             >
-              <span className="hidden md:inline text-[11px] font-bold text-slate-600">Filters</span>
+              <span className="hidden md:inline text-[11px] font-bold text-slate-600 dark:text-slate-300">{t("vehicles:catalog.filterHeading")}</span>
               <ChevronDown size={14} strokeWidth={2.5} className={`transition-transform duration-200 ${openDropdown === "panel" ? "rotate-180" : ""}`} />
             </button>
           </div>
@@ -662,8 +670,10 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                   <span className="text-[10px] font-bold text-slate-400 normal-case">({cars.length})</span>
                 </h3>
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
-                  {cars.map(car => (
-                    <CarCard key={car.id} car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                  {cars.map((car, idx) => (
+                    <ScrollReveal key={car.id} direction="up" delay={Math.min(idx * 0.04, 0.25)} distance={20}>
+                      <CarCard car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                    </ScrollReveal>
                   ))}
                 </div>
               </div>
@@ -673,16 +683,18 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
                 {paginated.length === 0 && (
                   <div className="col-span-full py-16 sm:py-20 text-center space-y-4">
-                    <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
+                    <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto">
                       <Search size={22} className="text-slate-400" />
                     </div>
-                    <p className="text-slate-500 font-bold text-sm">No vehicles match your filters.</p>
-                    <p className="text-slate-400 text-xs">Try removing some filters to see more results.</p>
-                    <button onClick={clearAll} className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 text-xs font-black px-6 py-2.5 rounded-xl cursor-pointer transition-colors shadow-sm">Clear All Filters</button>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">{t("vehicles:catalog.noVehiclesTitle")}</p>
+                    <p className="text-slate-400 dark:text-slate-500 text-xs">{t("vehicles:catalog.noVehiclesDesc")}</p>
+                    <button onClick={clearAll} className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 text-xs font-black px-6 py-2.5 rounded-xl cursor-pointer transition-colors shadow-sm">{t("vehicles:catalog.resetFiltersButton")}</button>
                   </div>
                 )}
-                {paginated.map(car => (
-                  <CarCard key={car.id} car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                {paginated.map((car, idx) => (
+                  <ScrollReveal key={car.id} direction="up" delay={Math.min(idx * 0.04, 0.25)} distance={20}>
+                    <CarCard car={car} carFavorites={carFavorites} setCarFavorites={setCarFavorites} onInquireCar={onInquireCar} />
+                  </ScrollReveal>
                 ))}
               </div>
 
@@ -747,6 +759,8 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
   setCarFavorites: React.Dispatch<React.SetStateAction<string[]>>;
   onInquireCar: (car: VehicleListing) => void;
 }) {
+  const { t } = useTranslation(["vehicles", "common"]);
+  const { formatCurrency } = useLocale();
   const seats = (car as any).seats || (car.bodyType === "SUV" || car.model.toLowerCase().includes("prado") || car.model.toLowerCase().includes("patrol") ? "7 seats" : "5 seats");
   const reviewCount = 500 + Math.abs((car.price % 300));
 
@@ -803,7 +817,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
         {/* Top Badges */}
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-slate-950/85 backdrop-blur-md text-[#22c55e] border border-[#22c55e]/30 text-[8px] sm:text-[9px] font-black tracking-widest px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 shadow-sm uppercase">
           <ShieldCheck size={10} className="text-[#22c55e] sm:w-[11px] sm:h-[11px]" />
-          <span>Verified</span>
+          <span>{t("common:states.verified")}</span>
         </div>
 
         {/* Top Right Action Buttons: Compare + Favorite */}
@@ -836,7 +850,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
 
         {car.condition === "New" && (
           <span className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-[#22c55e] text-slate-950 text-[7px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded shadow-sm">
-            Brand New
+            {car.condition}
           </span>
         )}
       </div>
@@ -890,9 +904,9 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
         {/* Price & Action Button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3 pt-1.5 sm:pt-2 border-t border-slate-100 dark:border-slate-800">
           <div>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Price</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold tracking-wider block">{t("vehicles:detail.price")}</span>
             <div className="text-xs sm:text-base md:text-lg font-black text-slate-950 dark:text-white whitespace-nowrap">
-              ETB {car.price >= 1000000 ? `${(car.price / 1000000).toFixed(2)}M` : car.price.toLocaleString()}
+              {formatCurrency(car.price)}
             </div>
           </div>
 
@@ -900,7 +914,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
             onClick={() => onInquireCar(car)}
             className="w-full sm:w-auto px-2.5 sm:px-5 py-1.5 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] dark:hover:bg-[#22c55e] text-slate-800 dark:text-slate-200 hover:text-white dark:hover:text-slate-950 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer active:scale-95 border border-slate-200/80 dark:border-slate-700 shadow-xs text-center"
           >
-            View Details
+            {t("common:actions.viewDetails")}
           </button>
         </div>
 

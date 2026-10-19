@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, Phone, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, CheckCircle2, UserPlus, LogIn } from "lucide-react";
+import { Mail, Lock, User as UserIcon, Phone, ArrowRight, Loader2, Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/useAuth";
 import { useStore } from "../store";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["authentication", "validation", "notifications", "common"]);
   const { register } = useAuth();
   const addToast = useStore((s) => s.addToast);
 
@@ -22,11 +24,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !password.trim()) {
-      setError("Please fill in all required fields.");
+      setError(t("validation:required"));
       return;
     }
     if (!agreed) {
-      setError("Please accept the terms of service and privacy policy to continue.");
+      setError(t("validation:termsRequired"));
       return;
     }
 
@@ -41,11 +43,11 @@ export default function RegisterPage() {
         phone: phone.trim(),
         role: role as any
       });
-      addToast(`Account created successfully! Welcome to Arif Car Sell, ${user.name}.`, "success");
+      addToast(t("notifications:auth.registerSuccess", { name: user.name }), "success");
       if (user.role === "broker") navigate("/broker-dashboard");
       else navigate("/profile");
     } catch (err: any) {
-      setError(err.message || "Failed to create account. Please verify your information.");
+      setError(err.message || t("validation:generalError"));
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export default function RegisterPage() {
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 md:px-8 bg-slate-50/60 dark:bg-[#0B0F19] pb-24 sm:pb-12">
       <div className="w-full max-w-md mx-auto">
         
-        {/* Main Carento Style Register Card */}
+        {/* Main Register Card */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] dark:shadow-none p-7 sm:p-10 space-y-6">
           
           {/* Sign In & Sign Up Navigation Bar Switcher */}
@@ -63,30 +65,30 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900"
+              className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <LogIn size={15} />
-              <span>Sign In</span>
+              <span>{t("authentication:modal.signInTab")}</span>
             </button>
             <button
               type="button"
               className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center justify-center gap-2 bg-[#0B0F19] text-[#22c55e] shadow-sm"
             >
               <UserPlus size={15} />
-              <span>Sign Up</span>
+              <span>{t("authentication:modal.registerTab")}</span>
             </button>
           </div>
 
           {/* Header */}
           <div className="text-center space-y-2">
-            <span className="bg-emerald-500/10 text-[#16a34a] border border-emerald-500/25 text-xs font-black px-3.5 py-1 rounded-full inline-block">
-              New Account Registration
+            <span className="bg-emerald-500/10 text-[#16a34a] dark:text-[#22c55e] border border-emerald-500/25 text-xs font-black px-3.5 py-1 rounded-full inline-block">
+              Arif Car Sell
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-              Create an account
+              {t("authentication:register.title")}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Join thousands of vehicle owners and certified brokers in Ethiopia
+              {t("authentication:register.subtitle")}
             </p>
           </div>
 
@@ -99,17 +101,17 @@ export default function RegisterPage() {
           {/* Role Selector Tabs */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
-              Account Type:
+              {t("authentication:register.roleSelectionTitle")}
             </label>
             <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-transparent dark:border-slate-800">
               {[
-                { id: "buyer", label: "Customer" },
-                { id: "broker", label: "Certified Broker" }
+                { id: "buyer" as const, label: t("authentication:register.roles.buyer") },
+                { id: "broker" as const, label: t("authentication:register.roles.broker") }
               ].map((r) => (
                 <button
                   key={r.id}
                   type="button"
-                  onClick={() => setRole(r.id as any)}
+                  onClick={() => setRole(r.id)}
                   className={`py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
                     role === r.id
                       ? "bg-[#0B0F19] dark:bg-emerald-500/10 text-[#22c55e] border border-emerald-500/20 shadow-xs font-black"
@@ -128,7 +130,7 @@ export default function RegisterPage() {
             {/* Full Name */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                Full Name
+                {t("authentication:register.nameLabel")}
               </label>
               <div className="relative">
                 <UserIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
@@ -136,7 +138,7 @@ export default function RegisterPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Dawit Lemma"
+                  placeholder={t("authentication:register.namePlaceholder")}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
@@ -146,7 +148,7 @@ export default function RegisterPage() {
             {/* Email */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                Email Address
+                {t("authentication:register.emailLabel")}
               </label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
@@ -154,7 +156,7 @@ export default function RegisterPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder={t("authentication:register.emailPlaceholder")}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
@@ -164,7 +166,7 @@ export default function RegisterPage() {
             {/* Phone Number */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                Phone Number
+                {t("authentication:register.phoneLabel")}
               </label>
               <div className="relative">
                 <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
@@ -172,7 +174,7 @@ export default function RegisterPage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+251 91 123 4567"
+                  placeholder={t("authentication:register.phonePlaceholder")}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                 />
               </div>
@@ -181,7 +183,7 @@ export default function RegisterPage() {
             {/* Password */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                Create Password
+                {t("authentication:register.passwordLabel")}
               </label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
@@ -189,7 +191,7 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Minimum 6 characters"
+                  placeholder={t("authentication:register.passwordPlaceholder")}
                   className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#22c55e] focus:border-[#22c55e] transition"
                   required
                 />
@@ -197,6 +199,7 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -213,11 +216,18 @@ export default function RegisterPage() {
                 id="terms-check"
               />
               <label htmlFor="terms-check" className="cursor-pointer leading-snug">
-                I agree to the <Link to="/terms" className="text-[#16a34a] dark:text-[#22c55e] underline font-semibold">Terms</Link> and <Link to="/privacy" className="text-[#16a34a] dark:text-[#22c55e] underline font-semibold">Privacy Policy</Link>.
+                {t("authentication:register.termsPrompt")}{" "}
+                <Link to="/terms" className="text-[#16a34a] dark:text-[#22c55e] underline font-semibold">
+                  {t("authentication:register.termsLink")}
+                </Link>{" "}
+                {t("authentication:register.andWord")}{" "}
+                <Link to="/privacy" className="text-[#16a34a] dark:text-[#22c55e] underline font-semibold">
+                  {t("authentication:register.privacyLink")}
+                </Link>.
               </label>
             </div>
 
-            {/* Carento Signature Green Submit Button */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -226,11 +236,11 @@ export default function RegisterPage() {
               {loading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  <span>Creating account...</span>
+                  <span>{t("authentication:register.submittingButton")}</span>
                 </>
               ) : (
                 <>
-                  <span>Create Account</span>
+                  <span>{t("authentication:register.submitButton")}</span>
                   <ArrowRight size={16} />
                 </>
               )}
@@ -239,9 +249,9 @@ export default function RegisterPage() {
 
           {/* Link to Login */}
           <div className="text-center pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
-            Already have an account?{" "}
-            <Link to="/login" className="font-bold text-[#16a34a] dark:text-[#22c55e] hover:text-emerald-700 dark:hover:text-emerald-400 underline">
-              Sign in here
+            {t("authentication:register.alreadyHaveAccount")}{" "}
+            <Link to="/login" className="font-bold text-[#16a34a] dark:text-[#22c55e] hover:underline">
+              {t("authentication:register.signInLink")}
             </Link>
           </div>
 

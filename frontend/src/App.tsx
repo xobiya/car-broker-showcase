@@ -9,6 +9,10 @@ import { useAuth } from "./hooks/useAuth";
 import { authApi, setToken } from "./lib/api";
 import Logo from "./components/ui/Logo";
 import AuthModal from "./components/ui/AuthModal";
+import { PageSkeleton } from "./components/ui/Skeleton";
+import { ScrollProgressBar, ScrollToTopButton } from "./components/ui/ScrollAnimations";
+import LanguageSwitcher from "./components/ui/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 import type { VehicleListing, User } from "../../shared/types";
 
 // Code-split routes via React.lazy for on-demand loading
@@ -26,7 +30,6 @@ const AdminPanel = lazy(() => import("./dashboards/AdminPanel"));
 const AdminProfilePage = lazy(() => import("./dashboards/AdminProfilePage"));
 const BrokerProfilePage = lazy(() => import("./dashboards/BrokerProfilePage"));
 const BuyerProfilePage = lazy(() => import("./dashboards/BuyerProfilePage"));
-const ChooseRolePage = lazy(() => import("./pages/ChooseRolePage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
@@ -40,12 +43,7 @@ function ScrollToTop() {
 }
 
 function PageLoader() {
-  return (
-    <div className="flex-1 min-h-[50vh] flex flex-col items-center justify-center p-8 text-slate-400">
-      <Loader2 size={32} className="animate-spin text-amber-500 mb-3" />
-      <p className="text-xs font-semibold tracking-wider uppercase">Loading...</p>
-    </div>
-  );
+  return <PageSkeleton />;
 }
 
 const FULL_SCREEN_ROUTES = ["/broker-dashboard", "/admin", "/admin/profile"];
@@ -70,7 +68,7 @@ function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const isAuthenticated = useStore(s => s.isAuthenticated);
 
   if (!isAuthenticated || !user) {
-    return <Navigate to="/choose-role" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
@@ -111,6 +109,7 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const { toasts, removeToast } = useToast();
+  const { t } = useTranslation(["navigation", "common", "homepage"]);
   const fullScreen = isFullScreenRoute(location.pathname);
   const userRole = user?.role || "buyer";
 
@@ -169,6 +168,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col font-sans antialiased transition-colors duration-200">
+      <ScrollProgressBar />
       <ScrollToTop />
       <div className="fixed top-5 right-5 z-[100] space-y-2 pointer-events-none w-80 max-w-full">
         <AnimatePresence>
@@ -194,7 +194,7 @@ export default function App() {
       {!fullScreen && (
         <>
           {/* Carento Top Utility Strip */}
-          <div className="bg-[#0B0F19] text-slate-300 text-[11px] border-b border-slate-800/80 px-4 sm:px-6 md:px-8 py-2.5 hidden sm:flex items-center justify-between z-40 relative">
+          <div className="bg-[#0B0F19] text-slate-300 text-[11px] border-b border-slate-800/80 px-4 sm:px-6 md:px-8 py-2.5 hidden sm:flex items-center justify-between z-50 relative">
             <div className="flex items-center gap-6">
               <a href="tel:+251911234567" className="flex items-center gap-2 hover:text-[#22c55e] transition-colors cursor-pointer">
                 <Phone size={13} className="text-[#22c55e]" />
@@ -219,15 +219,15 @@ export default function App() {
               </button>
             </div>
 
-            {/* Right: Language / Currency / Dark Mode & Light Mode Toggle */}
-            <div className="flex items-center gap-4 text-slate-400 font-bold">
-              <span className="text-xs font-semibold text-slate-300 tracking-wide">EN</span>
+            {/* Right: Language Switcher, Currency & Theme Toggle */}
+            <div className="flex items-center gap-3 text-slate-400 font-bold">
+              <LanguageSwitcher variant="header" />
               <span className="text-xs font-semibold text-slate-300 tracking-wide">ETB</span>
               <button
                 onClick={toggleTheme}
                 className="text-slate-400 hover:text-white transition cursor-pointer p-1.5 rounded-lg hover:bg-slate-800/80 flex items-center justify-center"
-                title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                aria-label="Toggle theme mode"
+                title={theme === "dark" ? t("navigation:theme.switchToLight") : t("navigation:theme.switchToDark")}
+                aria-label={t("navigation:theme.switchToDark")}
               >
                 {theme === "dark" ? (
                   <Sun size={15} className="text-amber-400 hover:rotate-45 transition-transform" />
@@ -255,7 +255,7 @@ export default function App() {
                     location.pathname === "/" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
-                  Home
+                  {t("navigation:menu.home")}
                 </button>
               )}
               {userRole !== "admin" && (
@@ -265,7 +265,7 @@ export default function App() {
                     location.pathname === "/browse" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
-                  Vehicles
+                  {t("navigation:menu.vehicles")}
                 </button>
               )}
               {userRole !== "admin" && (
@@ -275,7 +275,7 @@ export default function App() {
                     location.pathname === "/services" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
-                  Services
+                  {t("navigation:menu.services")}
                 </button>
               )}
               {userRole !== "admin" && (
@@ -285,7 +285,7 @@ export default function App() {
                     location.pathname === "/compare" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
-                  Compare
+                  {t("navigation:menu.compare")}
                 </button>
               )}
               {userRole === "admin" && (
@@ -295,7 +295,7 @@ export default function App() {
                     location.pathname.startsWith("/admin") ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
-                  Admin Panel
+                  {t("navigation:menu.admin")}
                 </button>
               )}
               {userRole !== "admin" && (
@@ -306,7 +306,7 @@ export default function App() {
                       location.pathname === "/about" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                     }`}
                   >
-                    About
+                    {t("navigation:menu.about")}
                   </button>
                   <button
                     onClick={() => navigate("/contact")}
@@ -314,7 +314,7 @@ export default function App() {
                       location.pathname === "/contact" ? "text-[#22c55e]" : "text-slate-700 dark:text-slate-300"
                     }`}
                   >
-                    Contact
+                    {t("navigation:menu.contact")}
                   </button>
                 </>
               )}
@@ -361,20 +361,20 @@ export default function App() {
                         </div>
                         <div className="py-1">
                           {(userRole === "buyer" || userRole === "seller") && (
-                            <DropdownItem icon={UserCircle} label="My Profile" onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
+                            <DropdownItem icon={UserCircle} label={t("navigation:menu.profile")} onClick={() => { navigate("/profile"); setProfileDropdownOpen(false); }} />
                           )}
                           {userRole === "broker" && (
-                            <DropdownItem icon={LayoutDashboard} label="Broker Portal" onClick={() => { navigate("/broker-dashboard"); setProfileDropdownOpen(false); }} />
+                            <DropdownItem icon={LayoutDashboard} label={t("navigation:menu.brokerDashboard")} onClick={() => { navigate("/broker-dashboard"); setProfileDropdownOpen(false); }} />
                           )}
                           {userRole === "admin" && (
                             <>
-                              <DropdownItem icon={LayoutDashboard} label="Admin Panel" onClick={() => { navigate("/admin"); setProfileDropdownOpen(false); }} />
-                              <DropdownItem icon={UserCircle} label="Admin Profile" onClick={() => { navigate("/admin/profile"); setProfileDropdownOpen(false); }} />
+                              <DropdownItem icon={LayoutDashboard} label={t("navigation:menu.admin")} onClick={() => { navigate("/admin"); setProfileDropdownOpen(false); }} />
+                              <DropdownItem icon={UserCircle} label={t("navigation:menu.profile")} onClick={() => { navigate("/admin/profile"); setProfileDropdownOpen(false); }} />
                             </>
                           )}
                         </div>
                         <div className="border-t border-slate-100 dark:border-slate-800 pt-1">
-                          <DropdownItem icon={LogOut} label="Sign Out" onClick={() => { handleLogout(); setProfileDropdownOpen(false); }} danger />
+                          <DropdownItem icon={LogOut} label={t("navigation:menu.signOut")} onClick={() => { handleLogout(); setProfileDropdownOpen(false); }} danger />
                         </div>
                       </div>
                     </>
@@ -391,7 +391,7 @@ export default function App() {
                     }`}
                   >
                     <UserCircle size={14} className="text-[#22c55e] hidden xs:block sm:block" />
-                    <span>Sign in</span>
+                    <span>{t("navigation:menu.signIn")}</span>
                   </button>
                   <button
                     onClick={() => navigate("/register")}
@@ -401,7 +401,7 @@ export default function App() {
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    <span>Sign up</span>
+                    <span>{t("navigation:menu.register")}</span>
                   </button>
                 </div>
               )}
@@ -458,15 +458,15 @@ export default function App() {
                     {/* Primary Links */}
                     <div className="space-y-1">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-3 pb-1">
-                        Explore Marketplace
+                        {t("navigation:menu.vehicles")}
                       </p>
                       {[
-                        { label: "Home", path: "/", icon: Home },
-                        { label: "Vehicles (Showroom)", path: "/browse", icon: LayoutGrid },
-                        { label: "Compare Vehicles", path: "/compare", icon: GitCompare },
-                        { label: "Broker Services", path: "/services", icon: Sparkles },
-                        { label: "About Arif Car Sell", path: "/about", icon: Info },
-                        { label: "Contact & Support", path: "/contact", icon: Phone }
+                        { label: t("navigation:menu.home"), path: "/", icon: Home },
+                        { label: t("navigation:menu.vehicles"), path: "/browse", icon: LayoutGrid },
+                        { label: t("navigation:menu.compare"), path: "/compare", icon: GitCompare },
+                        { label: t("navigation:menu.services"), path: "/services", icon: Sparkles },
+                        { label: t("navigation:menu.about"), path: "/about", icon: Info },
+                        { label: t("navigation:menu.contact"), path: "/contact", icon: Phone }
                       ].map(link => {
                         const LinkIcon = link.icon;
                         const isActive = location.pathname === link.path;
@@ -494,17 +494,20 @@ export default function App() {
                       })}
                     </div>
 
-                    {/* Drawer Footer: Theme Icon Toggle Only (No contact phone number) */}
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between px-3.5">
-                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Theme</span>
-                      <button
-                        onClick={toggleTheme}
-                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer shadow-xs"
-                        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                        aria-label="Toggle theme mode"
-                      >
-                        {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-slate-400" />}
-                      </button>
+                    {/* Drawer Footer: Language & Theme Controls */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 px-3.5">
+                      <LanguageSwitcher variant="mobile" />
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Theme</span>
+                        <button
+                          onClick={toggleTheme}
+                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer shadow-xs"
+                          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                          aria-label="Toggle theme mode"
+                        >
+                          {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-slate-400" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -519,15 +522,15 @@ export default function App() {
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
               className={`w-full ${fullScreen ? "h-full flex-1" : "flex-grow"} flex flex-col`}
             >
               <Routes>
-                <Route path="/" element={<UserRoute><HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/choose-role"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller" || user.role === "buyer") navigate("/profile"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} onChooseRole={() => navigate("/choose-role")} /></UserRoute>} />
-                <Route path="/choose-role" element={<UserRoute><ChooseRolePage onSelectRole={(role) => { setAuthModalRole(role); setShowAuthModal(true); }} onSignIn={() => navigate("/login")} /></UserRoute>} />
+                <Route path="/" element={<UserRoute><HomePage currentUser={user} onViewDetails={handleViewDetails} onBrowse={handleBrowseWithFilters} onViewBrokerProfile={handleViewBrokerProfile} onBecomeBroker={() => { if (!user) navigate("/register?role=broker"); else if (user.role === "broker") navigate("/broker-dashboard"); else if (user.role === "seller" || user.role === "buyer") navigate("/profile"); else if (user.role === "admin") navigate("/admin"); else addToast("Contact admin to upgrade to a Broker account.", "info"); }} /></UserRoute>} />
+                <Route path="/choose-role" element={<Navigate to="/register" replace />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/signup" element={<RegisterPage />} />
@@ -563,16 +566,16 @@ export default function App() {
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-16">
             <div className="md:col-span-1 space-y-6">
               <Logo size="md" inverted />
-              <p className="text-xs text-slate-400 leading-relaxed font-semibold">The leading digital marketplace for high-quality verified vehicles.</p>
+              <p className="text-xs text-slate-400 leading-relaxed font-semibold">{t("navigation:footer.tagline")}</p>
             </div>
             <div className="space-y-6">
-              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Quick Links</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">{t("navigation:footer.quickLinksTitle")}</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => navigate("/about")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> About Us</button></li>
-                <li><button onClick={() => navigate("/services")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Broker Services</button></li>
-                <li><button onClick={() => navigate("/contact")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Contact</button></li>
-                <li><button onClick={() => navigate("/terms")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Terms of Service</button></li>
-                <li><button onClick={() => navigate("/privacy")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Privacy Policy</button></li>
+                <li><button onClick={() => navigate("/about")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> {t("navigation:menu.about")}</button></li>
+                <li><button onClick={() => navigate("/services")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> {t("navigation:menu.services")}</button></li>
+                <li><button onClick={() => navigate("/contact")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> {t("navigation:menu.contact")}</button></li>
+                <li><button onClick={() => navigate("/terms")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> {t("navigation:footer.terms")}</button></li>
+                <li><button onClick={() => navigate("/privacy")} className="text-xs font-bold text-slate-400 hover:text-[#22c55e] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> {t("navigation:footer.privacy")}</button></li>
               </ul>
             </div>
             <div className="space-y-6">
@@ -645,6 +648,8 @@ export default function App() {
           </button>
         </div>
       )}
+
+      <ScrollToTopButton />
 
       {showAuthModal && (
         <AuthModal

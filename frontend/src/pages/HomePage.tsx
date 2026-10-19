@@ -38,6 +38,10 @@ import {
 } from "lucide-react";
 import { VehicleListing, User } from "../../../shared/types";
 import { vehiclesApi, settingsApi, brandsApi, statsApi } from "../lib/api";
+import { CarCardSkeleton } from "../components/ui/Skeleton";
+import { ScrollReveal, SectionDivider } from "../components/ui/ScrollAnimations";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "../i18n/useLocale";
 
 const DEFAULT_HERO_BG = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=2000&q=85";
 
@@ -55,7 +59,6 @@ interface HomePageProps {
   }) => void;
   onBecomeBroker: () => void;
   onViewBrokerProfile?: (brokerId: string) => void;
-  onChooseRole?: () => void;
 }
 
 const BRAND_LOGOS: Record<string, React.ReactNode> = {
@@ -283,10 +286,12 @@ const TESTIMONIALS = [
 export default function HomePage({
   onViewDetails,
   onBrowse,
-  onBecomeBroker,
-  onChooseRole
+  onBecomeBroker
 }: HomePageProps) {
+  const { t } = useTranslation(["homepage", "common", "navigation"]);
+  const { formatCurrency } = useLocale();
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
+  const [loadingVehicles, setLoadingVehicles] = useState(true);
   const [dbBrands, setDbBrands] = useState<{ name: string; count: number; models: string[] }[]>([]);
   const [publicStats, setPublicStats] = useState<{ totalVehicles: number; totalBrokers: number; totalSales: number; totalUsers: number; clearanceRate: number } | null>(null);
   const [brands, setBrands] = useState<string[]>([]);
@@ -390,6 +395,7 @@ export default function HomePage({
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
+        setLoadingVehicles(true);
         const res = await vehiclesApi.list();
         if (res && res.length > 0) {
           const approved = res.filter((v: VehicleListing) => v.status === "approved");
@@ -400,6 +406,8 @@ export default function HomePage({
       } catch (err) {
         console.error("Failed to load vehicles for homepage", err);
         setVehicles([]);
+      } finally {
+        setLoadingVehicles(false);
       }
     };
     fetchVehicles();
@@ -551,7 +559,7 @@ export default function HomePage({
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 selection:bg-emerald-500 selection:text-white pb-16 transition-colors duration-200">
       
       {/* 1. CINEMATIC HERO SECTION (MATCHING SCREENSHOT 1) */}
-      <section className="relative min-h-[440px] sm:min-h-[580px] lg:min-h-[660px] flex flex-col justify-center bg-slate-950 overflow-hidden px-4 sm:px-8 md:px-16 pt-8 sm:pt-16 pb-16 sm:pb-32">
+      <section id="section-hero" className="relative min-h-[440px] sm:min-h-[580px] lg:min-h-[660px] flex flex-col justify-center bg-slate-950 overflow-hidden px-4 sm:px-8 md:px-16 pt-8 sm:pt-16 pb-16 sm:pb-32">
         
         {/* Background Image — Showroom & Luxury Car visible on the right */}
         <div 
@@ -572,14 +580,14 @@ export default function HomePage({
 
             {/* Eyebrow Label */}
             <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#22c55e] tracking-wide">
-              <span>Find Your Perfect Car</span>
+              <span>{t("homepage:hero.eyebrow")}</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-2xl sm:text-4xl lg:text-[56px] font-black text-white tracking-tight leading-[1.15]">
-              Looking for a vehicle? <br />
+              {t("homepage:hero.titleLine1")} <br />
               <span className="text-white">
-                You're in the perfect spot.
+                {t("homepage:hero.titleLine2")}
               </span>
             </h1>
 
@@ -589,31 +597,29 @@ export default function HomePage({
                 <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
                   <Check size={10} strokeWidth={3.5} className="text-slate-950" />
                 </div>
-                <span>High quality at a low cost.</span>
+                <span>{t("homepage:hero.highlight1")}</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10">
                 <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
                   <Check size={10} strokeWidth={3.5} className="text-slate-950" />
                 </div>
-                <span>Premium services.</span>
+                <span>{t("homepage:hero.highlight2")}</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10">
                 <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
                   <Check size={10} strokeWidth={3.5} className="text-slate-950" />
                 </div>
-                <span>24/7 roadside support.</span>
+                <span>{t("homepage:hero.highlight3")}</span>
               </div>
             </div>
-
           </div>
-
         </div>
       </section>
 
-
       {/* FLOATING SEARCH BAR (MATCHING SCREENSHOT 2) */}
-      <div className="relative z-20 max-w-6xl mx-auto px-3 sm:px-4 -mt-10 sm:-mt-20">
-        <div className="bg-white dark:bg-[#111827] rounded-3xl p-4 sm:p-7 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200/90 dark:border-slate-800">
+      <div id="section-search" className="relative z-20 max-w-6xl mx-auto px-3 sm:px-4 -mt-10 sm:-mt-20">
+        <ScrollReveal direction="up" delay={0.08} distance={20}>
+          <div className="bg-white dark:bg-[#111827] rounded-3xl p-4 sm:p-7 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200/90 dark:border-slate-800">
           
           {/* Tabs Row: Condition Filter & Need Help Link */}
           <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b border-slate-100 dark:border-slate-800 overflow-x-auto scrollbar-none">
@@ -627,7 +633,7 @@ export default function HomePage({
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
                 }`}
               >
-                All cars
+                {t("homepage:search.allCars")}
               </button>
               <button
                 type="button"
@@ -638,7 +644,7 @@ export default function HomePage({
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
                 }`}
               >
-                New cars
+                {t("homepage:search.newCars")}
               </button>
               <button
                 type="button"
@@ -649,7 +655,7 @@ export default function HomePage({
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
                 }`}
               >
-                Used cars
+                {t("homepage:search.usedCars")}
               </button>
             </div>
 
@@ -659,7 +665,7 @@ export default function HomePage({
               className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-[#22c55e] transition cursor-pointer"
             >
               <UserIcon size={14} className="text-slate-500 dark:text-slate-400" />
-              <span>Need help?</span>
+              <span>{t("homepage:search.needHelp")}</span>
             </button>
           </div>
 
@@ -669,7 +675,7 @@ export default function HomePage({
             {/* Pick Up Location */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                Pick Up Location
+                {t("homepage:search.pickUpLocation")}
               </label>
               <div className="relative">
                 <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -689,7 +695,7 @@ export default function HomePage({
             {/* Make / Brand */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                Make / Brand
+                {t("homepage:search.makeBrand")}
               </label>
               <div className="relative">
                 <Car size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -698,7 +704,7 @@ export default function HomePage({
                   onChange={(e) => setSelectedBrand(e.target.value)}
                   className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
                 >
-                  <option value="Any Brand">All Brands</option>
+                  <option value="Any Brand">{t("homepage:search.allBrands")}</option>
                   {dynamicBrands.map((b) => (
                     <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
                   ))}
@@ -710,7 +716,7 @@ export default function HomePage({
             {/* Vehicle Type */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                Vehicle Type
+                {t("homepage:search.vehicleType")}
               </label>
               <div className="relative">
                 <SlidersHorizontal size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -719,7 +725,7 @@ export default function HomePage({
                   onChange={(e) => setSelectedBodyType(e.target.value)}
                   className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
                 >
-                  <option value="Any Type">All Types</option>
+                  <option value="Any Type">{t("homepage:search.allTypes")}</option>
                   <option value="SUV">SUV & 4x4</option>
                   <option value="Sedan">Sedan</option>
                   <option value="Electric">Electric / Hybrid</option>
@@ -733,7 +739,7 @@ export default function HomePage({
             {/* Max Budget */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                Max Budget
+                {t("homepage:search.maxBudget")}
               </label>
               <div className="relative">
                 <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -742,7 +748,7 @@ export default function HomePage({
                   onChange={(e) => setSelectedPrice(e.target.value)}
                   className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
                 >
-                  <option value="Any Price">Any Budget</option>
+                  <option value="Any Price">{t("homepage:search.anyPrice")}</option>
                   <option value="under-3m">Under 3.0M ETB</option>
                   <option value="3m-6m">3.0M – 6.0M ETB</option>
                   <option value="6m-10m">6.0M – 10.0M ETB</option>
@@ -761,34 +767,36 @@ export default function HomePage({
                 className="w-full h-[40px] bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-bold px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition shadow-md shadow-emerald-500/20 active:scale-95 text-xs sm:text-sm"
               >
                 <Search size={16} strokeWidth={2.5} />
-                <span>Find a Vehicle</span>
+                <span>{t("homepage:search.findVehicleButton")}</span>
               </button>
             </div>
 
           </div>
 
         </div>
+        </ScrollReveal>
       </div>
 
+      <SectionDivider />
 
       {/* 2. EXPLORE LEADING BRANDS - HORIZONTAL INFINITE CAROUSEL */}
-      <section className="pt-20 sm:pt-24 pb-12 sm:pb-16 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800 overflow-hidden">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-6">
+      <section id="section-brands" className="pt-20 sm:pt-24 pb-12 sm:pb-16 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800 overflow-hidden">
+        <ScrollReveal direction="up" delay={0.1} className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-6">
           
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-                Explore Leading Brands
+                {t("homepage:brands.title")}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Unveil the Finest Selection of High-End & Popular Vehicles in Ethiopia
+                {t("homepage:brands.subtitle")}
               </p>
             </div>
             <button
               onClick={() => onBrowse()}
               className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 hover:text-[#22c55e] transition flex items-center gap-1.5 cursor-pointer shrink-0 group"
             >
-              <span>Show All Brands</span>
+              <span>{t("homepage:brands.showAllBrands")}</span>
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -821,21 +829,22 @@ export default function HomePage({
             </div>
           </div>
 
-        </div>
+        </ScrollReveal>
       </section>
 
+      <SectionDivider />
 
       {/* 3. MOST SEARCHED VEHICLES (FEATURED SHOWCASE) */}
-      <section className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
+      <section id="section-featured" className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-                Most Searched Vehicles
+                {t("homepage:featured.title")}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">
-                Handpicked models with verified ownership and guaranteed physical inspection.
+                {t("homepage:featured.subtitle")}
               </p>
             </div>
 
@@ -843,11 +852,11 @@ export default function HomePage({
             <div className="relative max-w-full">
               <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs -mx-4 px-4 sm:mx-0 sm:px-0">
                 {[
-                  { id: "all", label: "All Featured", icon: Car },
-                  { id: "electric", label: "Electric & Hybrid", icon: Zap },
-                  { id: "suv", label: "SUVs & 4x4", icon: Car },
-                  { id: "luxury", label: "Luxury Sedans", icon: Award },
-                  { id: "budget", label: "Under 5M ETB", icon: Tag }
+                  { id: "all", label: t("homepage:featured.tabs.all"), icon: Car },
+                  { id: "electric", label: t("homepage:featured.tabs.electric"), icon: Zap },
+                  { id: "suv", label: t("homepage:featured.tabs.suv"), icon: Car },
+                  { id: "luxury", label: t("homepage:featured.tabs.luxury"), icon: Award },
+                  { id: "budget", label: t("homepage:featured.tabs.budget"), icon: Tag }
                 ].map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -871,21 +880,28 @@ export default function HomePage({
           </div>
 
           {/* Vehicle Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredFeaturedVehicles.map((car) => {
-              const isElectric = car.fuelType === "Electric";
-              const isHybrid = car.fuelType === "Hybrid";
-              const hasDiscount = car.originalPrice && car.originalPrice > car.price;
-              const isFavorited = favorites.includes(car.id);
-              const seats = (car as any).seats || (car.bodyType === "SUV" || car.model.toLowerCase().includes("prado") || car.model.toLowerCase().includes("patrol") ? "7 seats" : "5 seats");
-              const reviewCount = 500 + Math.abs((car.price % 300));
+          {loadingVehicles ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <CarCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredFeaturedVehicles.map((car, idx) => {
+                const isElectric = car.fuelType === "Electric";
+                const isHybrid = car.fuelType === "Hybrid";
+                const hasDiscount = car.originalPrice && car.originalPrice > car.price;
+                const isFavorited = favorites.includes(car.id);
+                const seats = (car as any).seats || (car.bodyType === "SUV" || car.model.toLowerCase().includes("prado") || car.model.toLowerCase().includes("patrol") ? "7 seats" : "5 seats");
+                const reviewCount = 500 + Math.abs((car.price % 300));
 
-              return (
-                <div
-                  key={car.id}
-                  onClick={() => onViewDetails(car)}
-                  className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
-                >
+                return (
+                  <ScrollReveal key={car.id} direction="up" delay={Math.min(idx * 0.07, 0.35)} distance={20} className="h-full">
+                    <div
+                      onClick={() => onViewDetails(car)}
+                      className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer h-full"
+                    >
                   {/* Image Container */}
                   <div className="h-52 sm:h-56 relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <img
@@ -1031,12 +1047,13 @@ export default function HomePage({
                         </button>
                       </div>
                     </div>
-
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </ScrollReveal>
+                );
+              })}
+            </div>
+          )}
 
           {/* Showroom CTA */}
           <div className="text-center pt-2">
@@ -1044,7 +1061,7 @@ export default function HomePage({
               onClick={() => onBrowse()}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-slate-950 dark:bg-[#22c55e] hover:bg-slate-900 dark:hover:bg-[#16a34a] text-white dark:text-slate-950 text-xs sm:text-sm font-black transition cursor-pointer shadow-md hover:shadow-lg active:scale-95"
             >
-              <span>Explore All {vehicles.length}+ Available Listings</span>
+              <span>{t("homepage:featured.exploreAllCta", { count: vehicles.length || 24 })}</span>
               <ArrowRight size={16} />
             </button>
           </div>
@@ -1052,17 +1069,18 @@ export default function HomePage({
         </div>
       </section>
 
+      <SectionDivider />
 
       {/* 4. HOW IT WORKS */}
-      <section className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
-        <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-9">
+      <section id="section-how-it-works" className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
+        <ScrollReveal direction="up" delay={0.08} className="max-w-6xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-9">
           
           <div className="text-center space-y-3 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-              How Arif Car Sell Works
+              {t("homepage:howItWorks.title")}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
-              We streamlined vehicle transactions in Ethiopia into three secure and transparent stages.
+              {t("homepage:howItWorks.subtitle")}
             </p>
 
             {/* Action Segmented Control */}
@@ -1075,7 +1093,7 @@ export default function HomePage({
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
                 }`}
               >
-                Buying a Car
+                {t("homepage:howItWorks.buyingTab")}
               </button>
               <button
                 onClick={() => setHowItWorksTab("sellers")}
@@ -1085,7 +1103,7 @@ export default function HomePage({
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
                 }`}
               >
-                Selling a Car
+                {t("homepage:howItWorks.sellingTab")}
               </button>
             </div>
           </div>
@@ -1099,13 +1117,13 @@ export default function HomePage({
                   1
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
-                  Browse & Verify Libre
+                  {t("homepage:howItWorks.buyerStep1Title")}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Search through 100% physically inspected vehicles with ownership deed (Libre) cross-audited against Addis Transport records to ensure zero liens.
+                  {t("homepage:howItWorks.buyerStep1Desc")}
                 </p>
                 <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#22c55e] flex items-center gap-1">
-                  <ShieldCheck size={14} /> Zero fake paperwork risks
+                  <ShieldCheck size={14} /> {t("homepage:howItWorks.buyerStep1Badge")}
                 </div>
               </div>
 
@@ -1114,13 +1132,13 @@ export default function HomePage({
                   2
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
-                  Road Test & Inspection
+                  {t("homepage:howItWorks.buyerStep2Title")}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Meet the licensed broker at a safe Addis location. Test drive the car and bring your personal technician or mechanic to run complete diagnostic checks.
+                  {t("homepage:howItWorks.buyerStep2Desc")}
                 </p>
                 <div className="pt-2 text-[11px] font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                  <CheckCircle2 size={14} /> OBD-II & lift inspection friendly
+                  <CheckCircle2 size={14} /> {t("homepage:howItWorks.buyerStep2Badge")}
                 </div>
               </div>
 
@@ -1129,13 +1147,13 @@ export default function HomePage({
                   3
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
-                  Legal Settlement & Handover
+                  {t("homepage:howItWorks.buyerStep3Title")}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Pay through verified bank transfer with our legally capped 1.5% commission agreement. Our broker coordinates ownership title transfer at the bureau.
+                  {t("homepage:howItWorks.buyerStep3Desc")}
                 </p>
                 <div className="pt-2 text-[11px] font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1">
-                  <Percent size={14} /> Legally capped 1.5% fee
+                  <Percent size={14} /> {t("homepage:howItWorks.buyerStep3Badge")}
                 </div>
               </div>
 
@@ -1148,13 +1166,13 @@ export default function HomePage({
                   1
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
-                  List Free in 3 Minutes
+                  {t("homepage:howItWorks.sellerStep1Title")}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Post vehicle specifications, mileage, photo gallery, and your asking price. No upfront listing fees or subscriptions required.
+                  {t("homepage:howItWorks.sellerStep1Desc")}
                 </p>
                 <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#22c55e] flex items-center gap-1">
-                  <Sparkles size={14} /> 100% Free listing creation
+                  <Sparkles size={14} /> {t("homepage:howItWorks.sellerStep1Badge")}
                 </div>
               </div>
 
@@ -1163,13 +1181,13 @@ export default function HomePage({
                   2
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
-                  Local Broker Assignment
+                  {t("homepage:howItWorks.sellerStep2Title")}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  A certified broker in your sub-city (Bole, Yeka, Nifas Silk, etc.) manages calls, filters unserious offers, and coordinates pre-qualified buyer viewings.
+                  {t("homepage:howItWorks.sellerStep2Desc")}
                 </p>
                 <div className="pt-2 text-[11px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <Users size={14} /> Zero phone spam or tire-kickers
+                  <Users size={14} /> {t("homepage:howItWorks.sellerStep2Badge")}
                 </div>
               </div>
 
@@ -1178,39 +1196,40 @@ export default function HomePage({
                   3
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
-                  Direct Bank Payout
+                  {t("homepage:howItWorks.sellerStep3Title")}
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Receive 98.5% of the agreed vehicle price directly in your bank account upon signature. Zero hidden commission deductions or surprises.
+                  {t("homepage:howItWorks.sellerStep3Desc")}
                 </p>
                 <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#22c55e] flex items-center gap-1">
-                  <CheckCheck size={14} /> Fast, safe bank settlement
+                  <CheckCheck size={14} /> {t("homepage:howItWorks.sellerStep3Badge")}
                 </div>
               </div>
 
             </div>
           )}
 
-        </div>
+        </ScrollReveal>
       </section>
 
+      <SectionDivider />
 
       {/* 5. BROWSE BY BODY TYPE SECTION (WITH CLEAR HORIZONTAL SCROLL INDICATION) */}
-      <section className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8">
+      <section id="section-categories" className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
+        <ScrollReveal direction="up" delay={0.08} className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8">
           
           {/* Section Header with Title & Scroll Controls */}
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider">
                 <Car size={13} />
-                <span>Vehicle Categories</span>
+                <span>{t("homepage:categories.eyebrow")}</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-                Browse by Body Type
+                {t("homepage:categories.title")}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
-                From city driving across Addis to rugged regional trips.
+                {t("homepage:categories.subtitle")}
               </p>
             </div>
 
@@ -1292,7 +1311,7 @@ export default function HomePage({
                     </div>
 
                     <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-[#22c55e] pt-1 border-t border-slate-200 dark:border-slate-800">
-                      <span>Browse Models</span>
+                      <span>{t("homepage:featured.viewDetails")}</span>
                       <ArrowRight size={12} />
                     </div>
                   </div>
@@ -1316,7 +1335,7 @@ export default function HomePage({
           <div className="sm:hidden flex items-center justify-between pt-1 px-1">
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
               <ArrowRight size={12} className="text-[#22c55e] animate-pulse" />
-              <span>Swipe to explore all {categoriesWithCounts.length} body types</span>
+              <span>{t("homepage:categories.scrollHint", { count: categoriesWithCounts.length })}</span>
             </div>
 
             {/* Scroll Progress Track */}
@@ -1330,20 +1349,21 @@ export default function HomePage({
             </div>
           </div>
 
-        </div>
+        </ScrollReveal>
       </section>
 
+      <SectionDivider />
 
       {/* 6. TRANSPARENCY COMPARISON */}
-      <section className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
+      <section id="section-comparison" className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
+        <ScrollReveal direction="up" delay={0.08} className="max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="text-center space-y-2 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-              Why We Are Different
+              {t("homepage:comparison.title")}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
-              How Arif Car Sell protects you against the risks of informal roadside dealings.
+              {t("homepage:comparison.subtitle")}
             </p>
           </div>
 
@@ -1352,35 +1372,35 @@ export default function HomePage({
               
               {/* Header Titles */}
               <div className="md:col-span-4 p-5 sm:p-6 bg-slate-100/60 dark:bg-slate-800/40 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 hidden md:block">
-                Standard Criteria
+                {t("homepage:comparison.criteriaHeader")}
               </div>
               <div className="md:col-span-4 p-5 sm:p-6 bg-rose-50/40 dark:bg-rose-950/20 font-bold text-xs uppercase tracking-wider text-rose-600 dark:text-rose-400 hidden md:block">
-                Informal Roadside Brokers
+                {t("homepage:comparison.roadsideHeader")}
               </div>
               <div className="md:col-span-4 p-5 sm:p-6 bg-emerald-50/40 dark:bg-emerald-950/20 font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-[#22c55e] hidden md:block">
-                Arif Car Sell Verified
+                {t("homepage:comparison.arifHeader")}
               </div>
 
             </div>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {COMPARISONS.map((row, idx) => (
-                <div key={idx} className="grid grid-cols-1 md:grid-cols-12 p-5 sm:p-6 items-center gap-4">
+              {(["commission", "inspection", "legal", "escrow", "testDrive"] as const).map((key) => (
+                <div key={key} className="grid grid-cols-1 md:grid-cols-12 p-5 sm:p-6 items-center gap-4">
                   
                   <div className="md:col-span-4">
                     <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                      {row.feature}
+                      {t(`homepage:comparison.rows.${key}.feature`)}
                     </span>
                   </div>
 
                   <div className="md:col-span-4 text-xs text-rose-700 dark:text-rose-400/90 flex items-start gap-2 bg-rose-50/50 dark:bg-rose-950/20 p-3 rounded-xl md:bg-transparent md:p-0">
                     <span className="font-bold shrink-0">✕</span>
-                    <span>{row.roadside}</span>
+                    <span>{t(`homepage:comparison.rows.${key}.roadside`)}</span>
                   </div>
 
                   <div className="md:col-span-4 text-xs text-emerald-700 dark:text-[#22c55e] flex items-start gap-2 font-medium bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-xl md:bg-transparent md:p-0">
                     <CheckCircle2 size={16} className="text-[#22c55e] shrink-0 mt-0.5" />
-                    <span>{row.arif}</span>
+                    <span>{t(`homepage:comparison.rows.${key}.arif`)}</span>
                   </div>
 
                 </div>
@@ -1389,20 +1409,21 @@ export default function HomePage({
 
           </div>
 
-        </div>
+        </ScrollReveal>
       </section>
 
+      <SectionDivider />
 
       {/* 7. VERIFIED CUSTOMER TESTIMONIALS */}
-      <section className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
-        <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
+      <section id="section-testimonials" className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
+        <ScrollReveal direction="up" delay={0.08} className="max-w-6xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="text-center space-y-2 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-              Real Customer & Client Stories
+              {t("homepage:testimonials.title")}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
-              Read how people in Addis Ababa avoid middleman markups and close transactions securely.
+              {t("homepage:testimonials.subtitle")}
             </p>
           </div>
 
@@ -1440,20 +1461,21 @@ export default function HomePage({
             ))}
           </div>
 
-        </div>
+        </ScrollReveal>
       </section>
 
+      <SectionDivider />
 
       {/* 8. FREQUENTLY ASKED QUESTIONS */}
-      <section className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
-        <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
+      <section id="section-faq" className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
+        <ScrollReveal direction="up" delay={0.08} className="max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
           
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
-              Frequently Asked Questions
+              {t("homepage:faq.title")}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
-              Answers to common questions about buying and selling cars in Ethiopia.
+              {t("homepage:faq.subtitle")}
             </p>
           </div>
 
@@ -1487,24 +1509,25 @@ export default function HomePage({
             })}
           </div>
 
-        </div>
+        </ScrollReveal>
       </section>
 
+      <SectionDivider />
 
       {/* 9. BOTTOM CTA BANNER */}
-      <section className="py-14 sm:py-20 bg-slate-950 relative overflow-hidden">
+      <section id="section-cta" className="py-14 sm:py-20 bg-slate-950 relative overflow-hidden">
         {/* Glow Effects */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/15 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 text-center relative z-10 space-y-6">
+        <ScrollReveal direction="up" delay={0.08} className="max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 text-center relative z-10 space-y-6">
 
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-            Find your next car or list yours <br className="hidden sm:inline" />
-            with complete legal confidence.
+            {t("homepage:cta.titleLine1")} <br className="hidden sm:inline" />
+            {t("homepage:cta.titleLine2")}
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Join hundreds of satisfied car owners in Addis Ababa who chose transparent fees, verified ownership, and licensed brokers.
+            {t("homepage:cta.description")}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -1512,17 +1535,17 @@ export default function HomePage({
               onClick={() => onBrowse()}
               className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-7 py-3.5 rounded-xl text-xs sm:text-sm transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 active:scale-95"
             >
-              <span>Browse Showroom</span>
+              <span>{t("homepage:cta.browseShowroom")}</span>
               <ArrowRight size={16} />
             </button>
             <button
-              onClick={() => (onChooseRole ? onChooseRole() : onBecomeBroker())}
+              onClick={onBecomeBroker}
               className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 font-bold px-7 py-3.5 rounded-xl text-xs sm:text-sm transition cursor-pointer flex items-center justify-center gap-2 active:scale-95"
             >
-              <span>List a Car / Become a Broker</span>
+              <span>{t("homepage:cta.listCarBecomeBroker")}</span>
             </button>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* Concierge Help Modal */}
@@ -1535,13 +1558,14 @@ export default function HomePage({
                   <HelpCircle size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Vehicle Concierge Support</h3>
-                  <p className="text-xs text-slate-500">Need help finding or listing a vehicle?</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">{t("homepage:helpModal.title")}</h3>
+                  <p className="text-xs text-slate-500">{t("homepage:helpModal.description")}</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowHelpModal(false)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                aria-label={t("homepage:helpModal.close")}
               >
                 <X size={18} />
               </button>
@@ -1557,7 +1581,7 @@ export default function HomePage({
                 </div>
                 <div className="flex-1">
                   <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors">
-                    Direct Broker Advisory Hotline
+                    {t("homepage:helpModal.callUs")}
                   </div>
                   <div className="text-[11px] text-slate-500 mt-0.5">+251 91 123 4567 (Addis Ababa)</div>
                 </div>
@@ -1575,9 +1599,9 @@ export default function HomePage({
                 </div>
                 <div className="flex-1">
                   <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-sky-500 transition-colors">
-                    Browse All 1,450+ Verified Cars
+                    {t("homepage:featured.exploreAllCta", { count: 1450 })}
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Filter by brand, price range & fuel type</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">{t("homepage:categories.subtitle")}</div>
                 </div>
               </button>
             </div>
@@ -1586,7 +1610,7 @@ export default function HomePage({
               onClick={() => setShowHelpModal(false)}
               className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
             >
-              Close
+              {t("homepage:helpModal.close")}
             </button>
           </div>
         </div>
