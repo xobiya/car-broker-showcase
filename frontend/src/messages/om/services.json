@@ -1,0 +1,52 @@
+{
+  "services": {
+    "title": "Tajaajiloota Konkolaataa Guutuu",
+    "subtitle": "Qorannoo teeknikaa, mirkaneessa libree, kaffaltii wabummaa baankiifi deeggarsa dilaalummaa Finfinnee keessatti.",
+    "inspection": {
+      "title": "Qorannoo Makaanikaa Qabxii 50",
+      "desc": "Kaffaltiin kamiyyuu osoo hin raawwatamin dura ogeeyyotaan qorannoo motooraa, kompiitaraafi shansii guutuu taasifamu."
+    },
+    "escrow": {
+      "title": "Kaffaltii Baankiin Eegame",
+      "desc": "Sodaa qarshii callaa karaarratti kennuu hambisaa. Maallaqni keessan baankii daldalaa keessatti libreen harka keessan ga'utti eegama."
+    },
+    "libre": {
+      "title": "Mirkaneessa Waraqaa Libree",
+      "desc": "Konkolaataan qabeenyummaa qulqulluu qabaachuusaa ragaa geejjibaafi poolisii wajjin daqiiqaa muraasa keessatti mirkaneessina."
+    },
+    "brokerage": {
+      "title": "Koomishinii Iftoomina Qabu 1.5%",
+      "desc": "Kaffaltii dhaabbataa 1.5% qofaan tajaajila amanamaa dhiyeessina. Gatii dhokataan nurra hin jiru."
+    }
+  },
+  "about": {
+    "title": "Waa'ee Arif Car Sell",
+    "subtitle": "Gabaa konkolaataa Itoophiyaa amanamummaa, teeknoloojiifi qorannoo mirkanaa'een haareffamaa jira.",
+    "missionTitle": "Ergama Keenya",
+    "missionDesc": "Gabaa konkolaataa Itoophiyaa keessaa shira, daballii gatii dhokataafi hanqina teeknikaa sirna dilaalummaa seera qabeessaan hambisuudha.",
+    "valuesTitle": "Dudhaalee Ijoo",
+    "values": {
+      "transparency": "Iftoomina Guutuu — Kaffaltiifi hanqinni teeknikaa kamiyyuu ifatti beeksifama.",
+      "security": "Wabummaa Seeraa — Waraqaa libree 100% mirkanaa'eefi kaffaltii baankii amansiisaa.",
+      "integrity": "Amanamummaa Ogummaa — Dilaalota dambii ogummaatiin durfaman."
+    }
+  },
+  "contact": {
+    "title": "Garee Keenya Qunnamaa",
+    "subtitle": "Waa'ee tarreeffama konkolaataa, qorannoo ykn hirmaannaa dilaalaa gaaffii qabduu? Isin gargaaruuf qophiidha.",
+    "formTitle": "Ergaa Nuuf Ergaa",
+    "nameLabel": "Maqaa Guutuu",
+    "emailLabel": "Teessoo Imeelii",
+    "phoneLabel": "Lakkoofsa Bilbilaa",
+    "subjectLabel": "Dhimma",
+    "messageLabel": "Ergaa Keessan",
+    "sendButton": "Ergaa Ergaa",
+    "sending": "Ergamaa jira...",
+    "successAlert": "Galatoomaa! Ergaan keessan garee maamiltoota keenya qaqqabeera."
+  },
+  "help": {
+    "title": "Giddugala Deeggarsaafi Gargaarsaa",
+    "subtitle": "Konkolaataa bituu, gurguruufi sakatta'uu irratti deebii saffisaafi qajeelfama argadhaa.",
+    "searchPlaceholder": "Mata duree gargaarsaa barbaadaa..."
+  }
+}

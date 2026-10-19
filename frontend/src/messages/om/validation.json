@@ -1,0 +1,12 @@
+{
+  "required": "Bakki kun guutamuu qaba.",
+  "invalidEmail": "Maaloo teessoo imeelii sirrii galchaa.",
+  "invalidPhone": "Maaloo lakkoofsa bilbilaa Itoophiyaa sirrii galchaa (fkn: +251 9XX XXX XXX).",
+  "passwordTooShort": "Jechi darbii yoo xiqqaate qubee/lakkoofsa 6 qabaachuu qaba.",
+  "passwordsDoNotMatch": "Jechoonni darbii wal hin gitne.",
+  "termsRequired": "Itti fufuuf waliigaltee tajaajilaafi imaammata mateenyaa fudhachuu qabdu.",
+  "pricePositive": "Gatiin konkolaataa zeeroo ol ta'uu qaba.",
+  "yearInvalid": "Maaloo bara oomishaa sirrii galchaa.",
+  "fileTooLarge": "Hangi faayilii 5MB caala.",
+  "generalError": "Maaloo erguun dura dogoggoroota agarsiifaman sirreessaa."
+}

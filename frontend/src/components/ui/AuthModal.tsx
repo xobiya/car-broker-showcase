@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { User } from "../../../../shared/types";
 import { Shield, Mail, UserIcon, Phone, Loader2, X, ChevronRight, Eye, EyeOff } from "lucide-react";
 import { authApi, setToken } from "../../lib/api";
+import { useTranslation } from "react-i18next";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ const DEMO_ACCOUNTS = [
 ];
 
 export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, initialTab }: AuthModalProps) {
+  const { t } = useTranslation(["authentication", "common"]);
   const [tab, setTab] = useState<AuthTab>(initialTab || (defaultRole ? "register" : "login"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,8 +42,8 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
     setError("");
   };
 
-  const switchTab = (t: AuthTab) => {
-    setTab(t);
+  const switchTab = (tTab: AuthTab) => {
+    setTab(tTab);
     setError("");
   };
 
@@ -60,11 +62,11 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
       }
 
       setToken(data.token);
-      onNotify(tab === "register" ? "Account created successfully!" : "Welcome back!", "success");
+      onNotify(tab === "register" ? t("authentication:register.subtitle") : t("authentication:login.subtitle"), "success");
       onSuccess(data.user);
       onClose();
     } catch (err: any) {
-      setError(err.message || "Network error. Please try again.");
+      setError(err.message || t("common:messages.networkError"));
     } finally {
       setLoading(false);
     }
@@ -82,6 +84,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
         <button
           onClick={onClose}
           className="absolute top-3 right-3 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+          aria-label={t("common:actions.cancel")}
         >
           <X size={14} />
         </button>
@@ -89,34 +92,34 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
         <div className="px-5 sm:px-7 pt-8 sm:pt-9 pb-4 sm:pb-5">
           <div className="mb-4 sm:mb-5">
             <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-              {tab === "login" ? "Welcome Back" : "Create Your Account"}
+              {tab === "login" ? t("authentication:login.title") : t("authentication:register.title")}
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">
               {tab === "login"
-                ? "Sign in to access your dashboard."
-                : "Join our trusted automotive marketplace."}
+                ? t("authentication:login.subtitle")
+                : t("authentication:register.subtitle")}
             </p>
           </div>
 
           <div className="flex bg-slate-100/90 rounded-2xl p-1.5 mb-4 sm:mb-5 border border-slate-200/80">
-            {(["login", "register"] as AuthTab[]).map(t => (
+            {(["login", "register"] as AuthTab[]).map(tTab => (
               <button
-                key={t}
-                onClick={() => switchTab(t)}
+                key={tTab}
+                onClick={() => switchTab(tTab)}
                 className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                  tab === t
+                  tab === tTab
                     ? "bg-[#0B0F19] text-[#22c55e] shadow-sm font-black"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                {t === "login" ? "Sign In" : "Create Account"}
+                {tTab === "login" ? t("authentication:modal.signInTab") : t("authentication:modal.registerTab")}
               </button>
             ))}
           </div>
 
           {tab === "login" && role && (
             <div className="mb-3 flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Signing in as:</span>
+              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">{t("authentication:login.roleSelector")}:</span>
               <span className="text-[11px] font-black text-emerald-900 capitalize">{role}</span>
             </div>
           )}
@@ -130,7 +133,9 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
 
             {tab === "register" && (
               <div>
-                <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Full Name</label>
+                <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+                  {t("authentication:register.nameLabel")}
+                </label>
                 <div className="relative">
                   <UserIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
                   <input
@@ -138,7 +143,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="e.g. Dawit Lemma"
+                    placeholder={t("authentication:register.namePlaceholder")}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                   />
                 </div>
@@ -146,7 +151,9 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
             )}
 
             <div>
-              <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Email Address</label>
+              <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+                {t("authentication:login.emailLabel")}
+              </label>
               <div className="relative">
                 <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
                 <input
@@ -154,14 +161,16 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="e.g. dawit@example.com"
+                  placeholder={t("authentication:login.emailPlaceholder")}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Password</label>
+              <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+                {t("authentication:login.passwordLabel")}
+              </label>
               <div className="relative">
                 <Shield size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
                 <input
@@ -184,14 +193,16 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
 
             {tab === "register" && (
               <div>
-                <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Phone Number</label>
+                <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+                  {t("authentication:register.phoneLabel")}
+                </label>
                 <div className="relative">
                   <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
                   <input
                     type="tel"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    placeholder="+251 9X XXX XXXX"
+                    placeholder={t("authentication:register.phonePlaceholder")}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                   />
                 </div>
@@ -200,7 +211,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
 
             {tab === "register" && (
               <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-                <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Joining as:</span>
+                <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">{t("authentication:register.roleSelectionTitle")}</span>
                 <span className="text-[11px] font-black text-emerald-900 capitalize">{role}</span>
               </div>
             )}
@@ -211,11 +222,11 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
               className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-2.5 rounded-lg text-xs tracking-wider transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20"
             >
               {loading ? (
-                <><Loader2 size={14} className="animate-spin" /> Please wait...</>
+                <><Loader2 size={14} className="animate-spin" /> {t("common:status.loading")}</>
               ) : tab === "register" ? (
-                <><UserIcon size={14} /> Create Account</>
+                <><UserIcon size={14} /> {t("authentication:register.submitButton")}</>
               ) : (
-                <>Sign In</>
+                <>{t("authentication:login.submitButton")}</>
               )}
             </button>
           </form>

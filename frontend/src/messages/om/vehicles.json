@@ -1,0 +1,60 @@
+{
+  "catalog": {
+    "title": "Agarsiisa Gabaa Konkolaataa",
+    "subtitle": "Itoophiyaa keessatti konkolaattota abbaan qabeenyummaafi teeknikni isaanii mirkanaa'e daawwadhaa.",
+    "searchPlaceholder": "Biraandii, moodeelii, bara ykn jecha ijootiin barbaadaa...",
+    "showingResults": "Konkolaattotni mirkanaa'an {{count}} argamaniiru",
+    "showingFilteredResults": "{{total}} keessaa {{filtered}} agarsiifamaa jiru",
+    "sortBy": "Tartiiba",
+    "sortOptions": {
+      "newest": "Haaraa Galmaa'an",
+      "priceLow": "Gatii: Gadi aanaa gara olaanaatti",
+      "priceHigh": "Gatii: Olaanaa gara gadi aanaatti",
+      "mileageLow": "Fageenya Imalaa Xiqqaa",
+      "yearNew": "Moodeelota Dhiyoo"
+    },
+    "filterHeading": "Calaltuu",
+    "priceRange": "Hamma Gatii (ETB)",
+    "yearRange": "Bara Oomishaa",
+    "condition": "Haala",
+    "fuelType": "Gosa Boba'aa",
+    "transmission": "Gosa Giirii",
+    "bodyType": "Boca",
+    "location": "Bakka",
+    "brand": "Biraandii",
+    "model": "Moodeelii",
+    "clearAll": "Hundaa Haqaa",
+    "noVehiclesTitle": "Konkolaataan tokkollee hin argamne",
+    "noVehiclesDesc": "Ulaagaa barbaaddan wajjin kan wal gitu hin argamne. Calaltuu keessan salphisaa yaalaa.",
+    "resetFiltersButton": "Calaltuu Hundaa Qulqulleessi"
+  },
+  "detail": {
+    "backToShowroom": "Gara Agarsiisaatti Deebi'aa",
+    "overview": "Waliigalaafi Seenaa",
+    "technicalSpecs": "Bal'ina Teeknikaa",
+    "features": "Amaloota Addaa",
+    "inspectionReport": "Gabaasa Qorannoo Makaanikaa",
+    "verifiedLibre": "Libreen Mirkanaa'eera",
+    "certifiedInspected": "Qabxii 50n Sakatta'ame",
+    "price": "Gatii",
+    "negotiable": "Gatiin ni mari'atama",
+    "fixedPrice": "Gatii Dhaabbataa",
+    "contactBrokerTitle": "Dilaala Konkolaatichaa Qunnamaa",
+    "brokerVerified": "Dilaala Hayyama Qabu",
+    "callBroker": "Dilaalaaf Bilbilaa",
+    "chatWhatsApp": "WhatsApp irratti Haasawaa",
+    "scheduleTestDrive": "Beellama Yaalii Oofuu Qabadhaa",
+    "makeInquiry": "Fedhii / Gaaffii Ergaa",
+    "inquiryForm": {
+      "title": "Waa'ee {{vehicle}} Gaaffii Ergaa",
+      "nameLabel": "Maqaa Keessan",
+      "phoneLabel": "Lakkoofsa Bilbilaa",
+      "messageLabel": "Ergaa Keessan",
+      "messagePlaceholder": "Akkam, konkolaataa kana irratti fedhii qaba. Yoom qaamaan ilaaluun akka danda'amu yoo na beeksistan natti tola.",
+      "submitButton": "Gaaffii Koo Dilaalaaf Ergi",
+      "submitting": "Ergamaa jira...",
+      "successMessage": "Gaaffiin keessan dilaala qaqqabeera. Dhiyootti bilbilaan isin qunnamu."
+    },
+    "reportListing": "Waa'ee Konkolaataa Kanaa Shakkii Gabaasaa"
+  }
+}
