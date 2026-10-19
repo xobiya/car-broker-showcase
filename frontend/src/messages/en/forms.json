@@ -1,0 +1,25 @@
+{
+  "labels": {
+    "name": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "message": "Message / Notes",
+    "notes": "Additional Notes",
+    "selectPlaceholder": "Please choose an option",
+    "uploadFiles": "Upload Inspection Photos",
+    "dropFiles": "Drag and drop photos here, or click to browse",
+    "search": "Type to search..."
+  },
+  "buttons": {
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "submit": "Submit Request",
+    "submitting": "Submitting...",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "apply": "Apply Filters",
+    "close": "Close"
+  }
+}

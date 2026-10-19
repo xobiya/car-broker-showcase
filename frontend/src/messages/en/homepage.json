@@ -1,0 +1,144 @@
+{
+  "hero": {
+    "eyebrow": "Find Your Perfect Car",
+    "titleLine1": "Looking for a vehicle?",
+    "titleLine2": "You're in the perfect spot.",
+    "highlight1": "High quality at a low cost.",
+    "highlight2": "Premium verified services.",
+    "highlight3": "24/7 roadside & legal support.",
+    "scrollPrompt": "Scroll to explore sections"
+  },
+  "search": {
+    "allCars": "All cars",
+    "newCars": "New cars",
+    "usedCars": "Used cars",
+    "needHelp": "Need help?",
+    "pickUpLocation": "Pick Up Location",
+    "makeBrand": "Make / Brand",
+    "allBrands": "All Brands",
+    "vehicleType": "Vehicle Type",
+    "allTypes": "All Types",
+    "maxBudget": "Max Budget",
+    "anyPrice": "Any Budget",
+    "findVehicleButton": "Find a Vehicle"
+  },
+  "brands": {
+    "title": "Explore Leading Brands",
+    "subtitle": "Unveil the Finest Selection of High-End & Popular Vehicles in Ethiopia",
+    "showAllBrands": "Show All Brands"
+  },
+  "featured": {
+    "title": "Most Searched Vehicles",
+    "subtitle": "Handpicked models with verified ownership and guaranteed physical inspection.",
+    "tabs": {
+      "all": "All Featured",
+      "electric": "Electric & Hybrid",
+      "suv": "SUVs & 4x4",
+      "luxury": "Luxury Sedans",
+      "budget": "Under 5M ETB"
+    },
+    "viewDetails": "View Details",
+    "call": "Call",
+    "exploreAllCta": "Explore All {{count}}+ Available Listings"
+  },
+  "howItWorks": {
+    "title": "How Arif Car Sell Works",
+    "subtitle": "We streamlined vehicle transactions in Ethiopia into three secure and transparent stages.",
+    "buyingTab": "Buying a Car",
+    "sellingTab": "Selling a Car",
+    "buyerStep1Title": "Browse & Select",
+    "buyerStep1Desc": "Filter hundreds of verified Ethiopian listings by price, brand, condition, and location with high-resolution inspection photos.",
+    "buyerStep1Badge": "50+ Multi-point check",
+    "buyerStep2Title": "Schedule Test Drive",
+    "buyerStep2Desc": "Book a physical viewing and mechanical inspection at our secure partner centers in Addis Ababa with our licensed broker.",
+    "buyerStep2Badge": "Neutral mechanic review",
+    "buyerStep3Title": "Secure Legal Transfer",
+    "buyerStep3Desc": "Complete title deed (Libre) verification and bank payment securely with our 1.5% fixed fee guarantee and zero surprises.",
+    "buyerStep3Badge": "Zero hidden roadside fees",
+    "sellerStep1Title": "Submit Vehicle Details",
+    "sellerStep1Desc": "Share photos, registration libre, and asking price through our seller portal or WhatsApp support.",
+    "sellerStep1Badge": "Fast 2-hour onboarding",
+    "sellerStep2Title": "Inspection & Showcase",
+    "sellerStep2Desc": "Our certified technicians verify condition and photograph your car, exposing it to 10,000+ serious buyers.",
+    "sellerStep2Badge": "Verified seller seal",
+    "sellerStep3Title": "Direct Bank Payout",
+    "sellerStep3Desc": "Receive 98.5% of the agreed vehicle price directly in your bank account upon signature. Zero hidden commission deductions.",
+    "sellerStep3Badge": "Fast, safe bank settlement"
+  },
+  "categories": {
+    "eyebrow": "Vehicle Categories",
+    "title": "Browse by Body Type",
+    "subtitle": "From city driving across Addis to rugged regional trips.",
+    "scrollHint": "Swipe to explore all {{count}} body types",
+    "types": {
+      "suv": "SUV & 4x4",
+      "sedan": "Sedan",
+      "compact": "Compact / Hatchback",
+      "pickup": "Pickup & 4WD",
+      "van": "Minivan & Passenger",
+      "commercial": "Commercial Truck",
+      "coupe": "Coupe & Sport",
+      "convertible": "Convertible",
+      "wagon": "Station Wagon",
+      "crossover": "Crossover"
+    }
+  },
+  "comparison": {
+    "title": "Why We Are Different",
+    "subtitle": "How Arif Car Sell protects you against the risks of informal roadside dealings.",
+    "criteriaHeader": "Standard Criteria",
+    "roadsideHeader": "Informal Roadside Brokers",
+    "arifHeader": "Arif Car Sell Verified",
+    "rows": {
+      "commission": {
+        "feature": "Broker Commission Fee",
+        "roadside": "Unregulated 5% - 10% hidden middleman markup",
+        "arif": "Transparent flat 1.5% commission with receipt"
+      },
+      "inspection": {
+        "feature": "Mechanical & Accident Inspection",
+        "roadside": "Visual check only; hidden engine flaws concealed",
+        "arif": "50+ point diagnostic scan & certified report"
+      },
+      "legal": {
+        "feature": "Libre (Title Deed) Legal Verification",
+        "roadside": "High risk of duplicate or contested titles",
+        "arif": "Police & transport authority registration check"
+      },
+      "escrow": {
+        "feature": "Payment & Escrow Safety",
+        "roadside": "Cash handed over on the street; high fraud risk",
+        "arif": "Direct secure commercial bank escrow release"
+      },
+      "testDrive": {
+        "feature": "Safe Test Drive Protocol",
+        "roadside": "Uninsured test drive in chaotic traffic",
+        "arif": "Secured inspection facility test drives"
+      }
+    }
+  },
+  "testimonials": {
+    "title": "Real Customer & Client Stories",
+    "subtitle": "Read how people in Addis Ababa avoid middleman markups and close transactions securely."
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Answers to common questions about buying and selling cars in Ethiopia."
+  },
+  "cta": {
+    "titleLine1": "Find your next car or list yours",
+    "titleLine2": "with complete legal confidence.",
+    "description": "Join hundreds of satisfied car owners in Addis Ababa who chose transparent fees, verified ownership, and licensed brokers.",
+    "browseShowroom": "Browse Showroom",
+    "listCarBecomeBroker": "List a Car / Become a Broker"
+  },
+  "helpModal": {
+    "title": "Car Buying Concierge",
+    "badge": "Free Consultation",
+    "description": "Need guidance finding a vehicle or verifying a title deed in Addis Ababa? Our automotive specialists assist you free of charge.",
+    "callUs": "Call Our Concierge Desk",
+    "whatsappChat": "Chat on WhatsApp",
+    "availability": "Available Monday to Saturday, 8:00 AM – 6:30 PM (EAT)",
+    "close": "Close window"
+  }
+}

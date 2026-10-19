@@ -1,0 +1,12 @@
+{
+  "required": "This field is required.",
+  "invalidEmail": "Please provide a valid email address.",
+  "invalidPhone": "Please enter a valid Ethiopian phone number (e.g. +251 9XX XXX XXX).",
+  "passwordTooShort": "Password must be at least 6 characters long.",
+  "passwordsDoNotMatch": "Passwords do not match.",
+  "termsRequired": "You must accept the terms of service and privacy policy to continue.",
+  "pricePositive": "Vehicle price must be greater than zero.",
+  "yearInvalid": "Please provide a valid manufacturing year.",
+  "fileTooLarge": "File size exceeds the 5MB limit.",
+  "generalError": "Please correct the highlighted errors before submitting."
+}

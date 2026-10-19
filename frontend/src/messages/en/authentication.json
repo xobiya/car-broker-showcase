@@ -1,0 +1,59 @@
+{
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to access your dashboard, saved vehicles, and inquiries.",
+    "roleSelector": "Account Role",
+    "roles": {
+      "buyer": "Customer / Buyer",
+      "seller": "Direct Seller",
+      "broker": "Licensed Broker",
+      "admin": "Administrator"
+    },
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Enter the email associated with your account",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember this device for 30 days",
+    "forgotPassword": "Forgot password?",
+    "submitButton": "Sign In to Account",
+    "submittingButton": "Authenticating...",
+    "noAccountPrompt": "Don't have an account yet?",
+    "createAccountLink": "Create one now",
+    "quickFill": "Quick Test Demo Accounts:"
+  },
+  "register": {
+    "title": "Create Your Account",
+    "subtitle": "Join Ethiopia's verified automotive marketplace.",
+    "roleSelectionTitle": "I want to register as a:",
+    "roles": {
+      "buyer": "Customer",
+      "seller": "Direct Car Listing",
+      "broker": "Auto Broker"
+    },
+    "rolesTagline": {
+      "buyer": "Search, buy, or sell your car with verified inspections and customer dashboard.",
+      "seller": "List your vehicle for sale, manage buyer inquiries, and receive direct phone calls.",
+      "broker": "Join our verified broker network, manage multi-car inventories, and earn commissions."
+    },
+    "nameLabel": "Full Name",
+    "namePlaceholder": "e.g. Dawit Lemma",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "name@example.com",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "+251 911 234 567",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "termsPrompt": "I agree to the",
+    "termsLink": "Terms of Service",
+    "andWord": "and",
+    "privacyLink": "Privacy Policy",
+    "submitButton": "Create My Account",
+    "submittingButton": "Creating account...",
+    "alreadyHaveAccount": "Already registered?",
+    "signInLink": "Sign in here"
+  },
+  "modal": {
+    "signInTab": "Sign In",
+    "registerTab": "Register New Account"
+  }
+}

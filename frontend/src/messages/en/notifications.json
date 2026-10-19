@@ -1,0 +1,20 @@
+{
+  "auth": {
+    "loginSuccess": "Welcome back, {{name}}! You are signed in.",
+    "logoutSuccess": "You have signed out successfully.",
+    "registerSuccess": "Account created successfully! Welcome to Arif Car Sell, {{name}}.",
+    "invalidCredentials": "We couldn't sign you in with those details. Check your email and password, then try again."
+  },
+  "vehicles": {
+    "inquirySent": "Your inquiry for {{vehicle}} has been delivered to the broker.",
+    "savedToFavorites": "{{vehicle}} has been added to your favorites.",
+    "removedFromFavorites": "{{vehicle}} has been removed from your favorites.",
+    "testDriveScheduled": "Test drive request submitted for {{vehicle}}. The broker will call you to confirm.",
+    "reportSubmitted": "Thank you. Your report has been submitted for administrative review."
+  },
+  "common": {
+    "linkCopied": "Link copied to clipboard!",
+    "profileUpdated": "Your profile information has been saved successfully.",
+    "actionFailed": "Action could not be completed. Please try again."
+  }
+}

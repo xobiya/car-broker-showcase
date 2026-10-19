@@ -1,0 +1,52 @@
+{
+  "services": {
+    "title": "Comprehensive Automotive Services",
+    "subtitle": "Professional vehicle inspection, title deed verification, escrow payments, and brokerage support in Addis Ababa.",
+    "inspection": {
+      "title": "50-Point Mechanic Diagnostic",
+      "desc": "Complete mechanical, computer OBD-II, and chassis inspection performed by licensed technicians before any payment is made."
+    },
+    "escrow": {
+      "title": "Bank-Secured Escrow Settlement",
+      "desc": "Eliminate roadside cash risks. Funds are held in a secure commercial bank escrow account until the vehicle Libre is legally transferred."
+    },
+    "libre": {
+      "title": "Title Deed (Libre) Verification",
+      "desc": "Instant verification with Ethiopian Transport and Police databases to confirm clear title and zero outstanding legal disputes."
+    },
+    "brokerage": {
+      "title": "Transparent 1.5% Brokerage",
+      "desc": "Honest representation with fixed 1.5% fee. We never apply roadside hidden markups or arbitrary commissions."
+    }
+  },
+  "about": {
+    "title": "About Arif Car Sell",
+    "subtitle": "Reinventing the Ethiopian car buying and selling experience through integrity, technology, and verified inspection.",
+    "missionTitle": "Our Mission",
+    "missionDesc": "To eliminate fraud, hidden markups, and mechanical uncertainties from Ethiopia's automotive marketplace by establishing transparent, certified brokerage standards.",
+    "valuesTitle": "Core Values",
+    "values": {
+      "transparency": "Full Transparency — Every fee and inspection defect is disclosed upfront.",
+      "security": "Legal Security — 100% verified Libre title deeds and safe bank settlements.",
+      "integrity": "Professional Integrity — Licensed brokers bound by ethical standards."
+    }
+  },
+  "contact": {
+    "title": "Get in Touch with Our Team",
+    "subtitle": "Have questions about a listing, vehicle inspection, or broker partnership? We're here to assist you.",
+    "formTitle": "Send Us a Message",
+    "nameLabel": "Your Full Name",
+    "emailLabel": "Your Email Address",
+    "phoneLabel": "Phone Number",
+    "subjectLabel": "Subject",
+    "messageLabel": "Your Message",
+    "sendButton": "Send Message",
+    "sending": "Sending...",
+    "successAlert": "Thank you! Your message has been sent to our customer care team."
+  },
+  "help": {
+    "title": "Help & Support Center",
+    "subtitle": "Find quick answers and step-by-step guides for buying, selling, and inspecting vehicles.",
+    "searchPlaceholder": "Search help topics..."
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "topBanner": {
+    "announcement": "Verified Ethiopian Vehicle Marketplace & Inspection Center",
+    "callUs": "Call Support",
+    "phoneNumber": "+251 911 234 567",
+    "supportEmail": "support@arifcarsell.com"
+  },
+  "menu": {
+    "home": "Home",
+    "vehicles": "Vehicles",
+    "services": "Services",
+    "compare": "Compare",
+    "about": "About Us",
+    "contact": "Contact",
+    "admin": "Admin Panel",
+    "brokerDashboard": "Broker Dashboard",
+    "buyerDashboard": "Customer Portal",
+    "signIn": "Sign In",
+    "register": "Register",
+    "signOut": "Sign Out",
+    "profile": "My Account"
+  },
+  "roles": {
+    "admin": "Platform Administrator",
+    "broker": "Licensed Auto Broker",
+    "seller": "Direct Car Seller",
+    "buyer": "Customer / Buyer"
+  },
+  "theme": {
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode",
+    "currentTheme": "Current theme: {{theme}}"
+  },
+  "language": {
+    "selectLanguage": "Select display language",
+    "currentLanguage": "Current language: {{language}}"
+  },
+  "footer": {
+    "tagline": "Ethiopia's premier vehicle procurement and verified brokerage marketplace. We eliminate roadside markup risks with certified mechanic inspections and escrow settlements.",
+    "quickLinksTitle": "Quick Navigation",
+    "servicesTitle": "Platform Services",
+    "legalTitle": "Trust & Legal",
+    "contactTitle": "Addis Ababa Headquarters",
+    "address": "Bole Sub-City, Next to Edna Mall, Addis Ababa, Ethiopia",
+    "workingHours": "Mon - Sat: 8:00 AM - 6:30 PM (EAT)",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "help": "Help & Support Center",
+    "allRightsReserved": "All rights reserved.",
+    "certifiedBrokerNetwork": "Licensed under Ethiopian Trade & Industry Ministry regulations."
+  }
+}

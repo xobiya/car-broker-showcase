@@ -1,0 +1,26 @@
+{
+  "title": "Side-by-Side Vehicle Comparison",
+  "subtitle": "Compare specifications, features, and pricing across up to 4 Ethiopian vehicles.",
+  "addVehicle": "Add a Vehicle to Compare",
+  "searchPlaceholder": "Search make or model to add...",
+  "clearAll": "Clear Comparison",
+  "highlightDifferences": "Highlight differences",
+  "showAllSpecs": "Show all specifications",
+  "emptyStateTitle": "No vehicles selected for comparison",
+  "emptyStateDesc": "Select at least two vehicles from the showroom to compare their specifications side by side.",
+  "browseVehiclesCta": "Browse Showroom to Select",
+  "specs": {
+    "price": "Market Asking Price",
+    "year": "Manufacturing Year",
+    "makeModel": "Make & Model",
+    "bodyType": "Body Style",
+    "mileage": "Odometer Mileage",
+    "fuelType": "Fuel / Powertrain",
+    "engine": "Engine Displacement",
+    "transmission": "Gearbox",
+    "condition": "Condition",
+    "location": "Location in Ethiopia",
+    "inspected": "Inspection Status",
+    "broker": "Listing Broker"
+  }
+}
