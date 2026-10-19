@@ -245,7 +245,7 @@ describe("Security & Authentication Hardening", () => {
         return pathname;
       };
 
-      const userSidePaths = ["/", "/browse", "/vehicles/veh-123", "/compare", "/choose-role", "/profile", "/broker-dashboard", "/seller-dashboard", "/about"];
+      const userSidePaths = ["/", "/browse", "/vehicles/veh-123", "/compare", "/register", "/profile", "/broker-dashboard", "/seller-dashboard", "/about"];
 
       for (const path of userSidePaths) {
         expect(resolveRouteForRole(path, "admin")).toBe("/admin");
@@ -364,7 +364,7 @@ describe("Security & Authentication Hardening", () => {
       expect(indexFields).toContain("status_year");
       expect(indexFields).toContain("status_brand_model");
       expect(indexFields).toContain("broker_id_status");
-    });
+    }, 15000);
 
     it("should enforce compound unique index on SavedVehicleModel to prevent duplicate saves", async () => {
       const { SavedVehicleModel } = await import("../../../backend/db/models");

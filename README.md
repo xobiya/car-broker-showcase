@@ -129,8 +129,7 @@ arif-car-sell/
 │       │   ├── VehicleDetail.tsx       # Detailed vehicle view & lead form
 │       │   ├── VehicleComparison.tsx   # Side-by-side spec comparison matrix
 │       │   ├── LoginPage.tsx           # Email/password authentication page
-│       │   ├── RegisterPage.tsx        # Multi-role account registration
-│       │   ├── ChooseRolePage.tsx      # Role selection gateway
+│       │   ├── RegisterPage.tsx        # Multi-role account registration (Customer, Seller, Broker)
 │       │   ├── AboutPage.tsx           # Company background & mission
 │       │   ├── ServicesPage.tsx        # Brokerage & inspection service details
 │       │   ├── ContactPage.tsx         # Customer contact & inquiry form
