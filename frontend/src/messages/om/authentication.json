@@ -1,0 +1,59 @@
+{
+  "login": {
+    "title": "Baga Nagaan Deebitan",
+    "subtitle": "Daashboordii, konkolaattota keessaniifi ergaa keessan argachuuf seenaa.",
+    "roleSelector": "Gosa Herregaa",
+    "roles": {
+      "buyer": "Maamila / Bittaa",
+      "seller": "Gurguraa Konkolaataa",
+      "broker": "Dilaala Seera Qabeessa",
+      "admin": "Bulchaa"
+    },
+    "emailLabel": "Teessoo Imeelii",
+    "emailPlaceholder": "Imeelii herrega keessan wajjin walqabatu galchaa",
+    "passwordLabel": "Jecha Darbii",
+    "passwordPlaceholder": "Jecha darbii keessan galchaa",
+    "rememberMe": "Meeshaa kana guyyoota 30f yaadadhu",
+    "forgotPassword": "Jecha darbii irraanfattanii?",
+    "submitButton": "Gara Herregaatti Seeni",
+    "submittingButton": "Mirkaneessaa jira...",
+    "noAccountPrompt": "Herrega hin qabdanii?",
+    "createAccountLink": "Amma galmaa'aa",
+    "quickFill": "Herregota Yaalii Seensaa:"
+  },
+  "register": {
+    "title": "Herrega Haaraa Uumaa",
+    "subtitle": "Gabaa konkolaataa Itoophiyaa isa amanamaatti makamaa.",
+    "roleSelectionTitle": "Akka kanatti galmaa'uun barbaada:",
+    "roles": {
+      "buyer": "Maamila",
+      "seller": "Gurguraa Konkolaataa",
+      "broker": "Dilaala Konkolaataa"
+    },
+    "rolesTagline": {
+      "buyer": "Qorannoo qulqulluu wajjin konkolaataa barbaadaa, bitaa ykn gurguraa.",
+      "seller": "Konkolaataa keessan gurguraaf dhiyeessaa, gaaffii bittattootaa hordofaa.",
+      "broker": "Neetwoorkii dilaalaa seera qabeessatti makamaa, koomishinii argadhaa."
+    },
+    "nameLabel": "Maqaa Guutuu",
+    "namePlaceholder": "Fkn: Dawiit Lammaa",
+    "emailLabel": "Teessoo Imeelii",
+    "emailPlaceholder": "name@example.com",
+    "phoneLabel": "Lakkoofsa Bilbilaa",
+    "phonePlaceholder": "+251 911 234 567",
+    "passwordLabel": "Jecha Darbii",
+    "passwordPlaceholder": "Yoo xiqqaate qubee/lakkoofsa 6",
+    "termsPrompt": "Waliigaltee kanatti walii gala",
+    "termsLink": "Waliigaltee Tajaajilaa",
+    "andWord": "fi",
+    "privacyLink": "Imaammata Mateenyaa",
+    "submitButton": "Herrega Koo Uumi",
+    "submittingButton": "Herregni uumamaa jira...",
+    "alreadyHaveAccount": "Kanaan dura galmooftaniittuu?",
+    "signInLink": "Asitti seenaa"
+  },
+  "modal": {
+    "signInTab": "Seenaa",
+    "registerTab": "Galmaa'aa"
+  }
+}

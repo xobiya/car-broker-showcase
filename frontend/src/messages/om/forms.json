@@ -1,0 +1,25 @@
+{
+  "labels": {
+    "name": "Maqaa Guutuu",
+    "email": "Teessoo Imeelii",
+    "phone": "Lakkoofsa Bilbilaa",
+    "password": "Jecha Darbii",
+    "confirmPassword": "Jecha Darbii Mirkaneessi",
+    "message": "Ergaa / Yaada",
+    "notes": "Yaada Dabalataa",
+    "selectPlaceholder": "Maaloo filannoo tokko filadhaa",
+    "uploadFiles": "Suuraa Konkolaataa Fe'aa",
+    "dropFiles": "Suuraa asitti dhiibaa ykn filachuuf cuqPoint",
+    "search": "Barbaaduuf asitti barreessaa..."
+  },
+  "buttons": {
+    "save": "Jijjiirama Galmeessi",
+    "saving": "Galmeessaa jira...",
+    "submit": "Gaaffii Dhiyeessi",
+    "submitting": "Dhiyeessaa jira...",
+    "cancel": "Haqi",
+    "clear": "Qulqulleessi",
+    "apply": "Calaltuu Hojiirra Oolchi",
+    "close": "Cufi"
+  }
+}

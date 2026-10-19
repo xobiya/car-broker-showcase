@@ -1,0 +1,144 @@
+{
+  "hero": {
+    "eyebrow": "Konkolaataa Sirrii Filadhaa",
+    "titleLine1": "Konkolaataa barbaadaa jirtuu?",
+    "titleLine2": "Bakka sirriifi amanamaa geessaniittu.",
+    "highlight1": "Qulqullina olaanaa gatii madaalawaan.",
+    "highlight2": "Tajaajila qulqullinni isaa mirkanaa'e.",
+    "highlight3": "Deeggarsa seeraafi teeknikaa 24/7.",
+    "scrollPrompt": "Kutaalee ilaaluuf gadi dhiibaa"
+  },
+  "search": {
+    "allCars": "Konkolaattota hunda",
+    "newCars": "Konkolaattota haaraa",
+    "usedCars": "Konkolaattota tajaajilan",
+    "needHelp": "Gargaarsa barbaadduu?",
+    "pickUpLocation": "Magaalaa Itti Argamu",
+    "makeBrand": "Akaakuu / Biraandii",
+    "allBrands": "Biraandota Hunda",
+    "vehicleType": "Gosa Konkolaataa",
+    "allTypes": "Gosoota Hunda",
+    "maxBudget": "Baajata Olaanaa",
+    "anyPrice": "Baajata Kamiyyuu",
+    "findVehicleButton": "Konkolaataa Barbaadi"
+  },
+  "brands": {
+    "title": "Biraandota Bebbeekamoo",
+    "subtitle": "Itoophiyaa keessatti konkolaattota filatamoo fi qulqullina qaban ilaalaa",
+    "showAllBrands": "Biraandota Hunda Agarsiisi"
+  },
+  "featured": {
+    "title": "Konkolaattota Baay'inaan Barbaadaman",
+    "subtitle": "Abbaan qabeenyummaan isaanii kan mirkanaa'ee fi qorannoo makaanikaa kan darban.",
+    "tabs": {
+      "all": "Kan Filataman Hunda",
+      "electric": "Elektiriikiifi Haayibiriidii",
+      "suv": "SUV fi 4x4",
+      "luxury": "Konkolaattota Miidhagoo",
+      "budget": "Miliyoona 5 ETB Gadi"
+    },
+    "viewDetails": "Bal'ina Isaa Ilaalaa",
+    "call": "Bilbilaa",
+    "exploreAllCta": "Konkolaattota {{count}}+ Jiran Hunda Daawwadhaa"
+  },
+  "howItWorks": {
+    "title": "Arif Car Sell Akkamitti Hojjeta?",
+    "subtitle": "Bittaafi gurgurtaa konkolaataa Itoophiyaa keessaa sadarkaa sadiin salphisuun dhiyeessine.",
+    "buyingTab": "Konkolaataa Bituuf",
+    "sellingTab": "Konkolaataa Gurguruuf",
+    "buyerStep1Title": "Barbaadaafi Filadhaa",
+    "buyerStep1Desc": "Gatii, biraandii, haalaafi bakkaan kan qindeeffaman konkolaattota dhibbaan lakkaa'aman suuraa qulqulluu wajjin ilaalaa.",
+    "buyerStep1Badge": "Qorannoo teeknikaa 50+",
+    "buyerStep2Title": "Beellama Yaalii Imalaa Qabadhaa",
+    "buyerStep2Desc": "Giddugala keenya Finfinnee jiru keessatti dilaala seera qabeessa wajjin konkolaaticha qaamaan ilaalaa.",
+    "buyerStep2Badge": "Qorannoo makaanikaa bilisaa",
+    "buyerStep3Title": "Jijjiirraa Abbaa Qabeenyummaa",
+    "buyerStep3Desc": "Waraqaa abbaa qabeenyummaa (Libre) mirkaneeffachuun kaffaltii baankiitiin koomishinii 1.5% qofaan xumuraa.",
+    "buyerStep3Badge": "Kaffaltii dhokataa malee",
+    "sellerStep1Title": "Odeeffannoo Galchaa",
+    "sellerStep1Desc": "Suuraa konkolaataa, odeeffannoo libree fi gatii barbaaddan poortaalii keenya ykn WhatsApp gargaarsaatiin nuuf ergaa.",
+    "sellerStep1Badge": "Sa'aatii 2 keessatti",
+    "sellerStep2Title": "Qorannoofi Beeksisa",
+    "sellerStep2Desc": "Ogeeyyiin keenya haala konkolaatichaa qorachuun suuraa kaasanii bittattoota 10,000+ oliif dhiyeessu.",
+    "sellerStep2Badge": "Mallattoo gurguraa mirkanaa'e",
+    "sellerStep3Title": "Kaffaltii Baankii Kallattii",
+    "sellerStep3Desc": "Waliigalteen yeroo mallatteeffamu gatii waliigaltame keessaa 98.5% kallattiin herrega baankii keessanitti gala.",
+    "sellerStep3Badge": "Kaffaltii baankii saffisaa"
+  },
+  "categories": {
+    "eyebrow": "Gosoota Geejjibaa",
+    "title": "Boca Konkolaataatiin Barbaadaa",
+    "subtitle": "Konkolaattota daandii magaalaa Finfinneetiif ta'anii hanga imala naannootti mijaatan.",
+    "scrollHint": "Gosoota {{count}} hunda ilaaluuf gara cinaatti dhiibaa",
+    "types": {
+      "suv": "SUV fi 4x4",
+      "sedan": "Seedaanii",
+      "compact": "Koompaakti / Haachbaak",
+      "pickup": "Piikaappiifi 4WD",
+      "van": "Miiniivaanii",
+      "commercial": "Konkolaataa Fe'umsaa",
+      "coupe": "Kuupeefi Ispoortii",
+      "convertible": "Gubbaa Banaa",
+      "wagon": "Isteeshin Waagon",
+      "crossover": "Kiroos'oovarii"
+    }
+  },
+  "comparison": {
+    "title": "Maaltu Adda Nu Taasisa?",
+    "subtitle": "Arif Car Sell balaafi shira dilaalota daandii irraa akkamitti akka isin eegu hubadhaa.",
+    "criteriaHeader": "Ulaagaalee Madaallii",
+    "roadsideHeader": "Dilaalota Daandii Seeraan Alaa",
+    "arifHeader": "Arif Car Sell Mirkanaa'e",
+    "rows": {
+      "commission": {
+        "feature": "Kaffaltii Koomishinii Dilaalaa",
+        "roadside": "To'annoo malee 5% - 10% daballii dhokataa",
+        "arif": "Koomishinii iftoomina qabu 1.5% nagahee wajjin"
+      },
+      "inspection": {
+        "feature": "Qorannoo Motooraafi Balaa",
+        "roadside": "Ijaan ilaaluu qofa; hanqinni motooraa ni dhokfama",
+        "arif": "Qorannoo kompiitarraafi makaanikaa qabxii 50+"
+      },
+      "legal": {
+        "feature": "Mirkaneessa Waraqaa Libree",
+        "roadside": "Sodaa waraqaa sobaa ykn kan qabamee jiru",
+        "arif": "Abbaa Taayitaa Geejjibaafi poolisiitiin kan mirkanaa'e"
+      },
+      "escrow": {
+        "feature": "Nageenya Kaffaltiifi Maallaqaa",
+        "roadside": "Qarshii callaa karaarratti kennuu; saamamuu",
+        "arif": "Kaffaltii wabummaa baankii daldalaa kallattiin"
+      },
+      "testDrive": {
+        "feature": "Nageenya Yaalii Oofuu",
+        "roadside": "Konkolaachisummaa inshuraansii hin qabne tiraafika keessatti",
+        "arif": "Bakka qorannoo eegumsa qabu keessatti yaaluu"
+      }
+    }
+  },
+  "testimonials": {
+    "title": "Yaada Dhugaa Maamiltoota Keenyaa",
+    "subtitle": "Namoonni Finfinnee keessaa daballii dilaalaa malee akkamitti bittaafi gurgurtaa nagaan akka xumuran ilaalaa."
+  },
+  "faq": {
+    "title": "Gaaffilee Yeroo Baay'ee Gaafataman",
+    "subtitle": "Itoophiyaa keessatti konkolaataa bituufi gurguruu irratti deebii gaaffilee beekamoo."
+  },
+  "cta": {
+    "titleLine1": "Konkolaataa keessan isa itti aanu bitaa ykn gurguraa;",
+    "titleLine2": "Wabummaa seeraa guutuu wajjin.",
+    "description": "Iftoomina kaffaltii, abbaa qabeenyummaa mirkanaa'eefi dilaalota seera qabeeyyii filachuun maamiltoota dhibbaan lakkaa'amanitti makamaa.",
+    "browseShowroom": "Agarsiisa Konkolaataa Daawwadhaa",
+    "listCarBecomeBroker": "Konkolaataa Gurguraa / Dilaala Ta'aa"
+  },
+  "helpModal": {
+    "title": "Gorsaa Bittaa Konkolaataa",
+    "badge": "Gorsa Bilisaa",
+    "description": "Konkolaataa mijaataa argachuuf ykn mirkaneessa libreetiif gargaarsi isin barbaachisaa? Ogeeyyiin keenya bilisaan isin gorsuuf qophiidha.",
+    "callUs": "Gorsaaf Nuuf Bilbilaa",
+    "whatsappChat": "WhatsApp irratti Nu Qunnamaa",
+    "availability": "Wiixata hanga Sanbataatti ganama 2:00 – galgala 12:30 banaadha",
+    "close": "Foddaa Cufaa"
+  }
+}

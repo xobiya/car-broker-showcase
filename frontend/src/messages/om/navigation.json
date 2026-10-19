@@ -1,0 +1,52 @@
+{
+  "topBanner": {
+    "announcement": "Gabaa Konkolaataa Itoophiyaa Kan Mirkanaa'eefi Giddugala Sakatta'a Teeknikaa",
+    "callUs": "Gargaarsaaf Bilbilaa",
+    "phoneNumber": "+251 911 234 567",
+    "supportEmail": "support@arifcarsell.com"
+  },
+  "menu": {
+    "home": "Fuula Duraa",
+    "vehicles": "Konkolaattota",
+    "services": "Tajaajiloota",
+    "compare": "Wadorgomsiisaa",
+    "about": "Waa'ee Keenya",
+    "contact": "Nu Qunnamaa",
+    "admin": "Kutaa Bulchiinsaa",
+    "brokerDashboard": "Daashboordii Dilaalaa",
+    "buyerDashboard": "Poortaalii Maamilaa",
+    "signIn": "Seenaa",
+    "register": "Galmaa'aa",
+    "signOut": "Ba'aa",
+    "profile": "Herrega Koo"
+  },
+  "roles": {
+    "admin": "Bulchaa Sirnaa",
+    "broker": "Dilaala Hayyama Qabu",
+    "seller": "Gurguraa Konkolaataa",
+    "buyer": "Bittaa / Maamila"
+  },
+  "theme": {
+    "switchToDark": "Gara halluu dukkanaatti jijjiiraa",
+    "switchToLight": "Gara halluu ifatti jijjiiraa",
+    "currentTheme": "Halluu yeroo ammaa: {{theme}}"
+  },
+  "language": {
+    "selectLanguage": "Afaan filadhaa",
+    "currentLanguage": "Afaan yeroo ammaa: {{language}}"
+  },
+  "footer": {
+    "tagline": "Gabaa konkolaataa Itoophiyaa isa amanamaa. Dilaalummaa daandii irraa hambisuun qorannoo makaanikaafi wabummaa kaffaltii baankiitiin dhiyeessina.",
+    "quickLinksTitle": "Geessituu Dafee",
+    "servicesTitle": "Tajaajiloota Keenya",
+    "legalTitle": "Seeraafi Nageenya",
+    "contactTitle": "Waajjira Muummee Finfinnee",
+    "address": "Kutaa Magaalaa Boolee, Cinaa Ednaa Mool, Finfinnee, Itoophiyaa",
+    "workingHours": "Wiixata - Sanbata: Ganama 2:00 - Galgala 12:30",
+    "terms": "Waliigaltee Tajaajilaa",
+    "privacy": "Imaammata Mateenyaa",
+    "help": "Giddugala Deeggarsaafi Gargaarsaa",
+    "allRightsReserved": "Mirgi hunduu seeraan kan eegameedha.",
+    "certifiedBrokerNetwork": "Dambii Ministeera Daldalaafi Industirii Itoophiyaatiin kan galmaa'e."
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "catalog": {
+    "title": "የመኪና ማሳያ ገበያ",
+    "subtitle": "በመላ ኢትዮጵያ ህጋዊ ባለቤትነታቸውና የቴክኒክ ሁኔታቸው የተረጋገጠ መኪኖችን ያስሱ።",
+    "searchPlaceholder": "በብራንድ፣ በሞዴል፣ በዓመት ወይም በቁልፍ ቃል ይፈልጉ...",
+    "showingResults": "{{count}} የተረጋገጡ መኪኖች ተገኝተዋል",
+    "showingFilteredResults": "ከተገኙት {{total}} ውስጥ {{filtered}} እየታዩ ነው",
+    "sortBy": "ቅደም ተከተል",
+    "sortOptions": {
+      "newest": "አዳዲስ የተመዘገቡ",
+      "priceLow": "ዋጋ፡ ከዝቅተኛ ወደ ከፍተኛ",
+      "priceHigh": "ዋጋ፡ ከከፍተኛ ወደ ዝቅተኛ",
+      "mileageLow": "አነስተኛ ርቀት የተጓዙ",
+      "yearNew": "የቅርብ ዓመት ሞዴሎች"
+    },
+    "filterHeading": "ማጣሪያዎች",
+    "priceRange": "የዋጋ ክልል (ብር)",
+    "yearRange": "የተመረተበት ዓመት",
+    "condition": "ሁኔታ",
+    "fuelType": "የነዳጅ ዓይነት",
+    "transmission": "የማርሽ ዓይነት",
+    "bodyType": "ቅርፅ",
+    "location": "የሚገኝበት ቦታ",
+    "brand": "ብራንድ",
+    "model": "ሞዴል",
+    "clearAll": "ሁሉንም አጽዳ",
+    "noVehiclesTitle": "ምንም መኪና አልተገኘም",
+    "noVehiclesDesc": "ያስገቡትን መስፈርት የሚያሟላ መኪና ማግኘት አልተቻለም። እባክዎ ማጣሪያዎችዎን ቀለል አድርገው ይሞክሩ።",
+    "resetFiltersButton": "ማጣሪያዎችን አጽዳ"
+  },
+  "detail": {
+    "backToShowroom": "ወደ ማሳያው ተመለስ",
+    "overview": "አጠቃላይ መረጃና ታሪክ",
+    "technicalSpecs": "ቴክኒካል ዝርዝሮች",
+    "features": "ልዩ መለያዎችና ገፅታዎች",
+    "inspectionReport": "የሜካኒክ ቴክኒካል ሪፖርት",
+    "verifiedLibre": "ሊብሬው የተረጋገጠ",
+    "certifiedInspected": "በ50 ነጥቦች የተመረመረ",
+    "price": "ዋጋ",
+    "negotiable": "ዋጋው ይደራደራል",
+    "fixedPrice": "የማይደራደር ቋሚ ዋጋ",
+    "contactBrokerTitle": "የመኪናውን ደላላ ያግኙ",
+    "brokerVerified": "ህጋዊ ፍቃድ ያለው ደላላ",
+    "callBroker": "ለደላላው ደውል",
+    "chatWhatsApp": "በዋትስአፕ ተወያይ",
+    "scheduleTestDrive": "የአካል ሙከራ ጉዞ ቀጠሮ ያሲዙ",
+    "makeInquiry": "ጥያቄ ወይም ፍላጎት ይላኩ",
+    "inquiryForm": {
+      "title": "ስለ {{vehicle}} ጥያቄ ይላኩ",
+      "nameLabel": "ስምዎ",
+      "phoneLabel": "ስልክ ቁጥርዎ",
+      "messageLabel": "መልዕክትዎ",
+      "messagePlaceholder": "ሰላም፣ በዚህ መኪና ላይ ፍላጎት አለኝ። መቼ በአካል ማየት እንደሚቻል ቢያሳውቁኝ ደስ ይለኛል።",
+      "submitButton": "ጥያቄዬን ለደላላው ላክ",
+      "submitting": "በመላክ ላይ...",
+      "successMessage": "ጥያቄዎ ለደላላው ደርሷል። በቅርቡ በስልክ ይደውሉልዎታል።"
+    },
+    "reportListing": "ስለዚህ መኪና አጠራጣሪ ነገር ሪፖርት ያድርጉ"
+  }
+}

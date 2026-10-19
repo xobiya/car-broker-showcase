@@ -1,0 +1,20 @@
+{
+  "auth": {
+    "loginSuccess": "Baga nagaan deebitan, {{name}}! Milkaa'inaan seentaniittu.",
+    "logoutSuccess": "Milkaa'inaan baatanittu.",
+    "registerSuccess": "Herregni keessan uumameera! Baga nagaan dhuftan, {{name}}.",
+    "invalidCredentials": "Odeeffannoo kanaan seenuun hin danda'amne. Imeeliifi jecha darbii keessan mirkaneeffadhaa."
+  },
+  "vehicles": {
+    "inquirySent": "Waa'ee {{vehicle}} gaaffiin keessan dilaala qaqqabeera.",
+    "savedToFavorites": "{{vehicle}} gara filannoowwan keessanitti dabalameera.",
+    "removedFromFavorites": "{{vehicle}} filannoowwan keessan keessaa haqameera.",
+    "testDriveScheduled": "Gaaffiin yaalii oofuu {{vehicle}} dhiyaateera. Dilaalli beellama mirkaneessuuf isiniif bilbila.",
+    "reportSubmitted": "Galatoomaa. Gabaasni keessan bulchiinsaaf ergameera."
+  },
+  "common": {
+    "linkCopied": "Geessituun waraabameera!",
+    "profileUpdated": "Odeeffannoon piroofaayilii keessanii milkaa'inaan galmaa'eera.",
+    "actionFailed": "Gochichi hin milkoofne. Maaloo irra deebi'aa yaalaa."
+  }
+}

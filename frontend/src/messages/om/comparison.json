@@ -1,0 +1,26 @@
+{
+  "title": "Wadorgomsiisa Konkolaattotaa",
+  "subtitle": "Konkolaattota hanga 4 jiran haalaafi gatiin isaanii wal cinaatti madaalaa.",
+  "addVehicle": "Wadorgomsiisuuf Konkolaataa Dabalataa",
+  "searchPlaceholder": "Biraandii ykn moodeelii barbaadaa...",
+  "clearAll": "Wadorgomsiisa Haqaa",
+  "highlightDifferences": "Garaagarummaa qofa mul'isi",
+  "showAllSpecs": "Ulaagaalee hundaa agarsiisi",
+  "emptyStateTitle": "Konkolaataan wal bira qabamuuf filatame hin jiru",
+  "emptyStateDesc": "Ulaagaalee isaanii wal cinaatti madaaluuf agarsiisa keessaa yoo xiqqaate konkolaattota lama filadhaa.",
+  "browseVehiclesCta": "Filachuuf Gara Agarsiisaatti Deemaa",
+  "specs": {
+    "price": "Gatii Gaafatame",
+    "year": "Bara Oomishaa",
+    "makeModel": "Akaakuufi Moodeelii",
+    "bodyType": "Boca Konkolaataa",
+    "mileage": "Fageenya Imalame",
+    "fuelType": "Gosa Boba'aa",
+    "engine": "Hamma Motooraa",
+    "transmission": "Gosa Giirii",
+    "condition": "Haala",
+    "location": "Bakka Itti Argamu",
+    "inspected": "Haala Qorannoo",
+    "broker": "Dilaala Konkolaatichaa"
+  }
+}
