@@ -39,6 +39,7 @@ import { VehicleListing } from "../../../shared/types";
 import { vehiclesApi } from "../lib/api";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "../i18n/useLocale";
+import SEO from "../components/common/SEO";
 
 interface VehicleComparisonProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -58,7 +59,7 @@ const PRESET_DEFINITIONS = [
     },
     icon: Car,
     borderHover: "hover:border-emerald-500",
-    badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-[#22c55e]"
+    badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-[#FF4846]"
   },
   {
     id: "preset-ev",
@@ -118,7 +119,7 @@ interface SpecSection {
 }
 
 export default function VehicleComparison({ onNotify, onViewDetails }: VehicleComparisonProps) {
-  const { t } = useTranslation(["comparison", "common", "navigation", "vehicles"]);
+  const { t } = useTranslation(["comparison", "common", "navigation", "vehicles", "metadata"]);
   const { formatCurrency } = useLocale();
   const [allVehicles, setAllVehicles] = useState<VehicleListing[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
@@ -361,7 +362,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
           getValue: v => (
             <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               ETB {(v.price * 0.015).toLocaleString()}
-              <span className="block text-[10px] text-emerald-600 dark:text-[#22c55e]">Legal Max</span>
+              <span className="block text-[10px] text-emerald-600 dark:text-[#FF4846]">Legal Max</span>
             </div>
           )
         },
@@ -370,8 +371,8 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
           getRawValue: v => v.fuelType,
           getValue: v =>
             v.fuelType === "Electric" ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                <Zap size={11} className="text-[#22c55e]" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-[#FF4846] bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <Zap size={11} className="text-[#FF4846]" />
                 0% Duty (EV Exemption)
               </span>
             ) : v.fuelType === "Hybrid" ? (
@@ -474,8 +475,8 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
           label: "Libre Title Audit",
           getRawValue: () => "Verified",
           getValue: () => (
-            <div className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30">
-              <FileCheck2 size={12} className="text-[#22c55e]" />
+            <div className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-[#FF4846] bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30">
+              <FileCheck2 size={12} className="text-[#FF4846]" />
               <span>100% Libre Verified</span>
             </div>
           )
@@ -485,7 +486,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
           getRawValue: () => "Passed",
           getValue: () => (
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-              <Check size={13} className="text-[#22c55e]" strokeWidth={3} />
+              <Check size={13} className="text-[#FF4846]" strokeWidth={3} />
               <span>150-Point Audit Passed</span>
             </div>
           )
@@ -528,13 +529,22 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
 
   return (
     <div className="max-w-7xl mx-auto w-full px-3 sm:px-6 md:px-8 py-6 sm:py-10 pb-32 sm:pb-24 text-slate-900 dark:text-slate-100 transition-colors">
-      
+      <SEO
+        title={t("metadata:pages.compare", "Compare — Vehicle Spec & Price Comparison")}
+        description={t("metadata:descriptions.compare", "Compare specs, prices, fuel efficiency, and inspection ratings of top cars side-by-side to make the best vehicle purchase decision in Ethiopia.")}
+        keywords={t("metadata:keywords.compare", "compare cars Ethiopia, vehicle price comparison Addis Ababa, hybrid vs electric cars Ethiopia, SUV comparison Ethiopia")}
+        canonical="/compare"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Compare", url: "/compare" }
+        ]}
+      />
       {/* ── TOP HEADER & CONTROLS ── */}
       <div className="space-y-3 mb-6 sm:mb-8">
         
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-          <span className="hover:text-[#22c55e] cursor-pointer" onClick={() => window.location.href = "/"}>{t("navigation:home")}</span>
+          <span className="hover:text-[#FF4846] cursor-pointer" onClick={() => window.location.href = "/"}>{t("navigation:home")}</span>
           <ChevronRight size={12} />
           <span className="text-slate-700 dark:text-slate-200">{t("navigation:comparison")}</span>
         </div>
@@ -542,7 +552,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
         {/* Title & Toolbar Row */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-1">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF4846] uppercase tracking-wider mb-1">
               <Sparkles size={13} />
               <span>{t("comparison:title")}</span>
             </div>
@@ -578,7 +588,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
               <button
                 type="button"
                 onClick={handleShare}
-                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-[#22c55e] transition cursor-pointer shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-[#FF4846] transition cursor-pointer shadow-xs"
                 title="Copy shareable link"
               >
                 <Share2 size={13} />
@@ -591,7 +601,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-[#22c55e] transition cursor-pointer shadow-xs"
+                className="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-[#FF4846] transition cursor-pointer shadow-xs"
                 title="Print Comparison sheet"
               >
                 <Printer size={13} />
@@ -617,7 +627,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
               <button
                 type="button"
                 onClick={() => setShowSelectorModal(true)}
-                className="flex items-center gap-1.5 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 text-xs font-black px-3.5 py-1.5 sm:py-2 rounded-xl transition cursor-pointer shadow-md shadow-[#22c55e]/25 active:scale-95"
+                className="flex items-center gap-1.5 bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 text-xs font-black px-3.5 py-1.5 sm:py-2 rounded-xl transition cursor-pointer shadow-md shadow-[#FF4846]/25 active:scale-95"
               >
                 <Plus size={14} strokeWidth={3} />
                 <span>Add ({selectedVehicles.length}/4)</span>
@@ -644,7 +654,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                <Columns size={12} className={mobileViewMode === "dual" ? "text-[#22c55e]" : ""} />
+                <Columns size={12} className={mobileViewMode === "dual" ? "text-[#FF4846]" : ""} />
                 <span>Side-by-Side</span>
               </button>
               <button
@@ -691,7 +701,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                   }}
                   className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-300 shrink-0 shadow-xs active:scale-95 cursor-pointer"
                 >
-                  <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-[#22c55e] text-[9px] flex items-center justify-center font-black">
+                  <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-[#FF4846] text-[9px] flex items-center justify-center font-black">
                     {i + 1}
                   </span>
                   <span className="truncate max-w-[90px]">{v.brand} {v.model}</span>
@@ -708,7 +718,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
         
         /* Empty State */
         <div className="bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 rounded-3xl p-8 sm:p-14 text-center max-w-xl mx-auto space-y-4 shadow-sm">
-          <div className="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#22c55e] flex items-center justify-center mx-auto shadow-inner">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#FF4846] flex items-center justify-center mx-auto shadow-inner">
             <Car size={28} />
           </div>
           <div className="space-y-1">
@@ -720,7 +730,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
           <button
             type="button"
             onClick={() => setShowSelectorModal(true)}
-            className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#22c55e]/25 active:scale-95 inline-flex items-center gap-1.5"
+            className="bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#FF4846]/25 active:scale-95 inline-flex items-center gap-1.5"
           >
             <Plus size={15} strokeWidth={3} />
             <span>{t("comparison:addVehicle")}</span>
@@ -760,7 +770,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                               }}
                               className={`px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition cursor-pointer border ${
                                 isActive
-                                  ? "bg-[#22c55e] text-slate-950 border-[#22c55e] shadow-xs"
+                                  ? "bg-[#FF4846] text-slate-950 border-[#FF4846] shadow-xs"
                                   : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300"
                               }`}
                             >
@@ -782,7 +792,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                         <div
                           key="empty-mobile-slot"
                           onClick={() => setShowSelectorModal(true)}
-                          className="bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-2 cursor-pointer hover:border-[#22c55e] transition"
+                          className="bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-2 cursor-pointer hover:border-[#FF4846] transition"
                         >
                           <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
                             <Plus size={18} />
@@ -834,7 +844,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                               </select>
                             </div>
                           ) : (
-                            <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-[#22c55e] text-[11px] flex items-center justify-center font-black">
+                            <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-[#FF4846] text-[11px] flex items-center justify-center font-black">
                               {currentIdx + 1}
                             </span>
                           )}
@@ -880,7 +890,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                           <h4 className="font-extrabold text-xs text-slate-900 dark:text-white line-clamp-1 leading-tight">
                             {v.brand} {v.model}
                           </h4>
-                          <div className="text-xs sm:text-sm font-black text-[#16a34a] dark:text-[#22c55e] pt-0.5">
+                          <div className="text-xs sm:text-sm font-black text-[#E63D3B] dark:text-[#FF4846] pt-0.5">
                             ETB {v.price.toLocaleString()}
                           </div>
                           <div className="text-[9px] text-slate-400">
@@ -893,7 +903,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                           <button
                             type="button"
                             onClick={() => onViewDetails(v)}
-                            className="w-full py-1.5 px-2 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black rounded-lg text-[11px] transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                            className="w-full py-1.5 px-2 bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black rounded-lg text-[11px] transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
                           >
                             <span>View Details</span>
                             <ArrowRight size={11} />
@@ -903,7 +913,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                             onClick={() => setInquireVehicle(v)}
                             className="w-full py-1 px-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg text-[10px] transition cursor-pointer flex items-center justify-center gap-1"
                           >
-                            <PhoneCall size={10} className="text-[#22c55e]" />
+                            <PhoneCall size={10} className="text-[#FF4846]" />
                             <span>Contact</span>
                           </button>
                         </div>
@@ -922,7 +932,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                         <div key={sIdx} className="space-y-2">
                           {/* Full-width Section Title Banner */}
                           <div className="flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                            <SectionIcon size={12} className="text-[#22c55e]" />
+                            <SectionIcon size={12} className="text-[#FF4846]" />
                             <span>{section.title}</span>
                           </div>
 
@@ -1017,7 +1027,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                             </button>
                           </div>
 
-                          <div className="text-base font-black text-[#16a34a] dark:text-[#22c55e]">
+                          <div className="text-base font-black text-[#E63D3B] dark:text-[#FF4846]">
                             ETB {v.price.toLocaleString()}
                           </div>
 
@@ -1067,7 +1077,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                       <button
                         type="button"
                         onClick={() => onViewDetails(v)}
-                        className="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] hover:text-slate-950 text-xs font-bold text-slate-800 dark:text-slate-200 transition cursor-pointer"
+                        className="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#FF4846] hover:text-slate-950 text-xs font-bold text-slate-800 dark:text-slate-200 transition cursor-pointer"
                       >
                         View Full Vehicle Details
                       </button>
@@ -1082,7 +1092,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
               <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
                 <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-bold">
                   <span className="flex items-center gap-1.5">
-                    <ArrowRight size={12} className="text-[#22c55e] animate-pulse" />
+                    <ArrowRight size={12} className="text-[#FF4846] animate-pulse" />
                     Swipe horizontally to view all {selectedVehicles.length} vehicles
                   </span>
                   <span className="text-[10px] text-slate-400 font-semibold">1 to {selectedVehicles.length}</span>
@@ -1109,13 +1119,13 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                               <h4 className="font-black text-xs text-slate-900 dark:text-white truncate">
                                 {v.brand} {v.model}
                               </h4>
-                              <div className="text-xs font-black text-[#16a34a] dark:text-[#22c55e]">
+                              <div className="text-xs font-black text-[#E63D3B] dark:text-[#FF4846]">
                                 ETB {v.price.toLocaleString()}
                               </div>
                               <button
                                 type="button"
                                 onClick={() => onViewDetails(v)}
-                                className="w-full py-1 bg-[#22c55e] text-slate-950 font-black rounded text-[10px]"
+                                className="w-full py-1 bg-[#FF4846] text-slate-950 font-black rounded text-[10px]"
                               >
                                 Details
                               </button>
@@ -1132,7 +1142,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                             <tr className="bg-slate-100 dark:bg-slate-800/80 border-t border-b border-slate-200 dark:border-slate-700">
                               <td colSpan={selectedVehicles.length + 1} className="p-1.5 px-2 text-[10px] font-black uppercase text-slate-700 dark:text-slate-200">
                                 <div className="flex items-center gap-1">
-                                  <SectionIcon size={11} className="text-[#22c55e]" />
+                                  <SectionIcon size={11} className="text-[#FF4846]" />
                                   <span>{section.title}</span>
                                 </div>
                               </td>
@@ -1240,7 +1250,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
 
                               {/* Fuel type pill */}
                               <div className="absolute bottom-1.5 right-1.5 bg-slate-950/80 backdrop-blur-sm text-white font-bold text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1">
-                                {v.fuelType === "Electric" && <Zap size={10} className="text-[#22c55e]" />}
+                                {v.fuelType === "Electric" && <Zap size={10} className="text-[#FF4846]" />}
                                 <span>{v.fuelType}</span>
                               </div>
                             </div>
@@ -1256,7 +1266,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                             {/* Price Tag */}
                             <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800">
                               <div className="text-[9px] uppercase font-bold text-slate-400">Price</div>
-                              <div className="text-base font-black text-[#16a34a] dark:text-[#22c55e]">
+                              <div className="text-base font-black text-[#E63D3B] dark:text-[#FF4846]">
                                 ETB {v.price.toLocaleString()}
                               </div>
                               <div className="text-[9px] text-slate-400 font-medium">
@@ -1269,7 +1279,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                               <button
                                 type="button"
                                 onClick={() => onViewDetails(v)}
-                                className="w-full py-2 px-2.5 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95 shadow-xs"
+                                className="w-full py-2 px-2.5 bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95 shadow-xs"
                               >
                                 <span>View Details</span>
                                 <ArrowRight size={12} />
@@ -1280,7 +1290,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                                 onClick={() => setInquireVehicle(v)}
                                 className="w-full py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center gap-1"
                               >
-                                <PhoneCall size={11} className="text-[#22c55e]" />
+                                <PhoneCall size={11} className="text-[#FF4846]" />
                                 <span>Contact</span>
                               </button>
                             </div>
@@ -1334,7 +1344,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                             className="px-5 py-2"
                           >
                             <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                              <SectionIcon size={13} className="text-[#22c55e]" />
+                              <SectionIcon size={13} className="text-[#FF4846]" />
                               <span>{section.title}</span>
                             </div>
                           </td>
@@ -1409,8 +1419,8 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
       {/* ── 1-CLICK POPULAR MATCHUPS PRESETS (NO EMOJIS, CLEAN SVG ICONS) ── */}
       <div className="mt-12 sm:mt-16 space-y-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider mb-0.5">
-            <Star size={12} className="fill-[#22c55e]" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF4846] uppercase tracking-wider mb-0.5">
+            <Star size={12} className="fill-[#FF4846]" />
             <span>Ethiopian Automotive Matchups</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">
@@ -1439,7 +1449,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                       <PresetIcon size={14} />
                     </div>
                   </div>
-                  <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors leading-snug">
+                  <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white group-hover:text-[#FF4846] transition-colors leading-snug">
                     {preset.title}
                   </h3>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -1450,7 +1460,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                 <button
                   type="button"
                   onClick={() => loadPreset(preset.ids)}
-                  className="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] hover:text-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-center gap-1.5 group-hover:bg-[#22c55e] group-hover:text-slate-950"
+                  className="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#FF4846] hover:text-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-center gap-1.5 group-hover:bg-[#FF4846] group-hover:text-slate-950"
                 >
                   <span>Load Matchup</span>
                   <ArrowRight size={12} />
@@ -1497,7 +1507,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search brand, model, year..."
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#22c55e]"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF4846]"
                   autoFocus
                 />
               </div>
@@ -1519,7 +1529,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                     onClick={() => setSelectedFilterCategory(cat.id)}
                     className={`px-2.5 py-1 rounded-full font-bold whitespace-nowrap cursor-pointer transition text-[11px] ${
                       selectedFilterCategory === cat.id
-                        ? "bg-[#22c55e] text-slate-950 shadow-xs"
+                        ? "bg-[#FF4846] text-slate-950 shadow-xs"
                         : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-400"
                     }`}
                   >
@@ -1558,7 +1568,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
                             <span>{v.fuelType}</span>
                             <span>•</span>
-                            <span className="text-emerald-600 dark:text-[#22c55e] font-bold">
+                            <span className="text-emerald-600 dark:text-[#FF4846] font-bold">
                               ETB {v.price.toLocaleString()}
                             </span>
                           </div>
@@ -1573,7 +1583,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                         <button
                           type="button"
                           onClick={() => addVehicle(v)}
-                          className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-[11px] px-3 py-1 rounded-xl transition cursor-pointer shadow-xs active:scale-95 shrink-0 flex items-center gap-1"
+                          className="bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black text-[11px] px-3 py-1 rounded-xl transition cursor-pointer shadow-xs active:scale-95 shrink-0 flex items-center gap-1"
                         >
                           <Plus size={12} strokeWidth={3} />
                           <span>Compare</span>
@@ -1608,7 +1618,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-[#22c55e] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-[#FF4846] flex items-center justify-center">
                   <PhoneCall size={18} />
                 </div>
                 <div>
@@ -1642,7 +1652,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
 
               <a
                 href={`tel:${inquireVehicle.brokerPhone || "+251911234567"}`}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
+                className="w-full py-2.5 px-3 rounded-xl bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
               >
                 <PhoneCall size={14} />
                 <span>Call {inquireVehicle.brokerPhone || "+251 91 123 4567"}</span>
@@ -1680,7 +1690,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-[#22c55e] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-[#FF4846] flex items-center justify-center">
                   <Share2 size={20} />
                 </div>
                 <div>
@@ -1737,7 +1747,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
                     copiedLink
                       ? "bg-emerald-600 text-white"
-                      : "bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 shadow-xs"
+                      : "bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 shadow-xs"
                   }`}
                 >
                   {copiedLink ? <CheckCheck size={14} /> : <Copy size={14} />}
@@ -1770,7 +1780,7 @@ export default function VehicleComparison({ onNotify, onViewDetails }: VehicleCo
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition cursor-pointer"
                 >
-                  <MessageCircle size={14} className="text-[#22c55e]" />
+                  <MessageCircle size={14} className="text-[#FF4846]" />
                   <span>WhatsApp</span>
                 </a>
               </div>

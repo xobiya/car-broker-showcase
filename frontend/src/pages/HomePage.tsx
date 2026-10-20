@@ -42,6 +42,8 @@ import { CarCardSkeleton } from "../components/ui/Skeleton";
 import { ScrollReveal, SectionDivider } from "../components/ui/ScrollAnimations";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "../i18n/useLocale";
+import SEO from "../components/common/SEO";
+import { buildAutoDealerSchema, buildWebSiteSchema, buildFaqSchema } from "../lib/seo";
 
 const DEFAULT_HERO_BG = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=2000&q=85";
 
@@ -288,8 +290,8 @@ export default function HomePage({
   onBrowse,
   onBecomeBroker
 }: HomePageProps) {
-  const { t } = useTranslation(["homepage", "common", "navigation"]);
-  const { formatCurrency } = useLocale();
+  const { t } = useTranslation(["homepage", "common", "navigation", "metadata"]);
+  const { formatCurrency, locale, setLocale, locales, localeMetadata } = useLocale();
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
   const [dbBrands, setDbBrands] = useState<{ name: string; count: number; models: string[] }[]>([]);
@@ -512,7 +514,7 @@ export default function HomePage({
         : [...prev, vehicleId];
       try {
         localStorage.setItem("autobroker_favorites", JSON.stringify(updated));
-      } catch {}
+      } catch { }
       return updated;
     });
   };
@@ -557,12 +559,23 @@ export default function HomePage({
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 selection:bg-emerald-500 selection:text-white pb-16 transition-colors duration-200">
-      
+      <SEO
+        title={t("metadata:pages.home", "Home — Verified Ethiopian Vehicle Marketplace")}
+        description={t("metadata:descriptions.home", "Discover verified used and new cars for sale in Addis Ababa. Benefit from 150-point mechanic inspections, title deed verification, and 1.5% fixed commission.")}
+        keywords={t("metadata:keywords.home", "cars for sale Ethiopia, buy car Addis Ababa, Ethiopian auto marketplace, Toyota Addis Ababa, BYD EV Ethiopia, verified used cars Addis Ababa")}
+        canonical="/"
+        schema={[
+          buildAutoDealerSchema(),
+          buildWebSiteSchema(),
+          buildFaqSchema(FAQS)
+        ]}
+      />
+
       {/* 1. CINEMATIC HERO SECTION (MATCHING SCREENSHOT 1) */}
       <section id="section-hero" className="relative min-h-[440px] sm:min-h-[580px] lg:min-h-[660px] flex flex-col justify-center bg-slate-950 overflow-hidden px-4 sm:px-8 md:px-16 pt-8 sm:pt-16 pb-16 sm:pb-32">
-        
+
         {/* Background Image — Showroom & Luxury Car visible on the right */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-right lg:bg-center bg-no-repeat transition-all duration-700 opacity-90"
           style={{
             backgroundImage: `url('${heroBgImage}')`
@@ -574,12 +587,12 @@ export default function HomePage({
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 pointer-events-none" />
 
         <div className="max-w-7xl w-full mx-auto relative z-10">
-          
+
           {/* Left-Aligned Hero Content Area (Exact Layout from Screenshot 1) */}
           <div className="text-left max-w-2xl space-y-3 sm:space-y-4">
 
             {/* Eyebrow Label */}
-            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#22c55e] tracking-wide">
+            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#FF4846] tracking-wide">
               <span>{t("homepage:hero.eyebrow")}</span>
             </div>
 
@@ -594,19 +607,19 @@ export default function HomePage({
             {/* 3 Bullet Checklist Highlights with Green Circle Badges */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-x-6 sm:gap-y-3 pt-1.5 sm:pt-3 text-[11px] sm:text-sm font-semibold text-white">
               <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10">
-                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#FF4846] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#FF4846]/30">
                   <Check size={10} strokeWidth={3.5} className="text-slate-950" />
                 </div>
                 <span>{t("homepage:hero.highlight1")}</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10">
-                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#FF4846] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#FF4846]/30">
                   <Check size={10} strokeWidth={3.5} className="text-slate-950" />
                 </div>
                 <span>{t("homepage:hero.highlight2")}</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950/60 backdrop-blur-sm px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/10">
-                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#22c55e] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#22c55e]/30">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#FF4846] text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm shadow-[#FF4846]/30">
                   <Check size={10} strokeWidth={3.5} className="text-slate-950" />
                 </div>
                 <span>{t("homepage:hero.highlight3")}</span>
@@ -620,160 +633,157 @@ export default function HomePage({
       <div id="section-search" className="relative z-20 max-w-6xl mx-auto px-3 sm:px-4 -mt-10 sm:-mt-20">
         <ScrollReveal direction="up" delay={0.08} distance={20}>
           <div className="bg-white dark:bg-[#111827] rounded-3xl p-4 sm:p-7 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200/90 dark:border-slate-800">
-          
-          {/* Tabs Row: Condition Filter & Need Help Link */}
-          <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b border-slate-100 dark:border-slate-800 overflow-x-auto scrollbar-none">
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+
+            {/* Tabs Row: Condition Filter & Need Help Link */}
+            <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b border-slate-100 dark:border-slate-800 overflow-x-auto scrollbar-none">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setCarConditionTab("all")}
+                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${carConditionTab === "all"
+                      ? "bg-[#FF4846] text-slate-950 shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
+                    }`}
+                >
+                  {t("homepage:search.allCars")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCarConditionTab("new")}
+                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${carConditionTab === "new"
+                      ? "bg-[#FF4846] text-slate-950 shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
+                    }`}
+                >
+                  {t("homepage:search.newCars")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCarConditionTab("used")}
+                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${carConditionTab === "used"
+                      ? "bg-[#FF4846] text-slate-950 shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
+                    }`}
+                >
+                  {t("homepage:search.usedCars")}
+                </button>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setCarConditionTab("all")}
-                className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                  carConditionTab === "all"
-                    ? "bg-[#22c55e] text-slate-950 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
-                }`}
+                onClick={() => setShowHelpModal(true)}
+                className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-[#FF4846] transition cursor-pointer"
               >
-                {t("homepage:search.allCars")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setCarConditionTab("new")}
-                className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                  carConditionTab === "new"
-                    ? "bg-[#22c55e] text-slate-950 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
-                }`}
-              >
-                {t("homepage:search.newCars")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setCarConditionTab("used")}
-                className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                  carConditionTab === "used"
-                    ? "bg-[#22c55e] text-slate-950 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
-                }`}
-              >
-                {t("homepage:search.usedCars")}
+                <UserIcon size={14} className="text-slate-500 dark:text-slate-400" />
+                <span>{t("homepage:search.needHelp")}</span>
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowHelpModal(true)}
-              className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-[#22c55e] transition cursor-pointer"
-            >
-              <UserIcon size={14} className="text-slate-500 dark:text-slate-400" />
-              <span>{t("homepage:search.needHelp")}</span>
-            </button>
+            {/* Search Inputs Container */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 items-center">
+
+              {/* Pick Up Location */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
+                  {t("homepage:search.pickUpLocation")}
+                </label>
+                <div className="relative">
+                  <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF4846] appearance-none cursor-pointer"
+                  >
+                    {availableLocations.map((loc) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Make / Brand */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
+                  {t("homepage:search.makeBrand")}
+                </label>
+                <div className="relative">
+                  <Car size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <select
+                    value={selectedBrand}
+                    onChange={(e) => setSelectedBrand(e.target.value)}
+                    className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF4846] appearance-none cursor-pointer"
+                  >
+                    <option value="Any Brand">{t("homepage:search.allBrands")}</option>
+                    {dynamicBrands.map((b) => (
+                      <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Vehicle Type */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
+                  {t("homepage:search.vehicleType")}
+                </label>
+                <div className="relative">
+                  <SlidersHorizontal size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <select
+                    value={selectedBodyType}
+                    onChange={(e) => setSelectedBodyType(e.target.value)}
+                    className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF4846] appearance-none cursor-pointer"
+                  >
+                    <option value="Any Type">{t("homepage:search.allTypes")}</option>
+                    <option value="SUV">SUV & 4x4</option>
+                    <option value="Sedan">Sedan</option>
+                    <option value="Electric">Electric / Hybrid</option>
+                    <option value="Pickup">Pickup & Commercial</option>
+                    <option value="Hatchback">Compact / Hatchback</option>
+                  </select>
+                  <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Max Budget */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
+                  {t("homepage:search.maxBudget")}
+                </label>
+                <div className="relative">
+                  <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <select
+                    value={selectedPrice}
+                    onChange={(e) => setSelectedPrice(e.target.value)}
+                    className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF4846] appearance-none cursor-pointer"
+                  >
+                    <option value="Any Price">{t("homepage:search.anyPrice")}</option>
+                    <option value="under-3m">Under 3.0M ETB</option>
+                    <option value="3m-6m">3.0M – 6.0M ETB</option>
+                    <option value="6m-10m">6.0M – 10.0M ETB</option>
+                    <option value="10m-20m">10.0M – 20.0M ETB</option>
+                    <option value="over-20m">Over 20.0M ETB</option>
+                  </select>
+                  <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Submit Search Button (exact pill green in screenshot) */}
+              <div className="sm:col-span-2 lg:col-span-1 flex items-end">
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  className="w-full h-[40px] bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-bold px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition shadow-md shadow-emerald-500/20 active:scale-95 text-xs sm:text-sm"
+                >
+                  <Search size={16} strokeWidth={2.5} />
+                  <span>{t("homepage:search.findVehicleButton")}</span>
+                </button>
+              </div>
+
+            </div>
+
           </div>
-
-          {/* Search Inputs Container */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 items-center">
-            
-            {/* Pick Up Location */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                {t("homepage:search.pickUpLocation")}
-              </label>
-              <div className="relative">
-                <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
-                >
-                  {availableLocations.map((loc) => (
-                    <option key={loc} value={loc}>{loc}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Make / Brand */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                {t("homepage:search.makeBrand")}
-              </label>
-              <div className="relative">
-                <Car size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <select
-                  value={selectedBrand}
-                  onChange={(e) => setSelectedBrand(e.target.value)}
-                  className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
-                >
-                  <option value="Any Brand">{t("homepage:search.allBrands")}</option>
-                  {dynamicBrands.map((b) => (
-                    <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Vehicle Type */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                {t("homepage:search.vehicleType")}
-              </label>
-              <div className="relative">
-                <SlidersHorizontal size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <select
-                  value={selectedBodyType}
-                  onChange={(e) => setSelectedBodyType(e.target.value)}
-                  className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
-                >
-                  <option value="Any Type">{t("homepage:search.allTypes")}</option>
-                  <option value="SUV">SUV & 4x4</option>
-                  <option value="Sedan">Sedan</option>
-                  <option value="Electric">Electric / Hybrid</option>
-                  <option value="Pickup">Pickup & Commercial</option>
-                  <option value="Hatchback">Compact / Hatchback</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Max Budget */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                {t("homepage:search.maxBudget")}
-              </label>
-              <div className="relative">
-                <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <select
-                  value={selectedPrice}
-                  onChange={(e) => setSelectedPrice(e.target.value)}
-                  className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#22c55e] appearance-none cursor-pointer"
-                >
-                  <option value="Any Price">{t("homepage:search.anyPrice")}</option>
-                  <option value="under-3m">Under 3.0M ETB</option>
-                  <option value="3m-6m">3.0M – 6.0M ETB</option>
-                  <option value="6m-10m">6.0M – 10.0M ETB</option>
-                  <option value="10m-20m">10.0M – 20.0M ETB</option>
-                  <option value="over-20m">Over 20.0M ETB</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Submit Search Button (exact pill green in screenshot) */}
-            <div className="sm:col-span-2 lg:col-span-1 flex items-end">
-              <button
-                type="button"
-                onClick={handleSearch}
-                className="w-full h-[40px] bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-bold px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition shadow-md shadow-emerald-500/20 active:scale-95 text-xs sm:text-sm"
-              >
-                <Search size={16} strokeWidth={2.5} />
-                <span>{t("homepage:search.findVehicleButton")}</span>
-              </button>
-            </div>
-
-          </div>
-
-        </div>
         </ScrollReveal>
       </div>
 
@@ -782,7 +792,7 @@ export default function HomePage({
       {/* 2. EXPLORE LEADING BRANDS - HORIZONTAL INFINITE CAROUSEL */}
       <section id="section-brands" className="pt-20 sm:pt-24 pb-12 sm:pb-16 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800 overflow-hidden">
         <ScrollReveal direction="up" delay={0.1} className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-6">
-          
+
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
@@ -794,7 +804,7 @@ export default function HomePage({
             </div>
             <button
               onClick={() => onBrowse()}
-              className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 hover:text-[#22c55e] transition flex items-center gap-1.5 cursor-pointer shrink-0 group"
+              className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 hover:text-[#FF4846] transition flex items-center gap-1.5 cursor-pointer shrink-0 group"
             >
               <span>{t("homepage:brands.showAllBrands")}</span>
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -813,11 +823,11 @@ export default function HomePage({
                   onClick={() => onBrowse({ brand: b.name })}
                   className="group bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 rounded-2xl p-4 min-w-[160px] sm:min-w-[180px] h-[95px] flex flex-col items-center justify-center gap-2 shadow-xs hover:shadow-lg transition-all duration-200 cursor-pointer text-slate-800 dark:text-slate-200 shrink-0"
                 >
-                  <div className="shrink-0 flex items-center justify-center group-hover:text-[#22c55e] transition-colors h-9">
+                  <div className="shrink-0 flex items-center justify-center group-hover:text-[#FF4846] transition-colors h-9">
                     {b.svg}
                   </div>
                   <div className="flex flex-col items-center leading-none">
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#22c55e] transition-colors tracking-tight">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#FF4846] transition-colors tracking-tight">
                       {b.name}
                     </span>
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
@@ -837,7 +847,7 @@ export default function HomePage({
       {/* 3. MOST SEARCHED VEHICLES (FEATURED SHOWCASE) */}
       <section id="section-featured" className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
-          
+
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
@@ -863,11 +873,10 @@ export default function HomePage({
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
-                      className={`px-3.5 py-2 rounded-full font-bold transition-all cursor-pointer text-xs whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${
-                        activeTab === tab.id
-                          ? "bg-slate-950 dark:bg-[#22c55e] text-white dark:text-slate-950 shadow-md font-black"
+                      className={`px-3.5 py-2 rounded-full font-bold transition-all cursor-pointer text-xs whitespace-nowrap shrink-0 flex items-center gap-1.5 active:scale-95 ${activeTab === tab.id
+                          ? "bg-slate-950 dark:bg-[#FF4846] text-white dark:text-slate-950 shadow-md font-black"
                           : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
-                      }`}
+                        }`}
                     >
                       <Icon size={13} className={activeTab === tab.id ? "text-emerald-400 dark:text-slate-950" : "text-slate-500 dark:text-slate-400"} />
                       <span>{tab.label}</span>
@@ -902,154 +911,154 @@ export default function HomePage({
                       onClick={() => onViewDetails(car)}
                       className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-3xl overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer h-full"
                     >
-                  {/* Image Container */}
-                  <div className="h-52 sm:h-56 relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                    <img
-                      src={car.imageUrl || "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80"}
-                      alt={`${car.brand} ${car.model}`}
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (!target.dataset.fallbackApplied) {
-                          target.dataset.fallbackApplied = "true";
-                          target.src = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80";
-                        }
-                      }}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-
-                    {/* Status Badges */}
-                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-                      <div className="bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-full flex items-center gap-1 shadow-sm">
-                        <ShieldCheck size={11} className="text-amber-400" />
-                        <span>Inspected</span>
-                      </div>
-                      {isElectric && (
-                        <div className="bg-emerald-600/95 backdrop-blur-md text-white text-[9px] font-bold uppercase tracking-wider py-1 px-2 rounded-full flex items-center gap-1 shadow-sm">
-                          <Zap size={11} />
-                          <span>0% Duty</span>
-                        </div>
-                      )}
-                      {isHybrid && (
-                        <div className="bg-blue-600/95 backdrop-blur-md text-white text-[9px] font-bold uppercase tracking-wider py-1 px-2 rounded-full flex items-center gap-1 shadow-sm">
-                          <span>Hybrid</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Favorite Heart Button */}
-                    <button
-                      onClick={(e) => toggleFavorite(car.id, e)}
-                      aria-label="Save vehicle"
-                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-700 dark:text-slate-200 hover:text-rose-500 flex items-center justify-center shadow-sm transition active:scale-90 cursor-pointer z-10 border border-slate-200 dark:border-slate-700"
-                    >
-                      <Heart
-                        size={15}
-                        className={isFavorited ? "fill-rose-500 text-rose-500" : "text-slate-600 dark:text-slate-300"}
-                      />
-                    </button>
-
-                    {/* Discount Pill */}
-                    {hasDiscount && (
-                      <div className="absolute bottom-3 right-3 bg-rose-600 text-white text-[10px] font-bold py-0.5 px-2 rounded-md shadow-xs">
-                        Save {Math.round((car.originalPrice - car.price) / 1000)}k ETB
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Rating Pill */}
-                  <div className="flex justify-center -mt-3.5 relative z-10">
-                    <div className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 shadow-md border border-slate-100 dark:border-slate-700 px-3.5 py-1 rounded-full text-xs font-bold text-slate-800 dark:text-slate-200">
-                      <Star size={13} className="text-amber-400 fill-amber-400" />
-                      <span>4.96 <span className="text-slate-400 font-normal text-[11px]">({reviewCount} reviews)</span></span>
-                    </div>
-                  </div>
-
-                  {/* Vehicle Details */}
-                  <div className="p-5 pt-3 flex-1 flex flex-col justify-between space-y-4">
-                    
-                    <div className="space-y-2">
-                      <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors truncate">
-                        {car.brand} {car.model}
-                      </h3>
-
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                        <MapPin size={13} className="text-slate-400 shrink-0" />
-                        <span className="truncate">{car.location || "Addis Ababa, Bole"}</span>
-                      </div>
-
-                      {/* 2x2 Feature Grid */}
-                      <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-medium">
-                        <div className="flex items-center gap-2">
-                          <Gauge size={15} className="text-slate-400 shrink-0" />
-                          <span className="truncate">{car.mileage.toLocaleString()} km</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Settings2 size={15} className="text-slate-400 shrink-0" />
-                          <span className="truncate">{car.transmission || "Automatic"}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Fuel size={15} className="text-slate-400 shrink-0" />
-                          <span className="truncate">{car.fuelType || "Petrol"}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Users size={15} className="text-slate-400 shrink-0" />
-                          <span className="truncate">{seats}</span>
-                        </div>
-                      </div>
-
-                      {/* Broker Attribution */}
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
-                        <BadgeCheck size={14} className="text-[#22c55e] shrink-0" />
-                        <span className="truncate">
-                          Broker: <strong className="text-slate-800 dark:text-slate-200 font-semibold">{car.brokerName || "Verified Partner Broker"}</strong>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Price & Actions Row */}
-                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Price</span>
-                        <div className="text-base sm:text-lg font-black text-slate-950 dark:text-white">
-                          {(car.price / 1000000).toFixed(2)}M ETB
-                        </div>
-                        <span className="text-[10px] text-slate-400 block">{car.price.toLocaleString()} ETB</span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onViewDetails(car);
-                          }}
-                          className="bg-slate-950 dark:bg-[#22c55e] hover:bg-slate-900 dark:hover:bg-[#16a34a] text-white dark:text-slate-950 font-black py-2.5 px-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95"
-                        >
-                          <span>View</span>
-                          <ArrowUpRight size={13} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (car.brokerPhone) {
-                              window.location.href = `tel:${car.brokerPhone}`;
-                            } else {
-                              onViewDetails(car);
+                      {/* Image Container */}
+                      <div className="h-52 sm:h-56 relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <img
+                          src={car.imageUrl || "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80"}
+                          alt={`${car.brand} ${car.model}`}
+                          loading="lazy"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (!target.dataset.fallbackApplied) {
+                              target.dataset.fallbackApplied = "true";
+                              target.src = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80";
                             }
                           }}
-                          className="border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+
+                        {/* Status Badges */}
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+                          <div className="bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-full flex items-center gap-1 shadow-sm">
+                            <ShieldCheck size={11} className="text-amber-400" />
+                            <span>Inspected</span>
+                          </div>
+                          {isElectric && (
+                            <div className="bg-emerald-600/95 backdrop-blur-md text-white text-[9px] font-bold uppercase tracking-wider py-1 px-2 rounded-full flex items-center gap-1 shadow-sm">
+                              <Zap size={11} />
+                              <span>0% Duty</span>
+                            </div>
+                          )}
+                          {isHybrid && (
+                            <div className="bg-blue-600/95 backdrop-blur-md text-white text-[9px] font-bold uppercase tracking-wider py-1 px-2 rounded-full flex items-center gap-1 shadow-sm">
+                              <span>Hybrid</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Favorite Heart Button */}
+                        <button
+                          onClick={(e) => toggleFavorite(car.id, e)}
+                          aria-label="Save vehicle"
+                          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-700 dark:text-slate-200 hover:text-rose-500 flex items-center justify-center shadow-sm transition active:scale-90 cursor-pointer z-10 border border-slate-200 dark:border-slate-700"
                         >
-                          <PhoneCall size={13} className="text-[#22c55e]" />
-                          <span>Call</span>
+                          <Heart
+                            size={15}
+                            className={isFavorited ? "fill-rose-500 text-rose-500" : "text-slate-600 dark:text-slate-300"}
+                          />
                         </button>
+
+                        {/* Discount Pill */}
+                        {hasDiscount && (
+                          <div className="absolute bottom-3 right-3 bg-rose-600 text-white text-[10px] font-bold py-0.5 px-2 rounded-md shadow-xs">
+                            Save {Math.round((car.originalPrice - car.price) / 1000)}k ETB
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Rating Pill */}
+                      <div className="flex justify-center -mt-3.5 relative z-10">
+                        <div className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 shadow-md border border-slate-100 dark:border-slate-700 px-3.5 py-1 rounded-full text-xs font-bold text-slate-800 dark:text-slate-200">
+                          <Star size={13} className="text-amber-400 fill-amber-400" />
+                          <span>4.96 <span className="text-slate-400 font-normal text-[11px]">({reviewCount} reviews)</span></span>
+                        </div>
+                      </div>
+
+                      {/* Vehicle Details */}
+                      <div className="p-5 pt-3 flex-1 flex flex-col justify-between space-y-4">
+
+                        <div className="space-y-2">
+                          <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-[#FF4846] transition-colors truncate">
+                            {car.brand} {car.model}
+                          </h3>
+
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                            <MapPin size={13} className="text-slate-400 shrink-0" />
+                            <span className="truncate">{car.location || "Addis Ababa, Bole"}</span>
+                          </div>
+
+                          {/* 2x2 Feature Grid */}
+                          <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                            <div className="flex items-center gap-2">
+                              <Gauge size={15} className="text-slate-400 shrink-0" />
+                              <span className="truncate">{car.mileage.toLocaleString()} km</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Settings2 size={15} className="text-slate-400 shrink-0" />
+                              <span className="truncate">{car.transmission || "Automatic"}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Fuel size={15} className="text-slate-400 shrink-0" />
+                              <span className="truncate">{car.fuelType || "Petrol"}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Users size={15} className="text-slate-400 shrink-0" />
+                              <span className="truncate">{seats}</span>
+                            </div>
+                          </div>
+
+                          {/* Broker Attribution */}
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                            <BadgeCheck size={14} className="text-[#FF4846] shrink-0" />
+                            <span className="truncate">
+                              Broker: <strong className="text-slate-800 dark:text-slate-200 font-semibold">{car.brokerName || "Verified Partner Broker"}</strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Price & Actions Row */}
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Price</span>
+                            <div className="text-base sm:text-lg font-black text-slate-950 dark:text-white">
+                              {(car.price / 1000000).toFixed(2)}M ETB
+                            </div>
+                            <span className="text-[10px] text-slate-400 block">{car.price.toLocaleString()} ETB</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 shrink-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onViewDetails(car);
+                              }}
+                              className="bg-slate-950 dark:bg-[#FF4846] hover:bg-slate-900 dark:hover:bg-[#E63D3B] text-white dark:text-slate-950 font-black py-2.5 px-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95"
+                            >
+                              <span>View</span>
+                              <ArrowUpRight size={13} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (car.brokerPhone) {
+                                  window.location.href = `tel:${car.brokerPhone}`;
+                                } else {
+                                  onViewDetails(car);
+                                }
+                              }}
+                              className="border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-3 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                            >
+                              <PhoneCall size={13} className="text-[#FF4846]" />
+                              <span>Call</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </ScrollReveal>
+                  </ScrollReveal>
                 );
               })}
             </div>
@@ -1059,7 +1068,7 @@ export default function HomePage({
           <div className="text-center pt-2">
             <button
               onClick={() => onBrowse()}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-slate-950 dark:bg-[#22c55e] hover:bg-slate-900 dark:hover:bg-[#16a34a] text-white dark:text-slate-950 text-xs sm:text-sm font-black transition cursor-pointer shadow-md hover:shadow-lg active:scale-95"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-slate-950 dark:bg-[#FF4846] hover:bg-slate-900 dark:hover:bg-[#E63D3B] text-white dark:text-slate-950 text-xs sm:text-sm font-black transition cursor-pointer shadow-md hover:shadow-lg active:scale-95"
             >
               <span>{t("homepage:featured.exploreAllCta", { count: vehicles.length || 24 })}</span>
               <ArrowRight size={16} />
@@ -1074,7 +1083,7 @@ export default function HomePage({
       {/* 4. HOW IT WORKS */}
       <section id="section-how-it-works" className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
         <ScrollReveal direction="up" delay={0.08} className="max-w-6xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-9">
-          
+
           <div className="text-center space-y-3 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               {t("homepage:howItWorks.title")}
@@ -1087,21 +1096,19 @@ export default function HomePage({
             <div className="inline-flex p-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full shadow-xs mt-2">
               <button
                 onClick={() => setHowItWorksTab("buyers")}
-                className={`px-5 py-2 rounded-full text-xs font-bold transition cursor-pointer ${
-                  howItWorksTab === "buyers"
-                    ? "bg-[#22c55e] text-slate-950 font-black shadow-xs"
+                className={`px-5 py-2 rounded-full text-xs font-bold transition cursor-pointer ${howItWorksTab === "buyers"
+                    ? "bg-[#FF4846] text-slate-950 font-black shadow-xs"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
-                }`}
+                  }`}
               >
                 {t("homepage:howItWorks.buyingTab")}
               </button>
               <button
                 onClick={() => setHowItWorksTab("sellers")}
-                className={`px-5 py-2 rounded-full text-xs font-bold transition cursor-pointer ${
-                  howItWorksTab === "sellers"
-                    ? "bg-[#22c55e] text-slate-950 font-black shadow-xs"
+                className={`px-5 py-2 rounded-full text-xs font-bold transition cursor-pointer ${howItWorksTab === "sellers"
+                    ? "bg-[#FF4846] text-slate-950 font-black shadow-xs"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
-                }`}
+                  }`}
               >
                 {t("homepage:howItWorks.sellingTab")}
               </button>
@@ -1111,9 +1118,9 @@ export default function HomePage({
           {/* 3 Step Cards */}
           {howItWorksTab === "buyers" ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
+
               <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-7 space-y-4 shadow-xs relative">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#16a34a] dark:text-[#22c55e] flex items-center justify-center font-black text-lg">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#E63D3B] dark:text-[#FF4846] flex items-center justify-center font-black text-lg">
                   1
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
@@ -1122,7 +1129,7 @@ export default function HomePage({
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   {t("homepage:howItWorks.buyerStep1Desc")}
                 </p>
-                <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#22c55e] flex items-center gap-1">
+                <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#FF4846] flex items-center gap-1">
                   <ShieldCheck size={14} /> {t("homepage:howItWorks.buyerStep1Badge")}
                 </div>
               </div>
@@ -1160,9 +1167,9 @@ export default function HomePage({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
+
               <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-7 space-y-4 shadow-xs relative">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#16a34a] dark:text-[#22c55e] flex items-center justify-center font-black text-lg">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#E63D3B] dark:text-[#FF4846] flex items-center justify-center font-black text-lg">
                   1
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
@@ -1171,7 +1178,7 @@ export default function HomePage({
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   {t("homepage:howItWorks.sellerStep1Desc")}
                 </p>
-                <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#22c55e] flex items-center gap-1">
+                <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#FF4846] flex items-center gap-1">
                   <Sparkles size={14} /> {t("homepage:howItWorks.sellerStep1Badge")}
                 </div>
               </div>
@@ -1192,7 +1199,7 @@ export default function HomePage({
               </div>
 
               <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-7 space-y-4 shadow-xs relative">
-                <div className="w-12 h-12 rounded-2xl bg-[#22c55e]/20 text-[#16a34a] dark:text-[#22c55e] flex items-center justify-center font-black text-lg">
+                <div className="w-12 h-12 rounded-2xl bg-[#FF4846]/20 text-[#E63D3B] dark:text-[#FF4846] flex items-center justify-center font-black text-lg">
                   3
                 </div>
                 <h3 className="text-lg font-black text-slate-950 dark:text-white">
@@ -1201,7 +1208,7 @@ export default function HomePage({
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   {t("homepage:howItWorks.sellerStep3Desc")}
                 </p>
-                <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#22c55e] flex items-center gap-1">
+                <div className="pt-2 text-[11px] font-semibold text-emerald-600 dark:text-[#FF4846] flex items-center gap-1">
                   <CheckCheck size={14} /> {t("homepage:howItWorks.sellerStep3Badge")}
                 </div>
               </div>
@@ -1217,11 +1224,11 @@ export default function HomePage({
       {/* 5. BROWSE BY BODY TYPE SECTION (WITH CLEAR HORIZONTAL SCROLL INDICATION) */}
       <section id="section-categories" className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
         <ScrollReveal direction="up" delay={0.08} className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8">
-          
+
           {/* Section Header with Title & Scroll Controls */}
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF4846] uppercase tracking-wider">
                 <Car size={13} />
                 <span>{t("homepage:categories.eyebrow")}</span>
               </div>
@@ -1239,11 +1246,10 @@ export default function HomePage({
                 type="button"
                 onClick={() => scrollBodyType("left")}
                 disabled={!bodyTypeCanScrollLeft}
-                className={`w-9 h-9 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center transition ${
-                  bodyTypeCanScrollLeft
-                    ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs cursor-pointer active:scale-90 hover:border-[#22c55e]"
+                className={`w-9 h-9 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center transition ${bodyTypeCanScrollLeft
+                    ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs cursor-pointer active:scale-90 hover:border-[#FF4846]"
                     : "opacity-40 text-slate-400 cursor-not-allowed bg-slate-50 dark:bg-slate-900"
-                }`}
+                  }`}
                 aria-label="Scroll categories left"
                 title="Scroll left"
               >
@@ -1253,11 +1259,10 @@ export default function HomePage({
                 type="button"
                 onClick={() => scrollBodyType("right")}
                 disabled={!bodyTypeCanScrollRight}
-                className={`w-9 h-9 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center transition ${
-                  bodyTypeCanScrollRight
-                    ? "bg-[#22c55e] text-slate-950 shadow-md shadow-[#22c55e]/20 cursor-pointer active:scale-90 hover:bg-[#16a34a]"
+                className={`w-9 h-9 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center transition ${bodyTypeCanScrollRight
+                    ? "bg-[#FF4846] text-slate-950 shadow-md shadow-[#FF4846]/20 cursor-pointer active:scale-90 hover:bg-[#E63D3B]"
                     : "opacity-40 text-slate-400 cursor-not-allowed bg-slate-50 dark:bg-slate-900"
-                }`}
+                  }`}
                 aria-label="Scroll categories right"
                 title="Scroll right"
               >
@@ -1270,9 +1275,8 @@ export default function HomePage({
           <div className="relative">
             {/* Left Edge Fade Cue */}
             <div
-              className={`pointer-events-none absolute left-0 top-0 bottom-2 w-10 sm:w-16 bg-gradient-to-r from-white dark:from-[#0B0F19] to-transparent z-10 transition-opacity duration-300 ${
-                bodyTypeCanScrollLeft ? "opacity-100" : "opacity-0"
-              }`}
+              className={`pointer-events-none absolute left-0 top-0 bottom-2 w-10 sm:w-16 bg-gradient-to-r from-white dark:from-[#0B0F19] to-transparent z-10 transition-opacity duration-300 ${bodyTypeCanScrollLeft ? "opacity-100" : "opacity-0"
+                }`}
             />
 
             {/* Scroll Track */}
@@ -1290,7 +1294,7 @@ export default function HomePage({
                     className="min-w-[230px] w-[72vw] max-w-[280px] sm:min-w-0 sm:w-auto snap-start bg-slate-50/70 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 rounded-3xl p-5 transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-4 shadow-xs hover:shadow-xl hover:-translate-y-1 shrink-0 sm:shrink"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-[#22c55e] flex items-center justify-center shadow-xs">
+                      <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-[#FF4846] flex items-center justify-center shadow-xs">
                         <Icon size={22} />
                       </div>
                       <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-700">
@@ -1299,10 +1303,10 @@ export default function HomePage({
                     </div>
 
                     <div className="space-y-1">
-                      <div className="text-[10px] font-bold text-emerald-600 dark:text-[#22c55e] uppercase tracking-wider">
+                      <div className="text-[10px] font-bold text-emerald-600 dark:text-[#FF4846] uppercase tracking-wider">
                         {cat.tag}
                       </div>
-                      <h3 className="font-black text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors">
+                      <h3 className="font-black text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-[#FF4846] transition-colors">
                         {cat.title}
                       </h3>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-2">
@@ -1310,7 +1314,7 @@ export default function HomePage({
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-[#22c55e] pt-1 border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-[#FF4846] pt-1 border-t border-slate-200 dark:border-slate-800">
                       <span>{t("homepage:featured.viewDetails")}</span>
                       <ArrowRight size={12} />
                     </div>
@@ -1321,11 +1325,10 @@ export default function HomePage({
 
             {/* Right Edge Fade Cue with Animated Pulse Arrow */}
             <div
-              className={`pointer-events-none absolute right-0 top-0 bottom-2 w-12 sm:w-16 bg-gradient-to-l from-white dark:from-[#0B0F19] to-transparent z-10 flex items-center justify-end pr-1 transition-opacity duration-300 sm:hidden ${
-                bodyTypeCanScrollRight ? "opacity-100" : "opacity-0"
-              }`}
+              className={`pointer-events-none absolute right-0 top-0 bottom-2 w-12 sm:w-16 bg-gradient-to-l from-white dark:from-[#0B0F19] to-transparent z-10 flex items-center justify-end pr-1 transition-opacity duration-300 sm:hidden ${bodyTypeCanScrollRight ? "opacity-100" : "opacity-0"
+                }`}
             >
-              <div className="w-6 h-6 rounded-full bg-slate-950/80 text-[#22c55e] flex items-center justify-center shadow-md animate-pulse">
+              <div className="w-6 h-6 rounded-full bg-slate-950/80 text-[#FF4846] flex items-center justify-center shadow-md animate-pulse">
                 <ChevronRight size={14} />
               </div>
             </div>
@@ -1334,7 +1337,7 @@ export default function HomePage({
           {/* Visual Horizontal Scroll Indication Footer (Progress Bar & Indicator on Mobile) */}
           <div className="sm:hidden flex items-center justify-between pt-1 px-1">
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              <ArrowRight size={12} className="text-[#22c55e] animate-pulse" />
+              <ArrowRight size={12} className="text-[#FF4846] animate-pulse" />
               <span>{t("homepage:categories.scrollHint", { count: categoriesWithCounts.length })}</span>
             </div>
 
@@ -1342,7 +1345,7 @@ export default function HomePage({
             <div className="flex items-center gap-1.5">
               <div className="w-20 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div
-                  className="h-full bg-[#22c55e] rounded-full transition-all duration-150"
+                  className="h-full bg-[#FF4846] rounded-full transition-all duration-150"
                   style={{ width: `${Math.max(20, bodyTypeScrollProgress)}%` }}
                 />
               </div>
@@ -1357,7 +1360,7 @@ export default function HomePage({
       {/* 6. TRANSPARENCY COMPARISON */}
       <section id="section-comparison" className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
         <ScrollReveal direction="up" delay={0.08} className="max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
-          
+
           <div className="text-center space-y-2 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               {t("homepage:comparison.title")}
@@ -1369,7 +1372,7 @@ export default function HomePage({
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
             <div className="grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
-              
+
               {/* Header Titles */}
               <div className="md:col-span-4 p-5 sm:p-6 bg-slate-100/60 dark:bg-slate-800/40 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 hidden md:block">
                 {t("homepage:comparison.criteriaHeader")}
@@ -1377,7 +1380,7 @@ export default function HomePage({
               <div className="md:col-span-4 p-5 sm:p-6 bg-rose-50/40 dark:bg-rose-950/20 font-bold text-xs uppercase tracking-wider text-rose-600 dark:text-rose-400 hidden md:block">
                 {t("homepage:comparison.roadsideHeader")}
               </div>
-              <div className="md:col-span-4 p-5 sm:p-6 bg-emerald-50/40 dark:bg-emerald-950/20 font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-[#22c55e] hidden md:block">
+              <div className="md:col-span-4 p-5 sm:p-6 bg-emerald-50/40 dark:bg-emerald-950/20 font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-[#FF4846] hidden md:block">
                 {t("homepage:comparison.arifHeader")}
               </div>
 
@@ -1386,7 +1389,7 @@ export default function HomePage({
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {(["commission", "inspection", "legal", "escrow", "testDrive"] as const).map((key) => (
                 <div key={key} className="grid grid-cols-1 md:grid-cols-12 p-5 sm:p-6 items-center gap-4">
-                  
+
                   <div className="md:col-span-4">
                     <span className="text-xs font-bold text-slate-900 dark:text-white block">
                       {t(`homepage:comparison.rows.${key}.feature`)}
@@ -1398,8 +1401,8 @@ export default function HomePage({
                     <span>{t(`homepage:comparison.rows.${key}.roadside`)}</span>
                   </div>
 
-                  <div className="md:col-span-4 text-xs text-emerald-700 dark:text-[#22c55e] flex items-start gap-2 font-medium bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-xl md:bg-transparent md:p-0">
-                    <CheckCircle2 size={16} className="text-[#22c55e] shrink-0 mt-0.5" />
+                  <div className="md:col-span-4 text-xs text-emerald-700 dark:text-[#FF4846] flex items-start gap-2 font-medium bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-xl md:bg-transparent md:p-0">
+                    <CheckCircle2 size={16} className="text-[#FF4846] shrink-0 mt-0.5" />
                     <span>{t(`homepage:comparison.rows.${key}.arif`)}</span>
                   </div>
 
@@ -1417,7 +1420,7 @@ export default function HomePage({
       {/* 7. VERIFIED CUSTOMER TESTIMONIALS */}
       <section id="section-testimonials" className="py-14 sm:py-20 bg-white dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800">
         <ScrollReveal direction="up" delay={0.08} className="max-w-6xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
-          
+
           <div className="text-center space-y-2 max-w-xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               {t("homepage:testimonials.title")}
@@ -1449,7 +1452,7 @@ export default function HomePage({
                     <h4 className="text-xs font-black text-slate-950 dark:text-white">
                       {t.name}
                     </h4>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600 dark:text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600 dark:text-[#FF4846] bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
                       {t.role}
                     </span>
                   </div>
@@ -1469,7 +1472,7 @@ export default function HomePage({
       {/* 8. FREQUENTLY ASKED QUESTIONS */}
       <section id="section-faq" className="py-14 sm:py-20 bg-slate-50/70 dark:bg-[#0E1424] border-b border-slate-200/80 dark:border-slate-800">
         <ScrollReveal direction="up" delay={0.08} className="max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 space-y-8">
-          
+
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight">
               {t("homepage:faq.title")}
@@ -1489,14 +1492,13 @@ export default function HomePage({
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className="w-full text-left p-4.5 sm:p-5 font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 flex items-center justify-between gap-3 cursor-pointer hover:text-[#22c55e] transition"
+                    className="w-full text-left p-4.5 sm:p-5 font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 flex items-center justify-between gap-3 cursor-pointer hover:text-[#FF4846] transition"
                   >
                     <span>{faq.q}</span>
                     <ChevronDown
                       size={18}
-                      className={`text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? "rotate-180 text-[#22c55e]" : ""
-                      }`}
+                      className={`text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#FF4846]" : ""
+                        }`}
                     />
                   </button>
                   {isOpen && (
@@ -1533,7 +1535,7 @@ export default function HomePage({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={() => onBrowse()}
-              className="w-full sm:w-auto bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-7 py-3.5 rounded-xl text-xs sm:text-sm transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 active:scale-95"
+              className="w-full sm:w-auto bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black px-7 py-3.5 rounded-xl text-xs sm:text-sm transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 active:scale-95"
             >
               <span>{t("homepage:cta.browseShowroom")}</span>
               <ArrowRight size={16} />
@@ -1554,7 +1556,7 @@ export default function HomePage({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-[#22c55e] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-[#FF4846] flex items-center justify-center">
                   <HelpCircle size={20} />
                 </div>
                 <div>
@@ -1576,11 +1578,11 @@ export default function HomePage({
                 href="tel:+251911234567"
                 className="flex items-center gap-3.5 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 bg-slate-50 dark:bg-slate-800/60 transition group"
               >
-                <div className="w-10 h-10 rounded-xl bg-[#22c55e]/15 text-[#16a34a] dark:text-[#22c55e] flex items-center justify-center font-bold shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#FF4846]/15 text-[#E63D3B] dark:text-[#FF4846] flex items-center justify-center font-bold shrink-0">
                   <PhoneCall size={18} />
                 </div>
                 <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#22c55e] transition-colors">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#FF4846] transition-colors">
                     {t("homepage:helpModal.callUs")}
                   </div>
                   <div className="text-[11px] text-slate-500 mt-0.5">+251 91 123 4567 (Addis Ababa)</div>

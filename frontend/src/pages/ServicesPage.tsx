@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import SEO from "../components/common/SEO";
+import { buildServicesSchema } from "../lib/seo";
 import { 
   ShieldCheck, 
   FileCheck2, 
@@ -133,6 +136,7 @@ const SERVICES: ServiceItem[] = [
 ];
 
 export default function ServicesPage({ onNotify }: ServicesPageProps) {
+  const { t } = useTranslation(["services", "common", "metadata"]);
   const navigate = useNavigate();
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [clientName, setClientName] = useState("");
@@ -167,7 +171,17 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
 
   return (
     <div className="w-full bg-white dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 pb-20 transition-colors">
-      
+      <SEO
+        title={t("metadata:pages.services", "Services — Vehicle Inspection & Escrow Brokerage")}
+        description={t("metadata:descriptions.services", "Professional auto brokerage services in Addis Ababa: 150-point mechanical audits, Transport Bureau libre verification, and secure bank escrow settlements.")}
+        keywords={t("metadata:keywords.services", "vehicle inspection Addis Ababa, car libre verification Ethiopia, auto escrow brokerage Addis Ababa, 150 point car inspection Ethiopia")}
+        canonical="/services"
+        schema={buildServicesSchema()}
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Services", url: "/services" }
+        ]}
+      />
       {/* 1. Header Hero (Carento Dark Showroom Style) */}
       <section className="relative bg-slate-950 text-white overflow-hidden py-16 sm:py-24 px-4 sm:px-6 md:px-8 border-b border-slate-800">
         <div 
@@ -180,7 +194,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
 
         <div className="max-w-5xl mx-auto relative z-10 text-center space-y-5">
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-            Services Built on <span className="text-[#22c55e]">Trust & Transparency</span>
+            Services Built on <span className="text-[#FF4846]">Trust & Transparency</span>
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
@@ -206,23 +220,23 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
             return (
               <div
                 key={s.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-[#22c55e]/60 dark:hover:border-[#22c55e]/60 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xs hover:shadow-xl dark:hover:shadow-black/40 transition-all duration-300 group"
+                className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-[#FF4846]/60 dark:hover:border-[#FF4846]/60 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xs hover:shadow-xl dark:hover:shadow-black/40 transition-all duration-300 group"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#22c55e] border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#FF4846] border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                       <Icon size={24} />
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#16a34a] dark:text-[#4ade80] bg-[#22c55e]/10 border border-[#22c55e]/30 px-3 py-1 rounded-full">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#E63D3B] dark:text-[#4ade80] bg-[#FF4846]/10 border border-[#FF4846]/30 px-3 py-1 rounded-full">
                       {s.tag}
                     </span>
                   </div>
 
                   <div className="space-y-1">
-                    <h3 className="text-lg font-black text-slate-950 dark:text-white group-hover:text-[#22c55e] transition-colors">
+                    <h3 className="text-lg font-black text-slate-950 dark:text-white group-hover:text-[#FF4846] transition-colors">
                       {s.title}
                     </h3>
-                    <p className="text-xs font-semibold text-[#16a34a] dark:text-[#4ade80]">
+                    <p className="text-xs font-semibold text-[#E63D3B] dark:text-[#4ade80]">
                       {s.subtitle}
                     </p>
                   </div>
@@ -234,7 +248,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                   <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                     {s.highlights.map((h, idx) => (
                       <div key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
-                        <CheckCircle2 size={14} className="text-[#22c55e] shrink-0 mt-0.5" />
+                        <CheckCircle2 size={14} className="text-[#FF4846] shrink-0 mt-0.5" />
                         <span>{h}</span>
                       </div>
                     ))}
@@ -249,7 +263,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                 <div className="pt-2">
                   <button
                     onClick={() => handleOpenBooking(s)}
-                    className="w-full py-3 bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-[#22c55e]/20 active:scale-95"
+                    className="w-full py-3 bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-[#FF4846]/20 active:scale-95"
                   >
                     <span>Book or Inquire Service</span>
                     <ArrowRight size={14} />
@@ -281,7 +295,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
               { step: "04", title: "Safe Handover", desc: "Transparent contract signing, title transfer, and secure key exchange at capped fees." }
             ].map((st, idx) => (
               <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 space-y-2.5 shadow-xs">
-                <span className="text-3xl font-black text-[#22c55e] block">{st.step}</span>
+                <span className="text-3xl font-black text-[#FF4846] block">{st.step}</span>
                 <h4 className="text-sm font-black text-slate-900 dark:text-white">{st.title}</h4>
                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">{st.desc}</p>
               </div>
@@ -305,7 +319,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               onClick={() => navigate("/browse")}
-              className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#22c55e]/25 active:scale-95"
+              className="bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#FF4846]/25 active:scale-95"
             >
               Browse Showroom
             </button>
@@ -332,7 +346,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
 
             <div className="space-y-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#16a34a] dark:text-[#4ade80] bg-[#22c55e]/10 border border-[#22c55e]/30 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#E63D3B] dark:text-[#4ade80] bg-[#FF4846]/10 border border-[#FF4846]/30 px-2.5 py-0.5 rounded-full inline-block mb-1">
                   {selectedService.tag}
                 </span>
                 <h3 className="text-xl font-black text-slate-950 dark:text-white">
@@ -354,7 +368,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="e.g. Abebe Kebede"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#FF4846] focus:ring-1 focus:ring-[#FF4846] transition"
                   />
                 </div>
 
@@ -369,7 +383,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
                       placeholder="+251 91 123 4567"
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#FF4846] focus:ring-1 focus:ring-[#FF4846] transition"
                     />
                   </div>
 
@@ -383,7 +397,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                       value={preferredDate}
                       min={new Date().toISOString().split("T")[0]}
                       onChange={(e) => setPreferredDate(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:ring-1 focus:ring-[#FF4846] transition"
                     />
                   </div>
                 </div>
@@ -398,7 +412,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                       value={vehicleModel}
                       onChange={(e) => setVehicleModel(e.target.value)}
                       placeholder="e.g. Toyota RAV4 2021"
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#FF4846] focus:ring-1 focus:ring-[#FF4846] transition"
                     />
                   </div>
 
@@ -409,7 +423,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                     <select
                       value={locationArea}
                       onChange={(e) => setLocationArea(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition cursor-pointer"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:ring-1 focus:ring-[#FF4846] transition cursor-pointer"
                     >
                       <option value="Bole / Kazanchis">Bole / Kazanchis</option>
                       <option value="CMC / Ayat">CMC / Ayat</option>
@@ -430,7 +444,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any specific requests or requirements..."
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition resize-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#FF4846] focus:ring-1 focus:ring-[#FF4846] transition resize-none"
                   />
                 </div>
 
@@ -438,7 +452,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 font-black py-3 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#22c55e]/25 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                    className="w-full bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black py-3 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#FF4846]/25 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                   >
                     {submitting ? (
                       <>

@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { HelpCircle, Search, ChevronDown, ChevronUp, Mail, MessageSquare, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import SEO from "../components/common/SEO";
+import { buildFaqSchema } from "../lib/seo";
 
 interface HelpPageProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -19,6 +22,7 @@ const FAQS = [
 ];
 
 export default function HelpPage({ onNotify }: HelpPageProps) {
+  const { t } = useTranslation(["common", "metadata"]);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -29,10 +33,21 @@ export default function HelpPage({ onNotify }: HelpPageProps) {
 
   return (
     <div className="max-w-3xl mx-auto w-full p-4 sm:p-6 md:p-8 flex-grow pb-24 sm:pb-8">
+      <SEO
+        title={t("metadata:pages.help", "Help & Support — Arif Car Sell")}
+        description={t("metadata:descriptions.help", "Find answers to frequently asked questions about buying, selling, inspecting cars, title deed clearance, and broker commissions in Ethiopia.")}
+        keywords={t("metadata:keywords.help", "car buying FAQ Ethiopia, how to sell car Addis Ababa, car inspection FAQ Ethiopia, libre verification guide")}
+        canonical="/help"
+        schema={buildFaqSchema(FAQS)}
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Help & Support", url: "/help" }
+        ]}
+      />
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         <div className="bg-slate-950 p-6 md:p-8 text-white space-y-4 border-b border-slate-800">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#22c55e]/15 border border-[#22c55e]/30 flex items-center justify-center text-[#22c55e]">
+            <div className="w-11 h-11 rounded-2xl bg-[#FF4846]/15 border border-[#FF4846]/30 flex items-center justify-center text-[#FF4846]">
               <HelpCircle size={22} />
             </div>
             <div>
@@ -47,7 +62,7 @@ export default function HelpPage({ onNotify }: HelpPageProps) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search frequently asked questions..."
-              className="w-full pl-10 pr-4 py-3 rounded-xl text-xs sm:text-sm bg-slate-900 text-white placeholder-slate-400 border border-slate-800 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition"
+              className="w-full pl-10 pr-4 py-3 rounded-xl text-xs sm:text-sm bg-slate-900 text-white placeholder-slate-400 border border-slate-800 focus:outline-none focus:border-[#FF4846] focus:ring-1 focus:ring-[#FF4846] transition"
             />
           </div>
         </div>
@@ -61,8 +76,8 @@ export default function HelpPage({ onNotify }: HelpPageProps) {
                   onClick={() => setExpanded(expanded === `faq-${i}` ? null : `faq-${i}`)}
                   className="w-full flex items-center justify-between py-4 text-left cursor-pointer group"
                 >
-                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#22c55e] transition-colors">{faq.q}</span>
-                  {expanded === `faq-${i}` ? <ChevronUp size={16} className="text-[#22c55e] shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#FF4846] transition-colors">{faq.q}</span>
+                  {expanded === `faq-${i}` ? <ChevronUp size={16} className="text-[#FF4846] shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
                 </button>
                 {expanded === `faq-${i}` && (
                   <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 pb-4 leading-relaxed -mt-1">{faq.a}</p>
@@ -79,25 +94,25 @@ export default function HelpPage({ onNotify }: HelpPageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div 
                 onClick={() => onNotify("Opening email client...", "info")}
-                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1.5 cursor-pointer hover:border-[#22c55e]/50 transition"
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1.5 cursor-pointer hover:border-[#FF4846]/50 transition"
               >
-                <Mail size={20} className="mx-auto text-[#22c55e]" />
+                <Mail size={20} className="mx-auto text-[#FF4846]" />
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Email Us</p>
                 <p className="text-[11px] text-slate-400">support@arifcarsell.et</p>
               </div>
               <div 
                 onClick={() => onNotify("Calling support line...", "info")}
-                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1.5 cursor-pointer hover:border-[#22c55e]/50 transition"
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1.5 cursor-pointer hover:border-[#FF4846]/50 transition"
               >
-                <Phone size={20} className="mx-auto text-[#22c55e]" />
+                <Phone size={20} className="mx-auto text-[#FF4846]" />
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Call Us</p>
                 <p className="text-[11px] text-slate-400">+251 91 234 5678</p>
               </div>
               <div 
                 onClick={() => onNotify("Connecting with live agent...", "info")}
-                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1.5 cursor-pointer hover:border-[#22c55e]/50 transition"
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 text-center space-y-1.5 cursor-pointer hover:border-[#FF4846]/50 transition"
               >
-                <MessageSquare size={20} className="mx-auto text-[#22c55e]" />
+                <MessageSquare size={20} className="mx-auto text-[#FF4846]" />
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Live Chat</p>
                 <p className="text-[11px] text-slate-400">Available 8AM-6PM</p>
               </div>

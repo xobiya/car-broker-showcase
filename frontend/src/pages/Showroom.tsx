@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, ChevronLeft, ChevronRight, Star, SlidersHorizontal, Filter, Gauge, Fuel, Settings2, Users } from "lucide-react";
+import { Calendar, Compass, MapPin, ShieldCheck, X, Search, Heart, ChevronDown, ChevronLeft, ChevronRight, Star, SlidersHorizontal, Filter, Gauge, Fuel, Settings2, Users, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "../i18n/useLocale";
 import { VehicleListing } from "../../../shared/types";
 import { vehiclesApi } from "../lib/api";
 import { ShowroomSkeleton } from "../components/ui/Skeleton";
 import { ScrollReveal } from "../components/ui/ScrollAnimations";
+import SEO from "../components/common/SEO";
 
 interface ShowroomProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -19,7 +20,6 @@ const QUICK_FILTERS = [
   { id: "sold", label: "Sold Cars" },
   { id: "featured", label: "Featured Cars" },
   { id: "newArrivals", label: "New Arrivals" },
-  { id: "pending", label: "Pending Approval" },
 ];
 
 const GROUP_OPTIONS = [
@@ -42,7 +42,7 @@ interface SavedSearch {
 }
 
 export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
-  const { t } = useTranslation(["vehicles", "common", "navigation"]);
+  const { t } = useTranslation(["vehicles", "common", "navigation", "metadata"]);
   const { formatCurrency } = useLocale();
   const location = useLocation();
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
@@ -117,7 +117,8 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
     try {
       setLoading(true);
       const data = await vehiclesApi.list();
-      setVehicles(data.filter(v => v.status === "approved"));
+      // Retain approved and sold cars for public catalog; pending cars belong in admin/broker dashboard
+      setVehicles(data.filter(v => v.status === "approved" || v.status === "sold"));
     } catch {
       setVehicles([]);
     } finally {
@@ -164,15 +165,18 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
     : vehicles;
 
   const quickFiltered = textFiltered.filter(car => {
-    if (quickFilters.length === 0) return true;
+    if (quickFilters.length === 0) {
+      // By default, only show approved (active) cars
+      return car.status === "approved";
+    }
     for (const qf of quickFilters) {
       if (qf === "available" && car.status !== "approved") return false;
       if (qf === "verified" && car.status !== "approved") return false;
       if (qf === "sold" && car.status !== "sold") return false;
       if (qf === "featured" && car.model !== "RAV4" && car.model !== "ID.4" && car.model !== "Land Cruiser") return false;
       if (qf === "newArrivals" && car.year < 2023) return false;
-      if (qf === "pending" && car.status !== "pending") return false;
     }
+    if (!quickFilters.includes("sold") && car.status !== "approved") return false;
     return true;
   });
 
@@ -294,6 +298,16 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
     localStorage.setItem("showroom-saved-searches", JSON.stringify(updated));
   };
 
+  const seoTitle = useMemo(() => {
+    if (activeFacets.brand?.length === 1) {
+      return `${activeFacets.brand[0]} Cars for Sale in Ethiopia — Arif Car Sell`;
+    }
+    if (searchQuery.trim()) {
+      return `Search: ${searchQuery.trim()} — Arif Car Sell Showroom`;
+    }
+    return t("metadata:pages.showroom", "Showroom — Browse Verified Vehicles in Ethiopia");
+  }, [activeFacets.brand, searchQuery, t]);
+
   if (loading) {
     return <ShowroomSkeleton />;
   }
@@ -301,7 +315,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   const renderCheckItem = (label: string, selected: boolean, onChange: () => void, count?: number) => (
     <label className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${selected ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300" : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
       <span className="flex items-center gap-2">
-        <span className={`w-4 h-4 rounded border flex items-center justify-center transition ${selected ? "bg-[#22c55e] border-[#22c55e]" : "border-slate-300 dark:border-slate-600"}`} onClick={onChange}>
+        <span className={`w-4 h-4 rounded border flex items-center justify-center transition ${selected ? "bg-[#FF4846] border-[#FF4846]" : "border-slate-300 dark:border-slate-600"}`} onClick={onChange}>
           {selected && <span className="text-slate-950 text-[9px] font-black">&#10003;</span>}
         </span>
         {label}
@@ -320,73 +334,263 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 transition-colors duration-200 pb-20 sm:pb-0">
+      <SEO
+        title={seoTitle}
+        description={t("metadata:descriptions.showroom", "Browse certified inventory of Toyota, Hyundai, Suzuki, BYD electric vehicles and luxury SUVs for sale in Ethiopia with full inspection scorecards.")}
+        keywords={t("metadata:keywords.showroom", "Ethiopia car showroom, buy Toyota Land Cruiser Ethiopia, BYD Song Plus Addis Ababa, Suzuki Swift Ethiopia, Hyundai Tucson Addis Ababa")}
+        canonical="/showroom"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Showroom", url: "/showroom" }
+        ]}
+      />
       {/* Mobile filter drawer */}
       {showMobileFilters && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowMobileFilters(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-slate-900 shadow-2xl overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white">Filters</h3>
-              <button onClick={() => setShowMobileFilters(false)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
-                <X size={16} className="text-slate-500 dark:text-slate-400" />
+        <div className="fixed inset-0 z-50 flex justify-end lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setShowMobileFilters(false)}
+          />
+
+          {/* Sliding sheet */}
+          <div className="relative w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col z-10 overflow-hidden animate-fadeIn">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={18} className="text-[#FF4846]" />
+                <h3 className="text-base font-black text-slate-900 dark:text-white">Filters & Options</h3>
+                {allFiltersCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#FF4846] text-white text-[10px] font-black">
+                    {allFiltersCount} active
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMobileFilters(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                aria-label="Close filters"
+              >
+                <X size={18} />
               </button>
             </div>
-            <div className="p-4 space-y-5">
+
+            {/* Drawer Content */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 overscroll-contain">
+              {/* Quick Category Filters */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Quick Filters</p>
-                <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5 block">
+                  Listing Category
+                </label>
+                <div className="grid grid-cols-2 gap-2">
                   {QUICK_FILTERS.map(qf => {
                     const active = quickFilters.includes(qf.id);
                     return (
-                      <button key={qf.id} onClick={() => toggleQuickFilter(qf.id)}
-                        className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${active ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-semibold" : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+                      <button
+                        key={qf.id}
+                        type="button"
+                        onClick={() => toggleQuickFilter(qf.id)}
+                        className={`flex items-center gap-2 p-2.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          active
+                            ? "bg-[#FF4846] text-white border-[#FF4846] shadow-xs"
+                            : "bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                        }`}
                       >
-                        <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition ${active ? "bg-[#0F4C81] border-[#0F4C81]" : "border-slate-300"}`}>
-                          {active && <span className="text-white text-[8px] font-black">✓</span>}
+                        <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                          active ? "bg-white text-[#FF4846] border-white" : "border-slate-300 dark:border-slate-600"
+                        }`}>
+                          {active && <Check size={10} strokeWidth={3} />}
                         </span>
-                        {qf.label}
+                        <span className="truncate">{qf.label}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Group By</p>
-                <div className="space-y-1">
-                  {GROUP_OPTIONS.filter(g => g.id !== "").map(opt => {
+
+              {/* Sort By */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5 block">
+                  Sort Order
+                </label>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {["Newest", "Price: Low to High", "Price: High to Low"].map(opt => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setSortBy(opt)}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                        sortBy === opt
+                          ? "bg-[#FF4846]/10 border-[#FF4846] text-[#FF4846]"
+                          : "bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      <span>{opt}</span>
+                      {sortBy === opt && <Check size={14} className="text-[#FF4846]" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Brand Facet */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5 block">
+                  Car Brand / Manufacturer
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                  {(facetOptions.brand || []).map(opt => {
+                    const selected = (facets.brand || []).includes(opt.value);
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => toggleFacet("brand", opt.value)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          selected
+                            ? "bg-[#FF4846]/10 border-[#FF4846] text-[#FF4846]"
+                            : "bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        <span className="truncate">{opt.value}</span>
+                        <span className="text-[10px] opacity-70 ml-1">({opt.count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Price Range Facet */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5 block">
+                  Price Budget
+                </label>
+                <div className="space-y-1.5">
+                  {["Under 3M ETB", "3M - 6M ETB", "6M - 10M ETB", "10M - 20M ETB", "Over 20M ETB"].map(val => {
+                    const selected = (facets.price || []).includes(val);
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => toggleFacet("price", val)}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          selected
+                            ? "bg-[#FF4846]/10 border-[#FF4846] text-[#FF4846]"
+                            : "bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        <span>{val}</span>
+                        {selected && <Check size={14} className="text-[#FF4846]" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Transmission & Fuel */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 block">
+                    Transmission
+                  </label>
+                  <div className="space-y-1">
+                    {["Automatic", "Manual"].map(val => {
+                      const selected = (facets.transmission || []).includes(val);
+                      return (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => toggleFacet("transmission", val)}
+                          className={`w-full text-center py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                            selected
+                              ? "bg-[#FF4846] text-white border-[#FF4846]"
+                              : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                          }`}
+                        >
+                          {val}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 block">
+                    Fuel Type
+                  </label>
+                  <div className="space-y-1">
+                    {["Benzine", "Diesel", "Electric", "Hybrid"].map(val => {
+                      const selected = (facets.fuel || []).includes(val);
+                      return (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => toggleFacet("fuel", val)}
+                          className={`w-full text-center py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                            selected
+                              ? "bg-[#FF4846] text-white border-[#FF4846]"
+                              : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                          }`}
+                        >
+                          {val}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Group By */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 block">
+                  Group Results
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {GROUP_OPTIONS.map(opt => {
                     const active = groupBy === opt.id;
                     return (
-                      <button key={opt.id} onClick={() => setGroupBy(active ? "" : opt.id)}
-                        className={`w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors cursor-pointer ${active ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-semibold" : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setGroupBy(active ? "" : opt.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                          active
+                            ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-xs"
+                            : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                        }`}
                       >
-                        <span>{opt.label}</span>
-                        {active && <span className="text-blue-600 text-[11px] font-black">✓</span>}
+                        {opt.label}
                       </button>
                     );
                   })}
                 </div>
               </div>
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Sort By</p>
-                <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none"
-                >
-                  <option>Newest</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                </select>
-              </div>
+            </div>
+
+            {/* Sticky Bottom Actions */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex items-center gap-3 shrink-0 pb-safe">
               {hasActiveFacets && (
-                <button onClick={() => { clearAll(); setShowMobileFilters(false); }}
-                  className="w-full text-sm font-bold text-red-500 hover:text-red-700 py-2 border border-red-200 rounded-lg transition cursor-pointer"
-                >Clear All Filters</button>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                >
+                  Clear
+                </button>
               )}
+              <button
+                type="button"
+                onClick={() => setShowMobileFilters(false)}
+                className="flex-1 py-3 px-5 rounded-2xl bg-[#FF4846] hover:bg-[#E63D3B] text-white text-xs sm:text-sm font-black transition cursor-pointer shadow-md shadow-[#FF4846]/20 active:scale-95 text-center"
+              >
+                Show {sorted.length} Vehicle{sorted.length === 1 ? "" : "s"}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+            <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
         {/* Odoo-style unified search bar */}
         <div className="w-full sm:max-w-3xl sm:mx-auto mb-6" ref={searchRef}>
@@ -394,7 +598,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
           {/* ── Single pill bar ── */}
           <div
             className={`flex items-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-visible transition-colors ${
-              openDropdown ? "border-[#22c55e] ring-2 ring-[#22c55e]/20" : "hover:border-slate-300 dark:hover:border-slate-700"
+              openDropdown ? "border-[#FF4846] ring-2 ring-[#FF4846]/20" : "hover:border-slate-300 dark:hover:border-slate-700"
             }`}
           >
             {/* Search icon */}
@@ -454,10 +658,26 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               <option value="Price: High to Low" className="dark:bg-slate-900">{t("vehicles:catalog.sortOptions.priceHigh")}</option>
             </select>
 
-            {/* Chevron toggle */}
+            {/* Mobile Filters Button */}
             <button
+              type="button"
+              onClick={() => setShowMobileFilters(true)}
+              className="sm:hidden px-3 py-3 border-l border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer relative"
+              aria-label="Open mobile filters"
+            >
+              <SlidersHorizontal size={15} className="text-[#FF4846]" />
+              {allFiltersCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-[#FF4846] text-white text-[9px] font-black flex items-center justify-center">
+                  {allFiltersCount}
+                </span>
+              )}
+            </button>
+
+            {/* Desktop Chevron toggle */}
+            <button
+              type="button"
               onClick={() => setOpenDropdown(openDropdown === "panel" ? null : "panel")}
-              className="px-3 py-3 border-l border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer flex items-center gap-1"
+              className="hidden sm:flex px-3 py-3 border-l border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer items-center gap-1"
               title="Toggle filters panel"
             >
               <span className="hidden md:inline text-[11px] font-bold text-slate-600 dark:text-slate-300">{t("vehicles:catalog.filterHeading")}</span>
@@ -486,7 +706,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                             }`}
                           >
                             <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition ${
-                              active ? "bg-[#22c55e] border-[#22c55e]" : "border-slate-300 dark:border-slate-600"
+                              active ? "bg-[#FF4846] border-[#FF4846]" : "border-slate-300 dark:border-slate-600"
                             }`}>
                               {active && <span className="text-slate-950 text-[8px] font-black">✓</span>}
                             </span>
@@ -520,7 +740,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                             }`}
                           >
                             <span>{opt.label}</span>
-                            {active && <span className="text-[#22c55e] text-[11px] font-black">✓</span>}
+                            {active && <span className="text-[#FF4846] text-[11px] font-black">✓</span>}
                           </button>
                         );
                       })}
@@ -576,6 +796,27 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
             </div>
           )}
 
+          {/* Horizontal Quick Filter Pills Bar */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mt-2.5 sm:mt-3 scrollbar-none sm:justify-center">
+            {QUICK_FILTERS.map(qf => {
+              const active = quickFilters.includes(qf.id);
+              return (
+                <button
+                  key={qf.id}
+                  type="button"
+                  onClick={() => toggleQuickFilter(qf.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    active
+                      ? "bg-[#FF4846] text-white shadow-xs"
+                      : "bg-white dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200/90 dark:border-slate-800 hover:border-slate-400"
+                  }`}
+                >
+                  <span>{qf.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
           {/* Advanced Search panel (shown when Custom Filter is clicked) */}
           {showAdvancedSearch && (
             <div className="mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm px-3 sm:px-4 py-3 sm:py-4">
@@ -606,7 +847,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               </div>
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <button onClick={() => { setShowAdvancedSearch(false); }}
-                  className="text-[11px] sm:text-xs font-bold bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 px-5 sm:px-4 py-2.5 sm:py-2 rounded-lg cursor-pointer transition flex-1 sm:flex-none shadow-xs"
+                  className="text-[11px] sm:text-xs font-bold bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 px-5 sm:px-4 py-2.5 sm:py-2 rounded-lg cursor-pointer transition flex-1 sm:flex-none shadow-xs"
                 >Apply Filters</button>
                 <button onClick={() => { Object.keys(facets).forEach(k => setActiveFacets(prev => ({ ...prev, [k]: [] }))); }}
                   className="text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-rose-600 px-4 sm:px-3 py-2.5 sm:py-2 cursor-pointer transition flex-1 sm:flex-none"
@@ -688,7 +929,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                     </div>
                     <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">{t("vehicles:catalog.noVehiclesTitle")}</p>
                     <p className="text-slate-400 dark:text-slate-500 text-xs">{t("vehicles:catalog.noVehiclesDesc")}</p>
-                    <button onClick={clearAll} className="bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 text-xs font-black px-6 py-2.5 rounded-xl cursor-pointer transition-colors shadow-sm">{t("vehicles:catalog.resetFiltersButton")}</button>
+                    <button onClick={clearAll} className="bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 text-xs font-black px-6 py-2.5 rounded-xl cursor-pointer transition-colors shadow-sm">{t("vehicles:catalog.resetFiltersButton")}</button>
                   </div>
                 )}
                 {paginated.map((car, idx) => (
@@ -720,7 +961,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                             <button key={p} onClick={() => goToPage(p as number)}
                               className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors cursor-pointer ${
                                 p === safePage
-                                  ? "bg-[#22c55e] text-slate-950 font-black shadow-md shadow-emerald-500/20"
+                                  ? "bg-[#FF4846] text-slate-950 font-black shadow-md shadow-emerald-500/20"
                                   : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                               }`}
                             >{p}</button>
@@ -738,7 +979,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
                       <input type="number" min={1} max={totalPages} defaultValue={safePage} key={safePage}
                         onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v)) goToPage(v); }}
                         onKeyDown={e => { if (e.key === "Enter") { const v = parseInt((e.target as HTMLInputElement).value); if (!isNaN(v)) goToPage(v); } }}
-                        className="w-12 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-center text-xs font-bold py-1.5 focus:outline-none focus:ring-1 focus:ring-[#22c55e] text-slate-700 dark:text-slate-200"
+                        className="w-12 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-center text-xs font-bold py-1.5 focus:outline-none focus:ring-1 focus:ring-[#FF4846] text-slate-700 dark:text-slate-200"
                       />
                     </div>
                   </div>
@@ -747,6 +988,23 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
             </>
           )}
         </div>
+      </div>
+      {/* Floating Mobile Filter & Sort Pill */}
+      <div className="fixed bottom-6 right-5 z-40 sm:hidden">
+        <button
+          type="button"
+          onClick={() => setShowMobileFilters(true)}
+          className="flex items-center gap-2 px-4 py-3 rounded-full bg-[#FF4846] hover:bg-[#E63D3B] text-white shadow-xl shadow-[#FF4846]/30 font-black text-xs cursor-pointer active:scale-95 transition"
+          aria-label="Open filter menu"
+        >
+          <SlidersHorizontal size={15} />
+          <span>Filters</span>
+          {allFiltersCount > 0 && (
+            <span className="w-5 h-5 rounded-full bg-white text-[#FF4846] text-[10px] font-black flex items-center justify-center">
+              {allFiltersCount}
+            </span>
+          )}
+        </button>
       </div>
     </div>
   );
@@ -815,10 +1073,17 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
         />
 
         {/* Top Badges */}
-        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-slate-950/85 backdrop-blur-md text-[#22c55e] border border-[#22c55e]/30 text-[8px] sm:text-[9px] font-black tracking-widest px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 shadow-sm uppercase">
-          <ShieldCheck size={10} className="text-[#22c55e] sm:w-[11px] sm:h-[11px]" />
-          <span>{t("common:states.verified")}</span>
-        </div>
+        {car.status === "sold" ? (
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-slate-950/90 backdrop-blur-md text-rose-400 border border-rose-500/40 text-[8px] sm:text-[9px] font-black tracking-widest px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1 shadow-sm uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            <span>SOLD</span>
+          </div>
+        ) : (
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-slate-950/85 backdrop-blur-md text-[#FF4846] border border-[#FF4846]/30 text-[8px] sm:text-[9px] font-black tracking-widest px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 shadow-sm uppercase">
+            <ShieldCheck size={10} className="text-[#FF4846] sm:w-[11px] sm:h-[11px]" />
+            <span>{t("common:states.verified")}</span>
+          </div>
+        )}
 
         {/* Top Right Action Buttons: Compare + Favorite */}
         <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex items-center gap-1 sm:gap-1.5">
@@ -826,7 +1091,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
             onClick={toggleCompare}
             className={`p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-colors cursor-pointer border shadow-sm ${
               isCompared
-                ? "bg-[#22c55e] border-emerald-400 text-slate-950"
+                ? "bg-[#FF4846] border-emerald-400 text-slate-950"
                 : "bg-white/90 dark:bg-slate-900/90 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-emerald-600 hover:bg-white dark:hover:bg-slate-800"
             }`}
             title={isCompared ? "Remove from comparison" : "Add to comparison"}
@@ -849,7 +1114,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
         </div>
 
         {car.condition === "New" && (
-          <span className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-[#22c55e] text-slate-950 text-[7px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded shadow-sm">
+          <span className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-[#FF4846] text-slate-950 text-[7px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded shadow-sm">
             {car.condition}
           </span>
         )}
@@ -868,7 +1133,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
         
         {/* Title and Location */}
         <div className="space-y-1 sm:space-y-1.5">
-          <h3 className="font-extrabold text-xs sm:text-base text-slate-900 dark:text-slate-100 group-hover:text-[#22c55e] transition-colors truncate">
+          <h3 className="font-extrabold text-xs sm:text-base text-slate-900 dark:text-slate-100 group-hover:text-[#FF4846] transition-colors truncate">
             {car.brand} {car.model}
           </h3>
 
@@ -912,7 +1177,7 @@ function CarCard({ car, carFavorites, setCarFavorites, onInquireCar }: {
 
           <button
             onClick={() => onInquireCar(car)}
-            className="w-full sm:w-auto px-2.5 sm:px-5 py-1.5 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#22c55e] dark:hover:bg-[#22c55e] text-slate-800 dark:text-slate-200 hover:text-white dark:hover:text-slate-950 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer active:scale-95 border border-slate-200/80 dark:border-slate-700 shadow-xs text-center"
+            className="w-full sm:w-auto px-2.5 sm:px-5 py-1.5 sm:py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#FF4846] dark:hover:bg-[#FF4846] text-slate-800 dark:text-slate-200 hover:text-white dark:hover:text-slate-950 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all cursor-pointer active:scale-95 border border-slate-200/80 dark:border-slate-700 shadow-xs text-center"
           >
             {t("common:actions.viewDetails")}
           </button>

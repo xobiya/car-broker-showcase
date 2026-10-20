@@ -1,20 +1,34 @@
 import React from "react";
 import { FileText, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import SEO from "../components/common/SEO";
 
 interface TermsPageProps {
   onBack: () => void;
 }
 
 export default function TermsPage({ onBack }: TermsPageProps) {
+  const { t } = useTranslation(["common", "metadata"]);
+
   return (
     <div className="max-w-3xl mx-auto w-full p-4 sm:p-6 md:p-8 flex-grow pb-24 sm:pb-8">
+      <SEO
+        title={t("metadata:pages.terms", "Terms of Service — Arif Car Sell")}
+        description={t("metadata:descriptions.terms", "Read Arif Car Sell Terms of Service covering listing verification, broker conduct standards, capped commission policies, and buyer protections.")}
+        keywords={t("metadata:keywords.terms", "Arif Car Sell terms of service, broker code of conduct Ethiopia, auto marketplace policies")}
+        canonical="/terms"
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Terms of Service", url: "/terms" }
+        ]}
+      />
       <button onClick={onBack} className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 mb-6 transition cursor-pointer">
         <ArrowLeft size={14} /> Back
       </button>
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
         <div className="bg-slate-950 p-6 md:p-8 text-white border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#22c55e]/15 border border-[#22c55e]/30 flex items-center justify-center text-[#22c55e]">
+            <div className="w-11 h-11 rounded-2xl bg-[#FF4846]/15 border border-[#FF4846]/30 flex items-center justify-center text-[#FF4846]">
               <FileText size={22} />
             </div>
             <div>
