@@ -1,3 +1,4 @@
+import VehicleFormModal from "../components/ui/VehicleFormModal";
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -11,6 +12,7 @@ import { VehicleListing, Lead, Sale, VehicleDocument } from "../../../shared/typ
 import { api, vehiclesApi, leadsApi, salesApi, brokersApi } from "../lib/api";
 import CommissionCalculator from "../components/ui/CommissionCalculator";
 import Logo from "../components/ui/Logo";
+import SEO from "../components/common/SEO";
 
 // Read the authenticated user stored by AuthModal after login
 const getStoredUser = (): { id: string; name: string; email: string; role: string } | null => {
@@ -31,9 +33,9 @@ const StatCard = ({ icon, label, value, trend, trendUp, sub }: {
 }) => (
   <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 flex flex-col gap-3 shadow-sm transition-colors">
     <div className="flex justify-between items-start">
-      <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-[#22c55e]">{icon}</div>
+      <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-[#FF4846]">{icon}</div>
       {trend && (
-        <span className={`text-xs font-semibold flex items-center gap-0.5 ${trendUp ? "text-[#22c55e]" : "text-rose-500"}`}>
+        <span className={`text-xs font-semibold flex items-center gap-0.5 ${trendUp ? "text-[#FF4846]" : "text-rose-500"}`}>
           {trendUp ? <TrendingUp size={13} /> : <AlertTriangle size={13} />} {trend}
         </span>
       )}
@@ -95,7 +97,7 @@ const RevenueChart = ({ data }: { data: { label: string; value: number }[] }) =>
             <div className="w-full flex items-end justify-center" style={{ height: "120px" }}>
               <div
                 style={{ height: `${h}%`, minHeight: "4px" }}
-                className={`w-full rounded-sm transition-all duration-500 ${isLast ? "bg-[#22c55e]" : "bg-emerald-200 dark:bg-emerald-950/50"}`}
+                className={`w-full rounded-sm transition-all duration-500 ${isLast ? "bg-[#FF4846]" : "bg-emerald-200 dark:bg-emerald-950/50"}`}
               />
             </div>
             <span className="text-[10px] text-slate-400 font-medium">{d.label}</span>
@@ -162,249 +164,7 @@ function Combobox({ value, onChange, options, placeholder }: {
   );
 }
 
-function VehicleFormModal({ editing, onSave, onCancel }: {
-  editing: VehicleListing | null; onSave: (p: any) => void; onCancel: () => void;
-}) {
-  const init = editing ? {
-    brand: editing.brand, model: editing.model, year: editing.year, mileage: editing.mileage,
-    price: editing.price, originalPrice: editing.originalPrice, imageUrl: editing.imageUrl,
-    description: editing.description, fuelType: editing.fuelType, transmission: editing.transmission,
-    location: editing.location, condition: "Used", bodyType: "SUV", driveType: "4WD",
-    color: "", doors: 4, seats: 5, engineSize: "", engineType: "V6", horsepower: 0,
-    chassisNumber: "", registrationYear: editing.year, commissionRate: 1.0,
-    commissionType: "percentage", videoUrl: editing.videoUrl || "",
-  } : {
-    brand: "", model: "", year: new Date().getFullYear(), mileage: 0, price: 0,
-    originalPrice: 0, imageUrl: "", description: "", fuelType: "Benzine",
-    transmission: "Automatic", location: "Addis Ababa", condition: "Used", bodyType: "SUV",
-    driveType: "4WD", color: "", doors: 4, seats: 5, engineSize: "", engineType: "V6",
-    horsepower: 0, chassisNumber: "", registrationYear: new Date().getFullYear(),
-    commissionRate: 1.0, commissionType: "percentage", videoUrl: "",
-  };
-  const [f, setF] = useState(init);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const upd = (k: string, v: any) => setF(p => ({ ...p, [k]: v }));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const primaryImage = uploadedImages.length > 0 ? uploadedImages[0] : f.imageUrl;
-    onSave({ ...f, imageUrl: primaryImage, gallery_images: uploadedImages.length > 0 ? JSON.stringify(uploadedImages) : undefined });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-200 dark:border-slate-800 overflow-hidden h-[94vh] sm:h-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col transition-colors">
-        {/* Mobile Sheet Handle */}
-        <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 dark:bg-slate-850 shrink-0">
-          <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
-        </div>
-        <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 shrink-0">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <Car size={16} className="text-[#22c55e]" />
-            {editing ? "Edit Listing" : "Add New Listing"}
-          </h3>
-          <button 
-            type="button" 
-            onClick={onCancel} 
-            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mb-3">Basic Information</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Brand *</label>
-                <Combobox value={f.brand} onChange={v => setF(p => {
-                  const models = BRAND_MODELS[v] || [];
-                  const modelStillValid = models.includes(p.model);
-                  return { ...p, brand: v, model: modelStillValid ? p.model : "" };
-                })} options={BRANDS} placeholder="Select or type brand..." />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Model *</label>
-                <Combobox value={f.model} onChange={v => upd("model", v)} options={BRAND_MODELS[f.brand] || []} placeholder={f.brand ? "Select or type model..." : "Select brand first..."} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Year</label>
-                <input type="number" value={f.year} onChange={e => upd("year", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Condition</label>
-                <select value={f.condition} onChange={e => upd("condition", e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {["New", "Used", "Imported", "Damaged"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Body Type</label>
-                <select value={f.bodyType} onChange={e => upd("bodyType", e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {["SUV", "Sedan", "Hatchback", "Pickup", "Truck", "Van", "Coupe", "Convertible"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Chassis #</label>
-                <input type="text" value={f.chassisNumber} onChange={e => upd("chassisNumber", e.target.value)} placeholder="VIN / Chassis #" className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mb-3">Specifications</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Mileage (km)</label>
-                <input type="number" value={f.mileage} onChange={e => upd("mileage", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Fuel Type</label>
-                <select value={f.fuelType} onChange={e => upd("fuelType", e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {["Benzine", "Diesel", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Transmission</label>
-                <select value={f.transmission} onChange={e => upd("transmission", e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {["Automatic", "Manual"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Drive Type</label>
-                <select value={f.driveType} onChange={e => upd("driveType", e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {["4WD", "AWD", "FWD", "RWD"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Color</label>
-                <Combobox value={f.color} onChange={v => upd("color", v)} options={COLORS} placeholder="Select or type color..." />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Doors</label>
-                <select value={f.doors} onChange={e => upd("doors", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {[2, 3, 4, 5].map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Seats</label>
-                <select value={f.seats} onChange={e => upd("seats", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {[2, 4, 5, 6, 7, 8].map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Engine</label>
-                <input type="text" value={f.engineSize} onChange={e => upd("engineSize", e.target.value)} placeholder="e.g. 3.5L" className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Engine Type</label>
-                <select value={f.engineType} onChange={e => upd("engineType", e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {["V4", "V6", "V8", "V12", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Horsepower</label>
-                <input type="number" value={f.horsepower} onChange={e => upd("horsepower", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Reg. Year</label>
-                <input type="number" value={f.registrationYear} onChange={e => upd("registrationYear", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Location *</label>
-                <Combobox value={f.location} onChange={v => upd("location", v)} options={LOCATIONS} placeholder="Select or type location..." />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mb-3">Pricing & Commission</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Price (ETB) *</label>
-                <input type="number" required value={f.price} onChange={e => upd("price", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">MSRP (ETB)</label>
-                <input type="number" value={f.originalPrice} onChange={e => upd("originalPrice", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Commission Type</label>
-                <select value={f.commissionType} onChange={e => upd("commissionType", e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400">
-                  {["percentage", "fixed"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{f.commissionType === "percentage" ? "Rate (%)" : "Amount (ETB)"}</label>
-                <input type="number" value={f.commissionRate} onChange={e => upd("commissionRate", +e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mb-3">Photos & Video</p>
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-3">
-                {uploadedImages.map((img, i) => (
-                  <div key={i} className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-slate-200 group">
-                    <img src={img} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold cursor-pointer">×</button>
-                    {i === 0 && <span className="absolute bottom-1 left-1 bg-indigo-900/80 text-white text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Main</span>}
-                  </div>
-                ))}
-                <label className="w-20 h-20 md:w-24 md:h-24 rounded-lg border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors">
-                  <Plus size={20} className="text-slate-400" />
-                  <span className="text-[8px] font-bold text-slate-400 uppercase">Add</span>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                    const files = e.target.files;
-                    if (!files) return;
-                    Array.from({ length: files.length }, (_, i) => files[i]).forEach((file: File) => {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => { if (ev.target?.result) setUploadedImages(prev => [...prev, ev.target.result as string]); };
-                      reader.readAsDataURL(file);
-                    });
-                    e.target.value = "";
-                  }} />
-                </label>
-              </div>
-              <input type="text" value={f.imageUrl} onChange={e => upd("imageUrl", e.target.value)} placeholder="Primary image URL..." className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              <div className="flex items-center gap-2">
-                <input type="text" value={f.videoUrl} onChange={e => upd("videoUrl", e.target.value)} placeholder="Video URL (YouTube/Vimeo/MP4)..." className="flex-1 text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400" />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 mb-3">Description</p>
-            <textarea value={f.description} onChange={e => upd("description", e.target.value)} rows={3} placeholder="Vehicle history, condition, imported features, tax status..." className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-indigo-400 resize-none" />
-          </div>
-
-          </div>
-
-          {/* Sticky Safe-Area Action Bar */}
-          <div className="p-3.5 sm:p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium hidden sm:block">Listings are saved as draft until submitted for approval.</p>
-            <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto">
-              <button 
-                type="button" 
-                onClick={onCancel} 
-                className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                className="flex items-center justify-center gap-1.5 text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-[#22c55e] hover:from-emerald-700 hover:to-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-emerald-600/20 active:scale-95"
-              >
-                <Save size={15} /> {editing ? "Save Changes" : "Save as Draft"}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+// VehicleFormModal is imported from ../components/ui/VehicleFormModal
 
 const NAV_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
@@ -445,6 +205,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
   const [brokerInfo, setBrokerInfo] = useState<{ id: string; userId: string; name: string; email: string; phone: string; licenseNumber: string; bio: string; avatar: string; verified: boolean; joinDate: string; } | null>(null);
   const [brokerProfile, setBrokerProfile] = useState({ name: "", email: "", phone: "", bio: "", licenseNumber: "", avatar: "" });
   const [savingProfile, setSavingProfile] = useState(false);
+  const [inspectingDoc, setInspectingDoc] = useState<{ vehicleTitle: string; docUrl: string; docName: string; price: number } | null>(null);
 
   const currentUser = getStoredUser();
   const currentUserId = currentUser?.id ?? null;
@@ -728,10 +489,11 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
 
   return (
     <div className="flex h-full bg-slate-50 dark:bg-[#0B0F19] transition-colors">
+      <SEO title="Broker Dashboard — Arif Car Sell" noIndex={true} />
       <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-200 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
         <div className={`flex items-center ${sidebarCollapsed ? "justify-center p-3" : "justify-between p-4"} border-b border-slate-100 dark:border-slate-800`}>
           {sidebarCollapsed ? (
-            <div className="w-8 h-8 bg-[#22c55e] rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm">
+            <div className="w-8 h-8 bg-[#FF4846] rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm">
               <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
                 <circle cx="24" cy="24" r="8" fill="white" />
                 <path d="M24 18C28.4183 18 32 20.6863 32 24C32 27.3137 28.4183 30 24 30C19.5817 30 16 27.3137 16 24C16 20.6863 19.5817 18 24 18Z" fill="white" fillOpacity="0.3" />
@@ -740,7 +502,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
           ) : (
             <div>
               <Logo size="sm" />
-              <p className="text-[9px] font-semibold tracking-wider text-[#22c55e] uppercase mt-0.5">Broker Portal</p>
+              <p className="text-[9px] font-semibold tracking-wider text-[#FF4846] uppercase mt-0.5">Broker Portal</p>
             </div>
           )}
           <button
@@ -756,7 +518,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
           {NAV_ITEMS.map(({ id, label, icon }) => (
             <button key={id} onClick={() => { setTab(id); setSidebarOpen(false); }}
               className={`w-full flex items-center ${sidebarCollapsed ? "justify-center" : "gap-2.5 px-3"} py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                tab === id ? "bg-[#22c55e] text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-white"
+                tab === id ? "bg-[#FF4846] text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-white"
               }`}
               title={sidebarCollapsed ? label : undefined}>
               <span className="relative">
@@ -783,7 +545,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
 
         <div className={`${sidebarCollapsed ? "p-2 flex justify-center" : "p-3"} border-t border-slate-100 dark:border-slate-800`}>
           <button onClick={() => { setEditingVehicle(null); setShowForm(true); }}
-            className={`flex items-center ${sidebarCollapsed ? "justify-center w-10 h-10" : "justify-center gap-1.5 w-full"} bg-[#22c55e] hover:bg-emerald-600 text-white text-sm font-semibold py-2.5 rounded-lg transition cursor-pointer shadow-sm`}
+            className={`flex items-center ${sidebarCollapsed ? "justify-center w-10 h-10" : "justify-center gap-1.5 w-full"} bg-[#FF4846] hover:bg-emerald-600 text-white text-sm font-semibold py-2.5 rounded-lg transition cursor-pointer shadow-sm`}
             title={sidebarCollapsed ? "Add Listing" : undefined}>
             <Plus size={15} />
             {!sidebarCollapsed && "Add Listing"}
@@ -809,7 +571,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             <button
               type="button"
               onClick={() => { setEditingVehicle(null); setShowForm(true); }}
-              className="lg:hidden flex items-center gap-1 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-sm active:scale-95 transition cursor-pointer"
+              className="lg:hidden flex items-center gap-1 bg-[#FF4846] hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-sm active:scale-95 transition cursor-pointer"
             >
               <Plus size={14} />
               <span>Add</span>
@@ -840,7 +602,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                       )}
                     </div>
                     <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 text-center">
-                      <button onClick={() => { setNotifOpen(false); setTab("notifications"); }} className="text-xs font-semibold text-[#22c55e] hover:text-emerald-400 cursor-pointer">View All</button>
+                      <button onClick={() => { setNotifOpen(false); setTab("notifications"); }} className="text-xs font-semibold text-[#FF4846] hover:text-emerald-400 cursor-pointer">View All</button>
                     </div>
                   </div>
                 </>
@@ -848,7 +610,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             </div>
             <div className="relative">
               <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
-                <div className="w-8 h-8 rounded-lg bg-[#22c55e] text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-[#FF4846] text-white flex items-center justify-center text-xs font-bold shadow-sm">
                   {(brokerInfo?.name || "B").split(" ").map(w => w[0]).join("")}
                 </div>
                 <div className="hidden sm:block text-left">
@@ -863,7 +625,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-20 py-1">
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
                       <p className="text-xs font-bold text-slate-800 dark:text-white">{brokerInfo?.name || "Unknown"}</p>
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-[#22c55e]">Licensed Broker</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-[#FF4846]">Licensed Broker</p>
                     </div>
                     <button onClick={() => { setProfileOpen(false); setTab("profile"); }} className="w-full text-left px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer">Profile</button>
                     <button onClick={() => { setProfileOpen(false); onLogout?.(); }} className="w-full text-left px-4 py-2 text-xs font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer">Logout</button>
@@ -927,7 +689,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                   <div key={l.id} className="p-4 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#22c55e] text-xs font-bold flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#FF4846] text-xs font-bold flex items-center justify-center shrink-0">
                           {l.buyerName.charAt(0)}
                         </div>
                         <div>
@@ -947,7 +709,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                         </button>
                         <button
                           onClick={() => { setSaleModal(l); setSalePrice(l.vehiclePrice || 0); }}
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold text-center transition cursor-pointer"
+                          className="flex-1 py-1.5 px-3 rounded-lg bg-[#FF4846] hover:bg-emerald-600 text-white text-xs font-bold text-center transition cursor-pointer"
                         >
                           Mark Sold
                         </button>
@@ -976,7 +738,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                       <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                         <td className="px-6 py-3.5">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#22c55e] text-xs font-bold flex items-center justify-center shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#FF4846] text-xs font-bold flex items-center justify-center shrink-0">
                               {l.buyerName.charAt(0)}
                             </div>
                             <span className="font-semibold text-slate-700 dark:text-slate-200">{l.buyerName}</span>
@@ -987,7 +749,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                         <td className="px-4 py-3.5">
                           {l.status !== "sold" && l.status !== "cancelled" ? (
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleLeadStatus(l.id, "contacted")} className="text-xs font-semibold text-[#22c55e] hover:text-emerald-700 transition cursor-pointer">Contact</button>
+                              <button onClick={() => handleLeadStatus(l.id, "contacted")} className="text-xs font-semibold text-[#FF4846] hover:text-emerald-700 transition cursor-pointer">Contact</button>
                               <span className="text-slate-200 dark:text-slate-700">|</span>
                               <button onClick={() => { setSaleModal(l); setSalePrice(l.vehiclePrice || 0); }} className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition cursor-pointer">Sold</button>
                             </div>
@@ -1015,7 +777,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               <button 
                 type="button"
                 onClick={() => { setEditingVehicle(null); setShowForm(true); }}
-                className="flex items-center justify-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer active:scale-95 w-full sm:w-auto"
+                className="flex items-center justify-center gap-1.5 bg-[#FF4846] hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer active:scale-95 w-full sm:w-auto"
               >
                 <Plus size={16} /> Add New Listing
               </button>
@@ -1037,7 +799,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                   onClick={() => setListingFilter(f.id)}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
                     listingFilter === f.id
-                      ? "bg-[#22c55e] text-white shadow-sm shadow-[#22c55e]/25"
+                      ? "bg-[#FF4846] text-white shadow-sm shadow-[#FF4846]/25"
                       : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750"
                   }`}
                 >
@@ -1074,6 +836,27 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                         <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-medium">{v.location}</span>
                       </div>
 
+                      {/* Libre Ownership Document Indicator */}
+                      {v.ownershipDocumentUrl && (
+                        <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-2.5 py-1.5 mt-2">
+                          <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1 truncate">
+                            <FileText size={12} /> Libre Attached
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setInspectingDoc({
+                              vehicleTitle: `${v.brand} ${v.model} (${v.year})`,
+                              docUrl: v.ownershipDocumentUrl!,
+                              docName: v.ownershipDocumentName || "Ownership Libre Document",
+                              price: v.price,
+                            })}
+                            className="text-[11px] font-black text-[#FF4846] hover:underline shrink-0 cursor-pointer"
+                          >
+                            View Libre
+                          </button>
+                        </div>
+                      )}
+
                       {(v.status === "rejected" && v.rejectionReason) && (
                         <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl p-2.5 flex items-start gap-2 mt-2.5">
                           <AlertTriangle size={14} className="text-rose-500 mt-0.5 shrink-0" />
@@ -1088,7 +871,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                         <button 
                           type="button"
                           onClick={() => handleSubmitForApproval(v.id)} 
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] hover:bg-emerald-100 dark:hover:bg-emerald-950/70 text-xs font-bold transition cursor-pointer"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#FF4846] hover:bg-emerald-100 dark:hover:bg-emerald-950/70 text-xs font-bold transition cursor-pointer"
                         >
                           <Send size={13} />
                           <span>Submit</span>
@@ -1137,7 +920,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                   {leads.map(l => (
                     <div key={l.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
                       <div className="flex items-start gap-3.5">
-                        <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#22c55e] text-base font-black flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
+                        <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-[#FF4846] text-base font-black flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
                           {l.buyerName.charAt(0).toUpperCase()}
                         </div>
                         <div className="space-y-1 min-w-0">
@@ -1168,7 +951,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                       <div className="flex flex-col md:items-end gap-2.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
                         <div className="flex items-center justify-between md:justify-end gap-2">
                           <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{l.vehicleBrand} {l.vehicleModel}</p>
-                          {l.vehiclePrice ? <p className="text-xs font-black text-[#22c55e]">ETB {fmt(l.vehiclePrice)}</p> : null}
+                          {l.vehiclePrice ? <p className="text-xs font-black text-[#FF4846]">ETB {fmt(l.vehiclePrice)}</p> : null}
                         </div>
                         {l.status !== "sold" && l.status !== "cancelled" && (
                           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -1182,7 +965,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                             <button 
                               type="button"
                               onClick={() => { setSaleModal(l); setSalePrice(l.vehiclePrice || 0); }} 
-                              className="flex-1 md:flex-initial text-xs font-bold bg-[#22c55e] hover:bg-emerald-600 text-white px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-center"
+                              className="flex-1 md:flex-initial text-xs font-bold bg-[#FF4846] hover:bg-emerald-600 text-white px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-center"
                             >
                               <TrendingUp size={13} /> Record Sale
                             </button>
@@ -1668,7 +1451,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             onClick={() => { setTab("dashboard"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer ${
               tab === "dashboard" && !mobileMoreOpen
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -1684,7 +1467,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             onClick={() => { setTab("listings"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               tab === "listings" && !mobileMoreOpen
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -1705,7 +1488,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               type="button"
               onClick={() => { setEditingVehicle(null); setShowForm(true); setMobileMoreOpen(false); }}
               aria-label="Add New Car Listing"
-              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#22c55e] to-emerald-400 text-white shadow-lg shadow-[#22c55e]/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-slate-950"
+              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#FF4846] to-emerald-400 text-white shadow-lg shadow-[#FF4846]/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-slate-950"
             >
               <Plus size={24} strokeWidth={2.5} />
             </button>
@@ -1717,7 +1500,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             onClick={() => { setTab("leads"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               tab === "leads" && !mobileMoreOpen
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -1738,7 +1521,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             onClick={() => setMobileMoreOpen(true)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               mobileMoreOpen || ["earnings", "inspection", "documents", "calculator", "profile", "notifications"].includes(tab)
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -1844,7 +1627,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                     }}
                     className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col gap-2 relative ${
                       isActive 
-                        ? "border-[#22c55e] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#22c55e]/20" 
+                        ? "border-[#FF4846] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#FF4846]/20" 
                         : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800"
                     }`}
                   >
@@ -1870,7 +1653,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
             {/* Quick Profile & Logout */}
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#22c55e] text-white font-black flex items-center justify-center text-sm shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-[#FF4846] text-white font-black flex items-center justify-center text-sm shadow-sm">
                   {(brokerInfo?.name || "B").split(" ").map(w => w[0]).join("")}
                 </div>
                 <div>
@@ -1898,7 +1681,21 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
         </div>
       )}
 
-      {showForm && <VehicleFormModal editing={editingVehicle} onSave={handleSave} onCancel={() => { setShowForm(false); setEditingVehicle(null); }} />}
+      {showForm && (
+        <VehicleFormModal
+          sellerId={myBrokerId || currentUserId || "broker"}
+          editing={editingVehicle}
+          role="broker"
+          onClose={() => { setShowForm(false); setEditingVehicle(null); }}
+          onSaved={() => {
+            setShowForm(false);
+            setEditingVehicle(null);
+            fetchData();
+            onNotify(editingVehicle ? "Listing updated!" : "Listing submitted successfully!", "success");
+          }}
+          onNotify={onNotify}
+        />
+      )}
 
       {saleModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -1927,7 +1724,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                 type="number" 
                 value={salePrice} 
                 onChange={e => setSalePrice(+e.target.value)} 
-                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] font-mono font-bold" 
+                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-mono font-bold" 
               />
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400">
@@ -1944,7 +1741,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               <button 
                 type="button"
                 onClick={handleRecordSale} 
-                className="bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+                className="bg-[#FF4846] hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
               >
                 Confirm Sale
               </button>
@@ -1978,7 +1775,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                 value={docName} 
                 onChange={e => setDocName(e.target.value)} 
                 placeholder="e.g. Customs Clearance" 
-                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e]" 
+                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846]" 
               />
             </div>
             <div className="space-y-1">
@@ -1986,7 +1783,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               <select 
                 value={docType} 
                 onChange={e => setDocType(e.target.value)} 
-                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e]"
+                className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846]"
               >
                 <option value="title">Title of Ownership</option>
                 <option value="invoice">Invoice</option>
@@ -2006,7 +1803,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                   reader.onload = () => setDocFileData(reader.result as string);
                   reader.readAsDataURL(file);
                 }}
-                className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#22c55e] file:text-white hover:file:bg-emerald-600 file:cursor-pointer cursor-pointer"
+                className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#FF4846] file:text-white hover:file:bg-emerald-600 file:cursor-pointer cursor-pointer"
               />
             </div>
             <div className="flex justify-end gap-2.5 pt-2">
@@ -2020,9 +1817,83 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
               <button 
                 type="button"
                 onClick={handleUploadDoc} 
-                className="bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+                className="bg-[#FF4846] hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
               >
                 Upload
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Libre Ownership Document Modal */}
+      {inspectingDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+                  <FileText size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white">
+                    Ownership Document (Libre)
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {inspectingDoc.vehicleTitle} · {inspectingDoc.price.toLocaleString()} ETB
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInspectingDoc(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition rounded-lg cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <div className="flex items-center justify-between text-xs bg-slate-100 dark:bg-slate-800 p-3 rounded-xl">
+                <div>
+                  <span className="text-slate-400 block text-[10px] font-bold uppercase">File Name</span>
+                  <span className="font-bold text-slate-800 dark:text-white">{inspectingDoc.docName}</span>
+                </div>
+                <a
+                  href={inspectingDoc.docUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={inspectingDoc.docName}
+                  className="px-3 py-1.5 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-bold hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <FileText size={13} />
+                  <span>Open Full Size</span>
+                </a>
+              </div>
+
+              <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center min-h-[300px] max-h-[500px]">
+                {inspectingDoc.docUrl.startsWith("data:application/pdf") ? (
+                  <iframe
+                    src={inspectingDoc.docUrl}
+                    title="Libre PDF"
+                    className="w-full h-[450px]"
+                  />
+                ) : (
+                  <img
+                    src={inspectingDoc.docUrl}
+                    alt="Vehicle Ownership Libre"
+                    className="max-h-[450px] w-auto object-contain mx-auto"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setInspectingDoc(null)}
+                className="px-5 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300 cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>

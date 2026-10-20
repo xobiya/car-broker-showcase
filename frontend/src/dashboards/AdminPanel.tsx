@@ -5,11 +5,15 @@ import {
   Car, ClipboardList, UserCheck, Menu, X, Save,
   Bell, LogOut, ChevronRight, Search, RefreshCw,
   SlidersHorizontal, Upload, Image as ImageIcon, Sparkles,
-  MapPin, Phone, Mail, Eye, Calendar, Gauge, AlertCircle, ArrowUpRight
+  MapPin, Phone, Mail, Eye, Calendar, Gauge, AlertCircle, ArrowUpRight,
+  FileText, Download, FileCheck,
+  Sun, Moon
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
 import { vehiclesApi, brokersApi, leadsApi, salesApi, reportsApi, usersApi, settingsApi, uploadApi } from "../lib/api";
 import Logo from "../components/ui/Logo";
+import SEO from "../components/common/SEO";
+import { useStore } from "../store";
 
 const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
 const COLORS = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Gold", "Brown", "Beige", "Orange", "Burgundy", "Navy"];
@@ -33,7 +37,7 @@ function Combobox({ value, onChange, options, placeholder }: {
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 200)}
         placeholder={placeholder}
-        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
+        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition"
       />
       {open && filtered.length > 0 && (
         <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
@@ -44,7 +48,7 @@ function Combobox({ value, onChange, options, placeholder }: {
               onMouseDown={() => { setInput(o); onChange(o); setOpen(false); }}
               className={`w-full text-left px-3 py-2 text-sm transition cursor-pointer ${
                 o === input 
-                  ? "bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-[#22c55e]" 
+                  ? "bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-[#FF4846]"
                   : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
               }`}
             >
@@ -92,7 +96,7 @@ function RevenueChart({ sales }: { sales: Sale[] }) {
   const currentMonth = new Date().getMonth();
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
@@ -215,6 +219,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: {
 
 // ─── Main Component ────────────────────────────────────────────────────────
 export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPanelProps) {
+  const { theme, toggleTheme } = useStore();
   const adminUser = React.useMemo(() => {
     const saved = localStorage.getItem("autobroker_user");
     return saved ? JSON.parse(saved) : null;
@@ -371,6 +376,16 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const [editingVehicle, setEditingVehicle] = useState<VehicleListing | null>(null);
   const [selectedBroker, setSelectedBroker] = useState<any | null>(null);
   const [selectedBuyer, setSelectedBuyer] = useState<any | null>(null);
+  const [inspectingDoc, setInspectingDoc] = useState<{
+    vehicleId: string;
+    vehicleTitle: string;
+    docUrl: string;
+    docName: string;
+    price: number;
+    seller?: string;
+    year?: number;
+    status: string;
+  } | null>(null);
 
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -652,35 +667,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
   const sidebar = (
     <aside className={`${sidebarCollapsed ? "w-20" : "w-64"} shrink-0 bg-slate-950 border-r border-slate-900 h-full flex flex-col transition-all duration-300 relative text-slate-300 shadow-2xl`}>
-      {/* Header / Logo */}
-      <div className={`h-20 border-b border-slate-900 flex items-center justify-between px-5 ${sidebarCollapsed ? "justify-center" : ""}`}>
-        {!sidebarCollapsed ? (
-          <div>
-            <Logo size="sm" inverted />
-            <span className="text-[9px] font-black uppercase text-[#22c55e] tracking-widest mt-1 inline-block">Admin Panel</span>
-          </div>
-        ) : (
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 cursor-pointer" onClick={() => setSidebarCollapsed(false)}>
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-              <rect x="2" y="2" width="44" height="44" rx="12" fill="white" fillOpacity="0.2" />
-              <circle cx="24" cy="24" r="8" fill="white" />
-              <path d="M24 18C28.4183 18 32 20.6863 32 24C32 27.3137 28.4183 30 24 30C19.5817 30 16 27.3137 16 24C16 20.6863 19.5817 18 24 18Z" fill="white" />
-            </svg>
-          </div>
-        )}
-        
-        {!sidebarCollapsed && (
-          <button
-            onClick={() => setSidebarCollapsed(true)}
-            className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X size={14} />
-          </button>
-        )}
-      </div>
-
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 p-3 sm:p-4 space-y-1.5 overflow-y-auto">
         {navItems.map(item => {
           const isActive = adminTab === item.key;
           return (
@@ -689,7 +677,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               onClick={() => { setAdminTab(item.key); setSidebarOpen(false); }}
               className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-0" : "gap-3.5 px-4"} py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer group relative ${
                 isActive
-                  ? "bg-[#22c55e] text-white shadow-md shadow-emerald-500/20 font-black"
+                  ? "bg-[#FF4846] text-white shadow-md shadow-emerald-500/20 font-black"
                   : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
               }`}
               title={sidebarCollapsed ? item.label : undefined}
@@ -704,7 +692,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               )}
               {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
-                  isActive ? "bg-white/20 text-white" : "bg-[#22c55e] text-white"
+                  isActive ? "bg-white/20 text-white" : "bg-[#FF4846] text-white"
                 }`}>{item.badge}</span>
               )}
               {/* Tooltip for collapsed view */}
@@ -718,41 +706,6 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
         })}
       </nav>
 
-      {/* Add listing quick button */}
-      <div className={`p-4 border-t border-slate-900 ${sidebarCollapsed ? "flex justify-center" : ""}`}>
-        <button
-          onClick={handleOpenCreate}
-          className={`bg-[#22c55e] hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 text-white font-black px-4 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${sidebarCollapsed ? "w-11 h-11 p-0 rounded-xl" : "w-full"}`}
-          title={sidebarCollapsed ? "Add Car Listing" : undefined}
-        >
-          <Plus size={16} />
-          {!sidebarCollapsed && <span>Add Car Listing</span>}
-        </button>
-      </div>
-
-      {/* Sidebar Footer User Card */}
-      <div className="p-4 border-t border-slate-900 bg-slate-950/40">
-        <div className={`flex items-center gap-3 ${sidebarCollapsed ? "justify-center" : ""}`}>
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[#22c55e] flex items-center justify-center shadow-inner font-black shrink-0">
-            {adminUser?.name?.charAt(0).toUpperCase() || "A"}
-          </div>
-          {!sidebarCollapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-white truncate leading-none">{adminUser?.name || "Admin"}</p>
-              <span className="text-[9px] font-black uppercase text-slate-500 mt-1 inline-block">Administrator</span>
-            </div>
-          )}
-          {!sidebarCollapsed && (
-            <button
-              onClick={onLogout}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-              title="Logout"
-            >
-              <LogOut size={15} />
-            </button>
-          )}
-        </div>
-      </div>
     </aside>
   );
 
@@ -780,6 +733,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
   return (
     <div className="flex font-sans text-slate-800 dark:text-slate-100 h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] relative transition-colors">
+      <SEO title="Admin Control Center — Arif Car Sell" noIndex={true} />
 
       {/* Desktop sidebar */}
       <div className="hidden lg:block h-full shrink-0">
@@ -812,9 +766,24 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               {sidebarOpen ? <X size={19} /> : <Menu size={19} />}
             </button>
 
+            {/* Admin brand and desktop sidebar collapse */}
+            <div className="hidden lg:flex items-center gap-3 shrink-0">
+              <Logo size="sm" />
+              <span className="hidden xl:inline text-[9px] font-black uppercase text-[#FF4846] tracking-widest">Admin Panel</span>
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                title={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
+                aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
+              >
+                {sidebarCollapsed ? <Menu size={16} /> : <X size={16} />}
+              </button>
+            </div>
+
             {/* Breadcrumb */}
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0">
-              <Shield size={11} className="text-[#22c55e]" />
+              <Shield size={11} className="text-[#FF4846]" />
               <span>Admin</span>
               <ChevronRight size={10} />
               <span className="text-slate-600 dark:text-slate-300">
@@ -866,13 +835,13 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               <>
                 <button
                   onClick={handleOpenCreate}
-                  className="hidden sm:flex items-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm active:scale-95"
+                  className="hidden sm:flex items-center gap-1.5 bg-[#FF4846] hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm active:scale-95"
                 >
                   <Plus size={13} /> Add Listing
                 </button>
                 <button
                   onClick={handleOpenCreate}
-                  className="sm:hidden p-2 rounded-xl bg-[#22c55e] text-white active:scale-95 transition shadow-xs"
+                  className="sm:hidden p-2 rounded-xl bg-[#FF4846] text-white active:scale-95 transition shadow-xs"
                   title="Add Listing"
                 >
                   <Plus size={16} />
@@ -889,6 +858,21 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               <RefreshCw size={15} />
             </button>
 
+            {/* Header Theme Toggle */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center"
+              title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
+              aria-label="Toggle theme mode"
+            >
+              {theme === "dark" ? (
+                <Sun size={17} className="text-amber-400 hover:rotate-45 transition-transform" />
+              ) : (
+                <Moon size={17} className="text-slate-600 dark:text-slate-300 hover:-rotate-12 transition-transform" />
+              )}
+            </button>
+
             {/* Notification Bell */}
             <div className="relative">
               <button
@@ -903,8 +887,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               {showNotifDropdown && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowNotifDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl z-40 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-40 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-850/50">
                       <p className="text-xs font-black uppercase text-slate-700">Notifications</p>
                       <span className="text-[9px] font-black bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full uppercase">
                         {notifications.filter(n => n.unread).length} New
@@ -924,7 +908,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                         </div>
                       ))}
                     </div>
-                    <div className="border-t border-slate-100 p-3 text-center bg-slate-50">
+                    <div className="border-t border-slate-100 dark:border-slate-800 p-3 text-center bg-slate-50 dark:bg-slate-850">
                       <button
                         onClick={() => { setShowNotifDropdown(false); setAdminTab("notifications"); }}
                         className="text-xs font-bold text-blue-900 hover:text-blue-700 transition cursor-pointer"
@@ -957,8 +941,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               {showProfileDropdown && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowProfileDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-2xl z-40 py-2 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100 mb-1 bg-gradient-to-r from-slate-50 to-blue-50/30">
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-40 py-2 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 mb-1 bg-slate-50 dark:bg-slate-800/50">
                       <p className="text-xs font-bold text-slate-800 truncate">{adminUser?.name || "Admin"}</p>
                       <p className="text-[9px] font-black uppercase tracking-wider text-orange-500 mt-0.5">{adminUser?.email || "admin@platform"}</p>
                     </div>
@@ -1011,7 +995,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {adminTab === "notifications" && (
         <div className="space-y-4">
           {/* Summary + Actions */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -1044,7 +1028,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           </div>
 
           {/* Notification List */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
             {notifications.length === 0 || (notifications.length === 1 && notifications[0].id === "sys-ok") ? (
               <div className="py-16 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
@@ -1199,7 +1183,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     onClick={() => setListingStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                       listingStatusFilter === st
-                        ? "bg-[#22c55e] text-white shadow-xs"
+                        ? "bg-[#FF4846] text-white shadow-xs"
                         : "bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                     }`}
                   >
@@ -1216,7 +1200,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 value={listingSearch}
                 onChange={e => setListingSearch(e.target.value)}
                 placeholder="Search brand, model, location..."
-                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
+                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition"
               />
             </div>
           </div>
@@ -1228,7 +1212,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               </p>
               <button
                 onClick={handleOpenCreate}
-                className="sm:hidden text-xs font-bold text-[#22c55e] flex items-center gap-1 active:scale-95"
+                className="sm:hidden text-xs font-bold text-[#FF4846] flex items-center gap-1 active:scale-95"
               >
                 <Plus size={14} /> Add Car
               </button>
@@ -1265,7 +1249,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             {v.status}
                           </span>
                         </div>
-                        <p className="text-sm font-black text-[#22c55e] mt-1">
+                        <p className="text-sm font-black text-[#FF4846] mt-1">
                           {v.price.toLocaleString()} <span className="text-[10px] font-bold text-slate-400">ETB</span>
                         </p>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px] text-slate-500 dark:text-slate-400">
@@ -1279,6 +1263,34 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                         </div>
                       </div>
                     </div>
+
+                    {/* Ownership Libre Indicator on Mobile Card */}
+                    {v.ownershipDocumentUrl && (
+                      <div className="flex items-center justify-between bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-2.5 mt-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText size={14} className="text-[#FF4846] shrink-0" />
+                          <span className="text-xs font-bold text-slate-800 dark:text-white truncate">
+                            {v.ownershipDocumentName || "Ownership Libre"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setInspectingDoc({
+                            vehicleId: v.id,
+                            vehicleTitle: `${v.brand} ${v.model} (${v.year})`,
+                            docUrl: v.ownershipDocumentUrl!,
+                            docName: v.ownershipDocumentName || "Ownership Libre Document",
+                            price: v.price,
+                            seller: (v as any).brokerName || "Customer Seller",
+                            year: v.year,
+                            status: v.status,
+                          })}
+                          className="text-xs font-bold text-[#FF4846] hover:underline shrink-0"
+                        >
+                          View Libre
+                        </button>
+                      </div>
+                    )}
 
                     {/* Action Bar for Mobile Card */}
                     <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center gap-2">
@@ -1379,6 +1391,24 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                         <div className="flex items-center gap-1.5 justify-end">
                           {v.status === "pending" && (
                             <>
+                              {v.ownershipDocumentUrl && (
+                                <button
+                                  onClick={() => setInspectingDoc({
+                                    vehicleId: v.id,
+                                    vehicleTitle: `${v.brand} ${v.model} (${v.year})`,
+                                    docUrl: v.ownershipDocumentUrl!,
+                                    docName: v.ownershipDocumentName || "Ownership Libre Document",
+                                    price: v.price,
+                                    seller: (v as any).brokerName || "Customer Seller",
+                                    year: v.year,
+                                    status: v.status,
+                                  })}
+                                  className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition active:scale-95 flex items-center gap-1"
+                                  title="Inspect Libre Ownership Document"
+                                >
+                                  <FileText size={11} /> Libre
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleApprove(v.id)}
                                 className="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition active:scale-95"
@@ -1461,7 +1491,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 value={brokerSearch}
                 onChange={e => setBrokerSearch(e.target.value)}
                 placeholder="Search by name, email, phone..."
-                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
+                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition"
               />
             </div>
           </div>
@@ -1511,7 +1541,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           onClick={e => e.stopPropagation()}
                           className="flex-1 py-1.5 px-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold"
                         >
-                          <Phone size={12} className="text-[#22c55e]" /> Call
+                          <Phone size={12} className="text-[#FF4846]" /> Call
                         </a>
                       )}
                       {b.email && (
@@ -1536,7 +1566,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                       </div>
                       <div>
                         <p className="text-[9px] font-black uppercase text-slate-400">Commission</p>
-                        <p className="text-xs font-black text-[#22c55e] mt-0.5">{(b.commission ?? 0).toLocaleString()} ETB</p>
+                        <p className="text-xs font-black text-[#FF4846] mt-0.5">{(b.commission ?? 0).toLocaleString()} ETB</p>
                       </div>
                     </div>
 
@@ -1610,7 +1640,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                         </td>
                         <td className="p-4 font-mono font-bold text-center">{b.listings ?? 0}</td>
                         <td className="p-4 font-mono font-bold text-center">{b.sales ?? 0}</td>
-                        <td className="p-4 font-bold font-mono text-[#22c55e]">{(b.commission ?? 0).toLocaleString()}</td>
+                        <td className="p-4 font-bold font-mono text-[#FF4846]">{(b.commission ?? 0).toLocaleString()}</td>
                         <td className="p-4 font-mono text-slate-400">{b.joinedAt}</td>
                         <td className="p-4">
                           <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
@@ -1640,7 +1670,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             )}
                             <button
                               onClick={() => setSelectedBroker(b)}
-                              className="p-1.5 text-slate-400 hover:text-[#22c55e] hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition"
+                              className="p-1.5 text-slate-400 hover:text-[#FF4846] hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition"
                               title="View Details"
                             >
                               <ChevronRight size={14} />
@@ -1671,7 +1701,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             </div>
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xs">
               <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider">Inquiries</p>
-              <p className="text-xl sm:text-2xl font-black text-[#22c55e] mt-0.5 sm:mt-1">{leads.length}</p>
+              <p className="text-xl sm:text-2xl font-black text-[#FF4846] mt-0.5 sm:mt-1">{leads.length}</p>
             </div>
             <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-3 sm:p-4 shadow-xs">
               <p className="text-[9px] sm:text-[10px] font-black uppercase text-amber-500 tracking-wider">Negotiating</p>
@@ -1690,7 +1720,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 value={buyerSearch}
                 onChange={e => setBuyerSearch(e.target.value)}
                 placeholder="Search by name, email, phone..."
-                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
+                className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition"
               />
             </div>
           </div>
@@ -1738,7 +1768,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                             onClick={e => e.stopPropagation()}
                             className="flex-1 py-1.5 px-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold"
                           >
-                            <Phone size={12} className="text-[#22c55e]" /> Call
+                            <Phone size={12} className="text-[#FF4846]" /> Call
                           </a>
                         )}
                         <a
@@ -1752,7 +1782,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
                       <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/80 dark:border-slate-800">
                         <span>Last Active: <strong className="text-slate-700 dark:text-slate-300">{lastLead ? new Date(lastLead.inquiryDate).toLocaleDateString() : "—"}</strong></span>
-                        <span className="text-[#22c55e] font-bold flex items-center gap-0.5">
+                        <span className="text-[#FF4846] font-bold flex items-center gap-0.5">
                           View Activity <ChevronRight size={13} />
                         </span>
                       </div>
@@ -1825,7 +1855,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                         <td className="p-4 text-right">
                           <button
                             onClick={e => { e.stopPropagation(); setSelectedBuyer({ ...b, leads: buyerLeads }); }}
-                            className="p-1.5 text-slate-400 hover:text-[#22c55e] hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-[#FF4846] hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition"
                           >
                             <ChevronRight size={14} />
                           </button>
@@ -1860,7 +1890,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             </div>
             <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-4 sm:p-5 shadow-xs">
               <p className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">Total Commission</p>
-              <p className="text-xl sm:text-2xl font-black text-[#22c55e] mt-1">{(totalCommission || 485000).toLocaleString()} ETB</p>
+              <p className="text-xl sm:text-2xl font-black text-[#FF4846] mt-1">{(totalCommission || 485000).toLocaleString()} ETB</p>
             </div>
           </div>
 
@@ -1874,7 +1904,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   <div key={idx} className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-2">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-black text-slate-900 dark:text-white">{s.vehicleBrand} {s.vehicleModel}</h4>
-                      <span className="text-xs font-black text-[#22c55e]">+{s.commission.toLocaleString()} ETB</span>
+                      <span className="text-xs font-black text-[#FF4846]">+{s.commission.toLocaleString()} ETB</span>
                     </div>
                     <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/80 dark:border-slate-800">
                       <span>Price: <strong className="text-slate-800 dark:text-slate-200">{s.salePrice.toLocaleString()} ETB</strong></span>
@@ -1903,7 +1933,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                       <td className="p-4 font-bold text-slate-800 dark:text-white">{s.vehicleBrand} {s.vehicleModel}</td>
                       <td className="p-4 font-bold font-mono">{s.salePrice.toLocaleString()}</td>
                       <td className="p-4 text-slate-400 font-semibold uppercase text-[10px]">Flat Rate (1%)</td>
-                      <td className="p-4 font-black font-mono text-[#22c55e]">{s.commission.toLocaleString()}</td>
+                      <td className="p-4 font-black font-mono text-[#FF4846]">{s.commission.toLocaleString()}</td>
                       <td className="p-4 font-mono text-slate-400">{new Date(s.saleDate).toLocaleDateString()}</td>
                     </tr>
                   ))}
@@ -2119,12 +2149,12 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   value={userSearch}
                   onChange={e => setUserSearch(e.target.value)}
                   placeholder="Search by name, email, phone, role..."
-                  className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition"
+                  className="w-full text-xs pl-8.5 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition"
                 />
               </div>
               <button
                 onClick={fetchData}
-                className="text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#22c55e] p-2 sm:px-3 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1 cursor-pointer transition shrink-0"
+                className="text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-[#FF4846] p-2 sm:px-3 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1 cursor-pointer transition shrink-0"
               >
                 <RefreshCw size={13} /> <span className="hidden sm:inline">Refresh</span>
               </button>
@@ -2244,11 +2274,11 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {/* ── SITE SETTINGS / HERO BANNER ───────────────────────────────────── */}
       {adminTab === "settings" && (
         <div className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <ImageIcon size={18} className="text-[#22c55e]" />
+                  <ImageIcon size={18} className="text-[#FF4846]" />
                   <span>Homepage Hero Background Image</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -2268,7 +2298,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   type="button"
                   disabled={savingHeroBg}
                   onClick={handleSaveHeroBg}
-                  className="bg-[#22c55e] hover:bg-emerald-600 disabled:opacity-50 text-white font-black px-5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95"
+                  className="bg-[#FF4846] hover:bg-emerald-600 disabled:opacity-50 text-white font-black px-5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95"
                 >
                   <Save size={14} />
                   <span>{savingHeroBg ? "Saving..." : "Save Image"}</span>
@@ -2292,13 +2322,13 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 <div className="relative z-10 max-w-xl space-y-3">
                   <h4 className="text-xl sm:text-3xl font-black text-white leading-tight">
                     Looking for a vehicle? <br />
-                    <span className="text-[#22c55e]">You're in the perfect spot.</span>
+                    <span className="text-[#FF4846]">You're in the perfect spot.</span>
                   </h4>
                   <p className="text-xs text-slate-200 max-w-md mx-auto">
                     Background photo is now crisp and clearly visible behind the search console.
                   </p>
                   <div className="pt-2">
-                    <span className="inline-block bg-[#22c55e] text-slate-950 text-[10px] font-black px-4 py-1.5 rounded-full shadow-md">
+                    <span className="inline-block bg-[#FF4846] text-slate-950 text-[10px] font-black px-4 py-1.5 rounded-full shadow-md">
                       Current Hero Image Active
                     </span>
                   </div>
@@ -2317,7 +2347,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   value={heroBgUrl}
                   onChange={(e) => setHeroBgUrl(e.target.value)}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-[#22c55e] focus:bg-white transition"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-[#FF4846] focus:bg-white transition"
                 />
               </div>
 
@@ -2325,8 +2355,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
                   Or Upload Local File
                 </label>
-                <label className="w-full text-xs font-bold py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-[#22c55e] bg-slate-50 hover:bg-emerald-50/50 text-slate-700 flex items-center justify-center gap-2 cursor-pointer transition">
-                  <Upload size={14} className="text-[#22c55e]" />
+                <label className="w-full text-xs font-bold py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-[#FF4846] bg-slate-50 hover:bg-emerald-50/50 text-slate-700 flex items-center justify-center gap-2 cursor-pointer transition">
+                  <Upload size={14} className="text-[#FF4846]" />
                   <span>{uploadingHeroBg ? "Uploading..." : "Upload New Image"}</span>
                   <input
                     type="file"
@@ -2378,14 +2408,14 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     onClick={() => setHeroBgUrl(preset.url)}
                     className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col gap-2 group ${
                       heroBgUrl === preset.url
-                        ? "border-[#22c55e] bg-emerald-50/40 ring-2 ring-[#22c55e]/20"
+                        ? "border-[#FF4846] bg-emerald-50/40 ring-2 ring-[#FF4846]/20"
                         : "border-slate-200 hover:border-slate-300 bg-white"
                     }`}
                   >
                     <div className="aspect-[16/9] w-full rounded-lg overflow-hidden bg-slate-100 relative">
                       <img src={preset.url} alt={preset.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       {heroBgUrl === preset.url && (
-                        <div className="absolute top-1 right-1 bg-[#22c55e] text-white p-0.5 rounded-full shadow-xs">
+                        <div className="absolute top-1 right-1 bg-[#FF4846] text-white p-0.5 rounded-full shadow-xs">
                           <Check size={10} strokeWidth={3} />
                         </div>
                       )}
@@ -2414,7 +2444,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
             <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-slate-50 shrink-0">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Landmark size={16} className="text-[#22c55e]" />
+                <Landmark size={16} className="text-[#FF4846]" />
                 {editingVehicle ? "Edit Listing" : "Add New Listing"}
               </h3>
               <button 
@@ -2949,7 +2979,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             onClick={() => { setAdminTab("overview"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer ${
               adminTab === "overview" && !mobileMoreOpen
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -2965,7 +2995,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             onClick={() => { setAdminTab("listings"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               adminTab === "listings" && !mobileMoreOpen
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -2986,7 +3016,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               type="button"
               onClick={handleOpenCreate}
               aria-label="Add New Car Listing"
-              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#22c55e] to-emerald-400 text-white shadow-lg shadow-[#22c55e]/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-slate-950"
+              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#FF4846] to-emerald-400 text-white shadow-lg shadow-[#FF4846]/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-slate-950"
             >
               <Plus size={24} strokeWidth={2.5} />
             </button>
@@ -2998,7 +3028,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             onClick={() => { setAdminTab("brokers"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               adminTab === "brokers" && !mobileMoreOpen
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -3019,7 +3049,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             onClick={() => setMobileMoreOpen(true)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               mobileMoreOpen || ["buyers", "commissions", "reports", "users", "settings", "notifications"].includes(adminTab)
-                ? "text-[#22c55e] font-bold"
+                ? "text-[#FF4846] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
@@ -3124,8 +3154,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                       setMobileMoreOpen(false);
                     }}
                     className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col gap-2 relative ${
-                      isActive 
-                        ? "border-[#22c55e] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#22c55e]/20" 
+                      isActive
+                        ? "border-[#FF4846] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#FF4846]/20"
                         : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800"
                     }`}
                   >
@@ -3168,6 +3198,108 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   <LogOut size={14} />
                   <span>Exit</span>
                 </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Document Inspection Lightbox Modal */}
+      {inspectingDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+                  <FileText size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white">
+                    Ownership Document Verification (Libre)
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {inspectingDoc.vehicleTitle} · {inspectingDoc.price.toLocaleString()} ETB
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInspectingDoc(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition rounded-lg cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <div className="flex items-center justify-between text-xs bg-slate-100 dark:bg-slate-800 p-3 rounded-xl">
+                <div>
+                  <span className="text-slate-400 block text-[10px] font-bold uppercase">File Name</span>
+                  <span className="font-bold text-slate-800 dark:text-white">{inspectingDoc.docName}</span>
+                </div>
+                <a
+                  href={inspectingDoc.docUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={inspectingDoc.docName}
+                  className="px-3 py-1.5 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-bold hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Download size={13} />
+                  <span>Open Full Size</span>
+                </a>
+              </div>
+
+              <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center min-h-[300px] max-h-[500px]">
+                {inspectingDoc.docUrl.startsWith("data:application/pdf") ? (
+                  <iframe
+                    src={inspectingDoc.docUrl}
+                    title="Libre PDF"
+                    className="w-full h-[450px]"
+                  />
+                ) : (
+                  <img
+                    src={inspectingDoc.docUrl}
+                    alt="Vehicle Ownership Libre"
+                    className="max-h-[450px] w-auto object-contain mx-auto"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setInspectingDoc(null)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 cursor-pointer"
+              >
+                Close
+              </button>
+              {inspectingDoc.status === "pending" && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const vid = inspectingDoc.vehicleId;
+                      setInspectingDoc(null);
+                      handleRejectListing(vid);
+                    }}
+                    className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <X size={14} />
+                    <span>Reject</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const vid = inspectingDoc.vehicleId;
+                      setInspectingDoc(null);
+                      handleApprove(vid);
+                    }}
+                    className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                  >
+                    <Check size={14} />
+                    <span>Approve & Publish</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>

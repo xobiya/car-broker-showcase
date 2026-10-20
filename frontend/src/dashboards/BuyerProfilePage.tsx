@@ -5,12 +5,15 @@ import {
   Key, Camera, Check, Pencil, Eye, EyeOff, Loader2, ShieldCheck, Bell,
   BadgeCheck, Save, LayoutDashboard, LogOut, ArrowRight, Search,
   Car, Plus, X, AlertCircle, MessageCircle, RefreshCw, Edit3,
-  ExternalLink, Sparkles, ArrowLeft, SlidersHorizontal
+  ExternalLink, Sparkles, ArrowLeft, SlidersHorizontal,
+  FileText, UploadCloud, FileCheck, Download
 } from "lucide-react";
 import { VehicleListing, SavedVehicle, TestDriveRequest, Lead } from "../../../shared/types";
 import { savedVehiclesApi, testDrivesApi, uploadApi, vehiclesApi, leadsApi, usersApi } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import Combobox from "../components/ui/Combobox";
+import VehicleFormModal from "../components/ui/VehicleFormModal";
+import SEO from "../components/common/SEO";
 import {
   BRANDS, LOCATIONS, FUEL_TYPES, TRANSMISSIONS,
   DRIVE_TYPES, CONDITIONS, BODY_TYPES, ENGINE_TYPES,
@@ -44,6 +47,7 @@ const StatusPill = ({ status }: { status: string }) => {
     approved: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/60",
     completed: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/60",
     sold: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900/60",
+    rejected: "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/60",
     cancelled: "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/60",
     new: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/60",
     contacted: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900/60",
@@ -51,6 +55,9 @@ const StatusPill = ({ status }: { status: string }) => {
   };
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${colors[status] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
+      {status === "pending" && <Clock size={10} />}
+      {status === "rejected" && <AlertCircle size={10} />}
+      {status === "approved" && <Check size={10} />}
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
@@ -71,6 +78,12 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<VehicleListing | null>(null);
   const [deletingVehicleId, setDeletingVehicleId] = useState<string | null>(null);
+  const [inspectingDoc, setInspectingDoc] = useState<{
+    vehicleTitle: string;
+    docUrl: string;
+    docName: string;
+    price: number;
+  } | null>(null);
 
   const userId = user?.id;
   const initials = user?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "U";
@@ -156,6 +169,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] transition-colors">
+      <SEO title="User Profile — Arif Car Sell" noIndex={true} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10 pb-28 lg:pb-10">
         
         {/* Top Header Banner */}
@@ -166,7 +180,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                 <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white">
                   My Profile
                 </h1>
-                <span className="lg:hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#16a34a] border border-emerald-200/80 dark:border-emerald-800/80">
+                <span className="lg:hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-[#E63D3B] border border-emerald-200/80 dark:border-emerald-800/80">
                   {user?.role === "broker" ? "Broker" : "Member"}
                 </span>
               </div>
@@ -177,7 +191,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
             {/* Quick avatar on mobile */}
             <div 
               onClick={() => setActiveSection("profile")}
-              className="lg:hidden w-10 h-10 rounded-2xl bg-emerald-500/20 text-[#22c55e] border border-[#22c55e]/30 flex items-center justify-center text-xs font-black shrink-0 overflow-hidden cursor-pointer shadow-xs"
+              className="lg:hidden w-10 h-10 rounded-2xl bg-emerald-500/20 text-[#FF4846] border border-[#FF4846]/30 flex items-center justify-center text-xs font-black shrink-0 overflow-hidden cursor-pointer shadow-xs"
             >
               {user?.avatar ? <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" /> : initials}
             </div>
@@ -185,7 +199,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
           <div className="hidden sm:flex flex-row items-center gap-2 sm:gap-2.5">
             <button
               onClick={() => { setEditingVehicle(null); setShowAddModal(true); }}
-              className="flex items-center justify-center gap-2 text-xs font-black text-slate-950 bg-[#22c55e] hover:bg-[#16a34a] px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 text-xs font-black text-slate-950 bg-[#FF4846] hover:bg-[#E63D3B] px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
             >
               <Plus size={15} strokeWidth={3} />
               <span>List a Car to Sell</span>
@@ -206,7 +220,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden sticky top-20 sm:top-24 z-20 transition-colors">
               <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-[#22c55e]/30 text-[#22c55e] flex items-center justify-center text-sm font-black shadow-sm shrink-0 overflow-hidden">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-[#FF4846]/30 text-[#FF4846] flex items-center justify-center text-sm font-black shadow-sm shrink-0 overflow-hidden">
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" />
                     ) : (
@@ -215,7 +229,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
-                    <p className="text-[10px] font-bold text-[#22c55e] uppercase tracking-wider">
+                    <p className="text-[10px] font-bold text-[#FF4846] uppercase tracking-wider">
                       {user?.role === "broker" ? "Certified Broker" : "Verified Member"}
                     </p>
                   </div>
@@ -237,7 +251,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                       onClick={() => setActiveSection(sec.id)}
                       className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap w-full ${
                         activeSection === sec.id
-                          ? "bg-[#22c55e] text-slate-950 font-black shadow-sm shadow-emerald-500/20"
+                          ? "bg-[#FF4846] text-slate-950 font-black shadow-sm shadow-emerald-500/20"
                           : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80"
                       }`}
                     >
@@ -291,6 +305,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                 onAddListing={() => { setEditingVehicle(null); setShowAddModal(true); }}
                 onEditListing={(v) => { setEditingVehicle(v); setShowAddModal(true); }}
                 onDeleteListing={(id) => setDeletingVehicleId(id)}
+                onInspectLibre={setInspectingDoc}
                 onViewDetails={onViewDetails}
                 onRefresh={fetchData}
               />
@@ -319,7 +334,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
           onClick={() => { setActiveSection("dashboard"); setMobileMoreOpen(false); }}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer ${
             activeSection === "dashboard" && !mobileMoreOpen
-              ? "text-[#22c55e] font-black"
+              ? "text-[#FF4846] font-black"
               : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
           }`}
         >
@@ -333,7 +348,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
           onClick={() => { setActiveSection("saved"); setMobileMoreOpen(false); }}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer relative ${
             activeSection === "saved" && !mobileMoreOpen
-              ? "text-[#22c55e] font-black"
+              ? "text-[#FF4846] font-black"
               : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
           }`}
         >
@@ -355,7 +370,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
           className="flex flex-col items-center -mt-5 cursor-pointer group"
           title="List a Car for Sale"
         >
-          <div className="w-12 h-12 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-active:scale-95 transition">
+          <div className="w-12 h-12 rounded-full bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-active:scale-95 transition">
             <Plus size={22} strokeWidth={3} />
           </div>
           <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 tracking-tight mt-1">Sell Car</span>
@@ -367,7 +382,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
           onClick={() => { setActiveSection("testdrives"); setMobileMoreOpen(false); }}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer relative ${
             activeSection === "testdrives" && !mobileMoreOpen
-              ? "text-[#22c55e] font-black"
+              ? "text-[#FF4846] font-black"
               : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
           }`}
         >
@@ -388,7 +403,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
           onClick={() => setMobileMoreOpen(true)}
           className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition cursor-pointer relative ${
             mobileMoreOpen || ["listings", "inquiries", "profile", "security"].includes(activeSection)
-              ? "text-[#22c55e] font-black"
+              ? "text-[#FF4846] font-black"
               : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
           }`}
         >
@@ -453,7 +468,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                   label: "Personal Profile",
                   desc: "Edit contact & info",
                   icon: User,
-                  color: "text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/40",
+                  color: "text-[#FF4846] bg-emerald-50 dark:bg-emerald-950/40",
                   badge: null
                 },
                 {
@@ -477,7 +492,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                     }}
                     className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col gap-2 relative ${
                       isActive 
-                        ? "border-[#22c55e] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#22c55e]/20" 
+                        ? "border-[#FF4846] bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-[#FF4846]/20" 
                         : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800"
                     }`}
                   >
@@ -486,7 +501,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                         <ItemIcon size={18} />
                       </div>
                       {item.badge && (
-                        <span className="text-[10px] font-black bg-[#22c55e] text-slate-950 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-black bg-[#FF4846] text-slate-950 px-2 py-0.5 rounded-full">
                           {item.badge}
                         </span>
                       )}
@@ -507,7 +522,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
               className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-900 dark:text-white text-xs font-bold transition cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <Search size={16} className="text-[#22c55e]" />
+                <Search size={16} className="text-[#FF4846]" />
                 <span>Browse Marketplace Showroom</span>
               </div>
               <ArrowRight size={14} className="text-slate-400" />
@@ -516,7 +531,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
             {/* User Profile summary & Sign Out */}
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#22c55e] text-slate-950 font-black flex items-center justify-center text-sm shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-[#FF4846] text-slate-950 font-black flex items-center justify-center text-sm shadow-sm">
                   {user?.avatar ? (
                     <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover rounded-full" />
                   ) : initials}
@@ -549,6 +564,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
         <VehicleFormModal
           sellerId={userId}
           editing={editingVehicle}
+          role="seller"
           onClose={() => { setShowAddModal(false); setEditingVehicle(null); }}
           onSaved={() => {
             setShowAddModal(false);
@@ -558,6 +574,81 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
           }}
           onNotify={onNotify}
         />
+      )}
+
+      {/* Libre Document Inspection Lightbox Modal */}
+      {inspectingDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+                  <FileText size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white">
+                    Ownership Document (Libre)
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {inspectingDoc.vehicleTitle} · {fmt(inspectingDoc.price)} ETB
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInspectingDoc(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition rounded-lg cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <div className="flex items-center justify-between text-xs bg-slate-100 dark:bg-slate-800 p-3 rounded-xl">
+                <div>
+                  <span className="text-slate-400 block text-[10px] font-bold uppercase">File Name</span>
+                  <span className="font-bold text-slate-800 dark:text-white">{inspectingDoc.docName}</span>
+                </div>
+                <a
+                  href={inspectingDoc.docUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={inspectingDoc.docName}
+                  className="px-3 py-1.5 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-bold hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Download size={13} />
+                  <span>Open Full Size</span>
+                </a>
+              </div>
+
+              <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center min-h-[300px] max-h-[500px]">
+                {inspectingDoc.docUrl.startsWith("data:application/pdf") ? (
+                  <iframe
+                    src={inspectingDoc.docUrl}
+                    title="Libre PDF"
+                    className="w-full h-[450px]"
+                  />
+                ) : (
+                  <img
+                    src={inspectingDoc.docUrl}
+                    alt="Vehicle Ownership Libre"
+                    className="max-h-[450px] w-auto object-contain mx-auto"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setInspectingDoc(null)}
+                className="px-5 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Modal (Native Mobile Bottom Sheet on phone) */}
@@ -620,7 +711,7 @@ function DashboardSection({
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4 sm:gap-5">
           <div className="relative shrink-0">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-[#22c55e]/30 text-[#22c55e] flex items-center justify-center text-xl sm:text-2xl font-black shadow-sm overflow-hidden">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-[#FF4846]/30 text-[#FF4846] flex items-center justify-center text-xl sm:text-2xl font-black shadow-sm overflow-hidden">
               {user?.avatar ? (
                 <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" />
               ) : (
@@ -629,7 +720,7 @@ function DashboardSection({
             </div>
             <button
               onClick={() => onNavigate("profile")}
-              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-white flex items-center justify-center shadow-xs cursor-pointer transition active:scale-95"
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#FF4846] hover:bg-[#E63D3B] text-white flex items-center justify-center shadow-xs cursor-pointer transition active:scale-95"
               title="Change profile photo"
             >
               <Camera size={12} />
@@ -638,7 +729,7 @@ function DashboardSection({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{user?.name}</h2>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#16a34a] border border-emerald-200/80 dark:border-emerald-800/80">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#E63D3B] border border-emerald-200/80 dark:border-emerald-800/80">
                 Verified Member
               </span>
             </div>
@@ -652,7 +743,7 @@ function DashboardSection({
           onClick={() => onNavigate("profile")}
           className="self-start sm:self-center flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl transition cursor-pointer"
         >
-          <User size={14} className="text-[#22c55e]" />
+          <User size={14} className="text-[#FF4846]" />
           <span>Edit Profile</span>
         </button>
       </div>
@@ -660,7 +751,7 @@ function DashboardSection({
       {/* Grid of Marketplace Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <StatCard icon={Heart} label="Saved Cars" value={savedCount} color="text-rose-500 bg-rose-50 dark:bg-rose-950/40" onClick={() => onNavigate("saved")} />
-        <StatCard icon={Calendar} label="Test Drives" value={testDriveCount} color="text-[#22c55e] bg-emerald-50 dark:bg-emerald-950/40" onClick={() => onNavigate("testdrives")} />
+        <StatCard icon={Calendar} label="Test Drives" value={testDriveCount} color="text-[#FF4846] bg-emerald-50 dark:bg-emerald-950/40" onClick={() => onNavigate("testdrives")} />
         <StatCard icon={Car} label="My Listings" value={listingsCount} color="text-indigo-500 bg-indigo-50 dark:bg-indigo-950/40" onClick={() => onNavigate("listings")} />
         <StatCard icon={MessageCircle} label="Inquiries" value={inquiriesCount} color="text-amber-500 bg-amber-50 dark:bg-amber-950/40" onClick={() => onNavigate("inquiries")} />
       </div>
@@ -714,7 +805,7 @@ function QuickAction({ icon: Icon, label, desc, onClick, highlight }: { icon: an
       }`}
     >
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-        highlight ? "bg-[#22c55e] text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+        highlight ? "bg-[#FF4846] text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
       }`}>
         <Icon size={16} />
       </div>
@@ -741,7 +832,7 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
           <h3 className="text-sm font-black text-slate-800 dark:text-white">Saved Vehicles</h3>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Vehicles you have bookmarked to compare and view</p>
         </div>
-        <a href="/browse" className="text-xs font-bold text-[#22c55e] hover:underline flex items-center gap-1">
+        <a href="/browse" className="text-xs font-bold text-[#FF4846] hover:underline flex items-center gap-1">
           <span>Find more</span>
           <ArrowRight size={12} />
         </a>
@@ -754,7 +845,7 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
             </div>
             <p className="text-sm font-bold text-slate-800 dark:text-white">No saved vehicles yet</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">Browse our marketplace and tap the heart icon on any vehicle to save it to your wishlist.</p>
-            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
+            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
               <Search size={13} />
               <span>Explore Marketplace</span>
             </a>
@@ -780,13 +871,13 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
                 <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{sv.vehicle.brand}</span>
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-[#22c55e] transition-colors line-clamp-1">
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-[#FF4846] transition-colors line-clamp-1">
                       {sv.vehicle.brand} {sv.vehicle.model}
                     </h4>
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{sv.vehicle.year} • {sv.vehicle.mileage?.toLocaleString()} km • {sv.vehicle.fuelType}</p>
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 mt-2">
-                    <span className="text-sm font-black text-[#22c55e]">ETB {fmt(sv.vehicle.price)}</span>
+                    <span className="text-sm font-black text-[#FF4846]">ETB {fmt(sv.vehicle.price)}</span>
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1"><MapPin size={10} /> {sv.vehicle.location}</span>
                   </div>
                 </div>
@@ -814,12 +905,12 @@ function TestDriveSection({ drives, onCancel }: {
       <div className="p-6">
         {drives.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] flex items-center justify-center mx-auto mb-3 shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#FF4846] flex items-center justify-center mx-auto mb-3 shadow-xs">
               <Calendar size={26} />
             </div>
             <p className="text-sm font-bold text-slate-800 dark:text-white">No test drives scheduled</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">When browsing vehicles, click "Book Test Drive" to schedule an in-person vehicle inspection.</p>
-            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
+            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
               <Car size={13} />
               <span>Browse Cars for Test Drive</span>
             </a>
@@ -829,7 +920,7 @@ function TestDriveSection({ drives, onCancel }: {
             {drives.map(td => (
               <div key={td.id} className="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-sm transition bg-white dark:bg-slate-850/60">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#FF4846] flex items-center justify-center shrink-0">
                     <Calendar size={18} />
                   </div>
                   <div>
@@ -863,12 +954,13 @@ function TestDriveSection({ drives, onCancel }: {
 /* ──────────────── MY LISTED CARS SECTION (SELLING) ──────────────── */
 
 function ListingsSection({
-  listings, onAddListing, onEditListing, onDeleteListing, onViewDetails, onRefresh
+  listings, onAddListing, onEditListing, onDeleteListing, onInspectLibre, onViewDetails, onRefresh
 }: {
   listings: VehicleListing[];
   onAddListing: () => void;
   onEditListing: (v: VehicleListing) => void;
   onDeleteListing: (id: string) => void;
+  onInspectLibre?: (doc: { vehicleTitle: string; docUrl: string; docName: string; price: number }) => void;
   onViewDetails?: (v: VehicleListing) => void;
   onRefresh: () => void;
 }) {
@@ -901,7 +993,7 @@ function ListingsSection({
             <RefreshCw size={14} />
           </button>
           <button onClick={onAddListing}
-            className="flex items-center gap-1.5 text-xs font-black text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 text-xs font-black text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
           >
             <Plus size={14} />
             <span>+ List New Car</span>
@@ -919,21 +1011,21 @@ function ListingsSection({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by brand, model, city..."
-              className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e]"
+              className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846]"
             />
           </div>
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
-            {["all", "approved", "pending", "sold"].map(st => (
+            {["all", "approved", "pending", "rejected", "sold"].map(st => (
               <button
                 key={st}
                 onClick={() => setFilter(st)}
-                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer capitalize ${
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer capitalize whitespace-nowrap ${
                   filter === st
-                    ? "bg-[#22c55e] text-white shadow-xs"
+                    ? "bg-[#FF4846] text-white shadow-xs"
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
-                {st === "approved" ? "Live (Active)" : st}
+                {st === "approved" ? "Live (Active)" : st === "pending" ? "Under Review" : st === "rejected" ? "Rejected" : st}
               </button>
             ))}
           </div>
@@ -951,7 +1043,7 @@ function ListingsSection({
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">
               Any customer can sell vehicles on Arif Car Sell. Click below to add your car with photos and specs.
             </p>
-            <button onClick={onAddListing} className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#22c55e] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm">
+            <button onClick={onAddListing} className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm">
               <Plus size={14} />
               <span>List a Car Now</span>
             </button>
@@ -984,10 +1076,66 @@ function ListingsSection({
                           {vehicle.brand} {vehicle.model}
                         </h4>
                       </div>
-                      <span className="text-sm font-black text-[#22c55e] whitespace-nowrap">
+                      <span className="text-sm font-black text-[#FF4846] whitespace-nowrap">
                         ETB {fmt(vehicle.price)}
                       </span>
                     </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      {vehicle.ownershipDocumentUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => onInspectLibre?.({
+                            vehicleTitle: `${vehicle.brand} ${vehicle.model} (${vehicle.year})`,
+                            docUrl: vehicle.ownershipDocumentUrl!,
+                            docName: vehicle.ownershipDocumentName || "Ownership Libre Document",
+                            price: vehicle.price,
+                          })}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 transition cursor-pointer"
+                          title="View Libre Ownership Document"
+                        >
+                          <FileCheck size={11} /> Libre Attached (View)
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
+                          <FileText size={11} /> No Libre Attached
+                        </span>
+                      )}
+                      {vehicle.status === "pending" && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
+                          <Clock size={11} /> Admin Reviewing
+                        </span>
+                      )}
+                    </div>
+
+                    {vehicle.status === "rejected" && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/70">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle size={14} className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-rose-800 dark:text-rose-300">Listing Not Approved</p>
+                            <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5 leading-relaxed">
+                              {vehicle.rejectionReason || "Please review your car details, photos, or ownership Libre document and re-submit."}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onEditListing(vehicle)}
+                          className="mt-2.5 w-full py-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+                        >
+                          <Edit3 size={12} />
+                          <span>Edit & Re-submit for Review</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {vehicle.status === "pending" && (
+                      <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                        <Clock size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                        <span>Awaiting admin review. Our administrators will verify your Libre before publishing live.</span>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
                       <span>{vehicle.year} Year</span>
@@ -1101,7 +1249,7 @@ function InquiriesSection({
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                     {(lead.buyerPhone || lead.phone) && (
-                      <a href={`tel:${lead.buyerPhone || lead.phone}`} className="flex items-center gap-1 font-semibold text-[#22c55e] hover:underline">
+                      <a href={`tel:${lead.buyerPhone || lead.phone}`} className="flex items-center gap-1 font-semibold text-[#FF4846] hover:underline">
                         <Phone size={12} />
                         <span>{lead.buyerPhone || lead.phone}</span>
                       </a>
@@ -1142,7 +1290,7 @@ function InquiriesSection({
                   )}
                   <a
                     href={`tel:${lead.phone}`}
-                    className="p-2 rounded-xl bg-[#22c55e] text-white hover:bg-emerald-600 transition shadow-xs flex items-center justify-center cursor-pointer"
+                    className="p-2 rounded-xl bg-[#FF4846] text-white hover:bg-emerald-600 transition shadow-xs flex items-center justify-center cursor-pointer"
                     title="Call Buyer"
                   >
                     <Phone size={14} />
@@ -1157,369 +1305,7 @@ function InquiriesSection({
   );
 }
 
-/* ──────────────── ADD / EDIT VEHICLE MODAL (SELLING) ──────────────── */
-
-function VehicleFormModal({
-  sellerId, editing, onClose, onSaved, onNotify
-}: {
-  sellerId: string;
-  editing: VehicleListing | null;
-  onClose: () => void;
-  onSaved: () => void;
-  onNotify: (msg: string, type: "success" | "error" | "info") => void;
-}) {
-  const isEditing = !!editing;
-  const [step, setStep] = useState(1);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-
-  const [form, setForm] = useState({
-    brand: editing?.brand || "Toyota",
-    model: editing?.model || "",
-    year: editing?.year || new Date().getFullYear(),
-    regYear: (editing as any)?.registrationYear || editing?.year || new Date().getFullYear(),
-    price: editing?.price || 0,
-    originalPrice: editing?.originalPrice || 0,
-    mileage: editing?.mileage || 0,
-    fuelType: editing?.fuelType || "Gasoline",
-    transmission: editing?.transmission || "Automatic",
-    driveType: editing?.driveType || "FWD",
-    condition: editing?.condition || "Used",
-    bodyType: editing?.bodyType || "Sedan",
-    doors: editing?.doors || 4,
-    seats: editing?.seats || 5,
-    engineSize: editing?.engineSize || "1.8L",
-    engineType: editing?.engineType || "V4",
-    horsepower: editing?.horsepower || 130,
-    location: editing?.location || "Addis Ababa",
-    description: editing?.description || "",
-    phone: (editing as any)?.phone || editing?.brokerPhone || "+251 ",
-    chassisNumber: editing?.chassisNumber || "",
-  });
-
-  useEffect(() => {
-    if (editing?.imageUrl) {
-      setUploadedImages([editing.imageUrl]);
-    }
-  }, [editing]);
-
-  const currentModels = useMemo(() => {
-    return BRAND_MODELS[form.brand] || [];
-  }, [form.brand]);
-
-  const handleChange = (field: string, val: any) => {
-    setForm(p => ({ ...p, [field]: val }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.brand || !form.model) {
-      setError("Please select both Brand and Model.");
-      return;
-    }
-    if (form.price <= 0) {
-      setError("Price must be greater than zero.");
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const primaryImage = uploadedImages.length > 0 ? uploadedImages[0] : undefined;
-      const body = {
-        broker_id: sellerId,
-        brand: form.brand,
-        model: form.model,
-        year: form.year,
-        registration_year: form.regYear,
-        price: form.price,
-        original_price: form.originalPrice || form.price,
-        mileage: form.mileage,
-        fuel_type: form.fuelType,
-        transmission: form.transmission,
-        drive_type: form.driveType,
-        location: form.location,
-        description: form.description,
-        image_url: primaryImage,
-        gallery_images: uploadedImages.length > 1 ? JSON.stringify(uploadedImages) : undefined,
-        condition: form.condition,
-        body_type: form.bodyType,
-        doors: form.doors,
-        seats: form.seats,
-        engine_size: form.engineSize,
-        engine_type: form.engineType,
-        horsepower: form.horsepower,
-        phone: form.phone,
-        chassis_number: form.chassisNumber,
-        ...(isEditing ? {} : { status: "pending" })
-      };
-
-      if (isEditing) {
-        await vehiclesApi.update(editing!.id, body as Record<string, unknown>);
-      } else {
-        await vehiclesApi.create(body as Record<string, unknown>);
-      }
-      onSaved();
-    } catch (err: any) {
-      setError(err?.message || "Failed to submit vehicle listing.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[92vh] flex flex-col">
-        {/* Mobile Drag Handle */}
-        <div className="sm:hidden pt-3 pb-1 flex justify-center">
-          <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
-        </div>
-        
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-[#22c55e] flex items-center justify-center shrink-0">
-              <Car size={16} />
-            </div>
-            <div>
-              <h2 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                {isEditing ? "Edit Vehicle Listing" : "List Car for Sale"}
-              </h2>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer">
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Stepper */}
-        <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-50 dark:bg-slate-850 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[11px] font-bold shrink-0">
-          {[
-            { nr: 1, full: "Info & Make", short: "Make" },
-            { nr: 2, full: "Specs & Details", short: "Specs" },
-            { nr: 3, full: "Pricing & Photos", short: "Price" },
-          ].map((item) => (
-            <div key={item.nr} className="flex items-center gap-1.5 sm:gap-2">
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                step === item.nr ? "bg-[#22c55e] text-white shadow-xs" : step > item.nr ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400" : "bg-slate-200 dark:bg-slate-700 text-slate-500"
-              }`}>
-                {step > item.nr ? "✓" : item.nr}
-              </span>
-              <span className={`${step === item.nr ? "text-[#22c55e] font-black" : "text-slate-400 dark:text-slate-500"}`}>
-                <span className="sm:hidden">{item.short}</span>
-                <span className="hidden sm:inline">{item.full}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-          {error && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 text-rose-700 dark:text-rose-400 text-xs rounded-xl flex items-center gap-2">
-              <AlertCircle size={15} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {step === 1 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Brand *</label>
-                  <Combobox value={form.brand} onChange={v => {
-                    const models = BRAND_MODELS[v] || [];
-                    const stillValid = models.includes(form.model);
-                    setForm(p => ({ ...p, brand: v, model: stillValid ? p.model : "" }));
-                  }} options={BRANDS} placeholder="Select Brand..." />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Model *</label>
-                  <Combobox value={form.model} onChange={v => handleChange("model", v)} options={currentModels} placeholder="Select Model..." />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Model Year</label>
-                  <input type="number" value={form.year} onChange={e => handleChange("year", parseInt(e.target.value) || 2020)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Reg. Year</label>
-                  <input type="number" value={form.regYear} onChange={e => handleChange("regYear", parseInt(e.target.value) || 2021)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Condition</label>
-                  <select value={form.condition} onChange={e => handleChange("condition", e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
-                    {CONDITIONS.map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Body Type</label>
-                  <select value={form.bodyType} onChange={e => handleChange("bodyType", e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
-                    {BODY_TYPES.map(b => <option key={b}>{b}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Chassis / VIN (Optional)</label>
-                <input type="text" value={form.chassisNumber} onChange={e => handleChange("chassisNumber", e.target.value)} placeholder="e.g. JT123456789"
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Mileage (km)</label>
-                  <input type="number" value={form.mileage} onChange={e => handleChange("mileage", parseInt(e.target.value) || 0)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Fuel Type</label>
-                  <select value={form.fuelType} onChange={e => handleChange("fuelType", e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
-                    {FUEL_TYPES.map(f => <option key={f}>{f}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Transmission</label>
-                  <select value={form.transmission} onChange={e => handleChange("transmission", e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
-                    {TRANSMISSIONS.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Drive Type</label>
-                  <select value={form.driveType} onChange={e => handleChange("driveType", e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
-                    {DRIVE_TYPES.map(d => <option key={d}>{d}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Seats</label>
-                  <select value={form.seats} onChange={e => handleChange("seats", parseInt(e.target.value))}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
-                    {SEAT_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Doors</label>
-                  <select value={form.doors} onChange={e => handleChange("doors", parseInt(e.target.value))}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
-                    {DOOR_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Horsepower</label>
-                  <input type="number" value={form.horsepower} onChange={e => handleChange("horsepower", parseInt(e.target.value) || 0)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Vehicle Location *</label>
-                <Combobox value={form.location} onChange={v => handleChange("location", v)} options={LOCATIONS} placeholder="Select City/Location..." />
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Selling Price (ETB) *</label>
-                  <input type="number" required value={form.price || ""} onChange={e => handleChange("price", parseInt(e.target.value) || 0)} placeholder="e.g. 2500000"
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Contact Phone Number</label>
-                  <input type="tel" value={form.phone} onChange={e => handleChange("phone", e.target.value)} placeholder="+251 9XX XXX XXX"
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Car Photos (Add at least 1 image)</label>
-                <div className="flex flex-wrap gap-2.5">
-                  {uploadedImages.map((img, i) => (
-                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group">
-                      <img src={img} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))}
-                        className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold cursor-pointer opacity-0 group-hover:opacity-100 transition"
-                      >×</button>
-                      {i === 0 && <span className="absolute bottom-1 left-1 bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase">Main</span>}
-                    </div>
-                  ))}
-                  <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-[#22c55e] bg-slate-50 dark:bg-slate-800 flex flex-col items-center justify-center gap-1 cursor-pointer transition">
-                    <Plus size={16} className="text-slate-400" />
-                    <span className="text-[8px] font-bold uppercase text-slate-400">Add Photo</span>
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                      const files = e.target.files;
-                      if (!files) return;
-                      Array.from({ length: files.length }, (_, i) => files[i]).forEach((file: File) => {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => { if (ev.target?.result) setUploadedImages(prev => [...prev, ev.target.result as string]); };
-                        reader.readAsDataURL(file);
-                      });
-                      e.target.value = "";
-                    }} />
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Vehicle Description</label>
-                <textarea rows={3} value={form.description} onChange={e => handleChange("description", e.target.value)} placeholder="Describe vehicle condition, features, maintenance history..."
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none" />
-              </div>
-            </div>
-          )}
-
-          {/* Stepper Footer */}
-          <div className="sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm flex items-center justify-between pt-3 pb-3 px-4 sm:px-6 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 border-t border-slate-100 dark:border-slate-800 shrink-0">
-            <button
-              type="button"
-              onClick={step === 1 ? onClose : () => setStep(s => s - 1)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
-            >
-              {step === 1 ? "Cancel" : "Back"}
-            </button>
-            {step < 3 ? (
-              <button
-                type="button"
-                onClick={() => setStep(s => s + 1)}
-                className="px-5 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-slate-950 text-xs font-black transition cursor-pointer shadow-sm active:scale-95"
-              >
-                Continue
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-5 sm:px-6 py-2.5 rounded-xl bg-[#22c55e] hover:bg-emerald-600 text-slate-950 text-xs font-black transition cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm active:scale-95"
-              >
-                {submitting && <Loader2 size={13} className="animate-spin" />}
-                <span>{isEditing ? "Save Listing" : "Publish Listing"}</span>
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+// VehicleFormModal is imported from ../components/ui/VehicleFormModal
 
 /* ──────────────── PROFILE SECTION ──────────────── */
 
@@ -1581,14 +1367,14 @@ function ProfileSection({ onNotify }: { onNotify: (msg: string, type: "success" 
   return (
     <SectionCard title="Personal Information" subtitle="Update your personal details"
       action={!editing ?
-        <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs font-bold text-[#22c55e] hover:text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/10 transition cursor-pointer"><Pencil size={12} /> Edit</button>
+        <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs font-bold text-[#FF4846] hover:text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/10 transition cursor-pointer"><Pencil size={12} /> Edit</button>
         : <button onClick={() => { setEditing(false); setForm({ name: user?.name || "", email: user?.email || "", phone: user?.phone || "", bio: user?.bio || "" }); }}
             className="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">Cancel</button>
       }
     >
       <div className="flex items-center gap-5 pb-6 mb-6 border-b border-slate-100 dark:border-slate-800">
         <div className="relative group">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border-2 border-[#22c55e]/40 text-[#22c55e] flex items-center justify-center text-xl font-black shadow-sm ring-2 ring-[#22c55e]/20 overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border-2 border-[#FF4846]/40 text-[#FF4846] flex items-center justify-center text-xl font-black shadow-sm ring-2 ring-[#FF4846]/20 overflow-hidden">
             {user?.avatar ? (
               <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
             ) : (
@@ -1615,7 +1401,7 @@ function ProfileSection({ onNotify }: { onNotify: (msg: string, type: "success" 
           <Field label="Bio"><textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} rows={3} className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white resize-none" /></Field>
           <div className="flex justify-end pt-2">
             <button onClick={handleSave} disabled={saving}
-              className="flex items-center gap-2 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50 shadow-sm"
+              className="flex items-center gap-2 bg-[#FF4846] hover:bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50 shadow-sm"
             >{saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}{saving ? "Saving..." : "Save Changes"}</button>
           </div>
         </div>
@@ -1663,7 +1449,7 @@ function SecuritySection({ onNotify }: { onNotify: (msg: string, type: "success"
 
   return (
     <SectionCard title="Password & Security" subtitle="Manage your password and account security"
-      action={!showForm ? <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 text-xs font-bold text-[#22c55e] hover:text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/10 transition cursor-pointer"><Key size={12} /> Change</button> : null}
+      action={!showForm ? <button onClick={() => setShowForm(true)} className="flex items-center gap-1.5 text-xs font-bold text-[#FF4846] hover:text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/10 transition cursor-pointer"><Key size={12} /> Change</button> : null}
     >
       {showForm ? (
         <div className="max-w-md space-y-4">
@@ -1684,13 +1470,13 @@ function SecuritySection({ onNotify }: { onNotify: (msg: string, type: "success"
           </Field>
           {error && <p className="text-xs font-semibold text-rose-500">{error}</p>}
           <div className="flex gap-3 pt-2">
-            <button onClick={handleChange} disabled={changing} className="flex items-center gap-2 bg-[#22c55e] hover:bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50 shadow-sm">{changing ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{changing ? "Changing..." : "Update Password"}</button>
+            <button onClick={handleChange} disabled={changing} className="flex items-center gap-2 bg-[#FF4846] hover:bg-emerald-600 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50 shadow-sm">{changing ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}{changing ? "Changing..." : "Update Password"}</button>
             <button onClick={() => { setShowForm(false); setError(""); setForm({ currentPassword: "", newPassword: "", confirmPassword: "" }); }} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer">Cancel</button>
           </div>
         </div>
       ) : (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] flex items-center justify-center shrink-0"><ShieldCheck size={16} /></div>
+          <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#FF4846] flex items-center justify-center shrink-0"><ShieldCheck size={16} /></div>
           <div><p className="text-sm font-bold text-slate-800 dark:text-white">Password Protection</p><p className="text-xs text-slate-400 dark:text-slate-500">Keep your account secure with regular updates</p></div>
         </div>
       )}
@@ -1790,7 +1576,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#22c55e] flex items-center justify-center shrink-0 mt-0.5"><Icon size={16} /></div>
+      <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#FF4846] flex items-center justify-center shrink-0 mt-0.5"><Icon size={16} /></div>
       <div><p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">{label}</p><p className="text-sm font-semibold text-slate-800 dark:text-white mt-0.5">{value}</p></div>
     </div>
   );
@@ -1800,7 +1586,7 @@ function ToggleRow({ checked, onChange, label, desc }: { key?: React.Key; checke
   return (
     <div className="flex items-center justify-between py-2.5">
       <div><p className="text-sm font-semibold text-slate-800 dark:text-white">{label}</p><p className="text-xs text-slate-400 dark:text-slate-500">{desc}</p></div>
-      <button type="button" onClick={onChange} className={`relative w-10 h-6 rounded-full transition cursor-pointer shrink-0 ml-4 ${checked ? "bg-[#22c55e]" : "bg-slate-200 dark:bg-slate-700"}`}>
+      <button type="button" onClick={onChange} className={`relative w-10 h-6 rounded-full transition cursor-pointer shrink-0 ml-4 ${checked ? "bg-[#FF4846]" : "bg-slate-200 dark:bg-slate-700"}`}>
         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${checked ? "translate-x-4" : ""}`} />
       </button>
     </div>

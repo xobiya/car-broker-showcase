@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Shield, Save, LogOut, Camera, Lock, Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { uploadApi } from "../lib/api";
+import SEO from "../components/common/SEO";
 
 interface AdminProfilePageProps {
   onBack: () => void;
@@ -108,6 +109,7 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
 
   return (
     <div className="h-full flex flex-col bg-slate-50 dark:bg-[#0B0F19] transition-colors">
+      <SEO title="Admin Profile — Arif Car Sell" noIndex={true} />
       <div className="shrink-0 flex items-center gap-3 px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 transition-colors">
         <button onClick={onBack} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer text-slate-500 dark:text-slate-400">
           <ArrowLeft size={18} />
@@ -124,10 +126,10 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
           {/* ── Profile Card ── */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm transition-colors">
             <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-6 md:p-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#22c55e]/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF4846]/10 rounded-full blur-3xl pointer-events-none" />
               <div className="flex items-center gap-5 relative z-10">
                 <div className="relative group">
-                  <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-[#22c55e]/40 flex items-center justify-center text-3xl font-black overflow-hidden ring-4 ring-white/10 text-[#22c55e]">
+                  <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-[#FF4846]/40 flex items-center justify-center text-3xl font-black overflow-hidden ring-4 ring-white/10 text-[#FF4846]">
                     {avatar ? (
                       <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
@@ -137,15 +139,15 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
                   <button
                     onClick={handleAvatarPick}
                     disabled={avatarUploading}
-                    className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-slate-800 border-2 border-[#22c55e] flex items-center justify-center shadow hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer disabled:opacity-50"
+                    className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-slate-800 border-2 border-[#FF4846] flex items-center justify-center shadow hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer disabled:opacity-50"
                   >
-                    {avatarUploading ? <Loader2 size={14} className="animate-spin text-[#22c55e]" /> : <Camera size={14} className="text-slate-700 dark:text-slate-300" />}
+                    {avatarUploading ? <Loader2 size={14} className="animate-spin text-[#FF4846]" /> : <Camera size={14} className="text-slate-700 dark:text-slate-300" />}
                   </button>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                 </div>
                 <div className="text-white">
                   <h2 className="text-xl font-bold">{name || "Admin"}</h2>
-                  <p className="text-sm text-[#22c55e] font-black uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
+                  <p className="text-sm text-[#FF4846] font-black uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
                     <Shield size={14} /> Administrator
                   </p>
                   {user?.joinDate && (
@@ -162,31 +164,31 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Full Name</label>
                   <input type="text" value={name} onChange={e => setName(e.target.value)}
-                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition" />
+                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Email</label>
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition" />
+                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition" />
                 </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Phone</label>
                 <input type="text" value={phone} onChange={e => setPhone(e.target.value)}
-                  className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition" />
+                  className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition" />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Role</label>
                 <div className="w-full text-sm px-3 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-2">
-                  <Shield size={14} className="text-[#22c55e]" /> Administrator
+                  <Shield size={14} className="text-[#FF4846]" /> Administrator
                 </div>
               </div>
 
               <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <button onClick={handleSave} disabled={saving || !dirty}
-                  className="flex items-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-lg text-xs transition cursor-pointer shadow-sm"
+                  className="flex items-center gap-1.5 bg-[#FF4846] hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-lg text-xs transition cursor-pointer shadow-sm"
                 >
                   {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                   {saving ? "Saving..." : "Save Changes"}
@@ -210,13 +212,13 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Current Password</label>
                 <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
-                  className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition" />
+                  className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">New Password</label>
                   <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition" />
+                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition" />
                   {newPassword && (
                     <p className={`text-[10px] font-semibold flex items-center gap-1 mt-1 ${newPassword.length >= 6 ? "text-emerald-500" : "text-amber-500"}`}>
                       {newPassword.length >= 6 ? <Check size={10} /> : <X size={10} />}
@@ -227,7 +229,7 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Confirm New Password</label>
                   <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#22c55e] focus:bg-white dark:focus:bg-slate-800 transition" />
+                    className="w-full text-sm px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition" />
                   {confirmPassword && (
                     <p className={`text-[10px] font-semibold flex items-center gap-1 mt-1 ${newPassword === confirmPassword ? "text-emerald-500" : "text-rose-500"}`}>
                       {newPassword === confirmPassword ? <Check size={10} /> : <X size={10} />}
@@ -237,7 +239,7 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
                 </div>
               </div>
               <button onClick={handleChangePassword} disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
-                className="flex items-center gap-1.5 bg-[#22c55e] hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-lg text-xs transition cursor-pointer shadow-sm"
+                className="flex items-center gap-1.5 bg-[#FF4846] hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-lg text-xs transition cursor-pointer shadow-sm"
               >
                 {changingPassword ? <Loader2 size={14} className="animate-spin" /> : <Lock size={14} />}
                 {changingPassword ? "Changing..." : "Change Password"}
@@ -263,7 +265,7 @@ export default function AdminProfilePage({ onBack, onLogout, onNotify }: AdminPr
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Role</p>
-                  <p className="text-sm font-semibold text-[#22c55e] mt-1 uppercase">Administrator</p>
+                  <p className="text-sm font-semibold text-[#FF4846] mt-1 uppercase">Administrator</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider">Verification</p>
