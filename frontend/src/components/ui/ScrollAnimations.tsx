@@ -16,7 +16,7 @@ export function ScrollProgressBar() {
   return (
     <motion.div
       style={{ scaleX }}
-      className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-400 to-[#22c55e] origin-left z-50 pointer-events-none shadow-[0_1px_10px_rgba(34,197,94,0.6)]"
+      className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-400 to-[#FF4846] origin-left z-50 pointer-events-none shadow-[0_1px_10px_rgba(34,197,94,0.6)]"
     />
   );
 }
@@ -123,7 +123,7 @@ export function ScrollToTopButton() {
           whileTap={{ scale: 0.95 }}
           onClick={scrollToTop}
           aria-label="Scroll to top"
-          className="fixed bottom-20 sm:bottom-8 right-5 z-40 w-11 h-11 rounded-full bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 backdrop-blur-md shadow-xl border border-white/20 dark:border-slate-800 flex items-center justify-center cursor-pointer group hover:bg-[#22c55e] dark:hover:bg-[#22c55e] dark:hover:text-slate-950 transition-colors"
+          className="fixed bottom-20 sm:bottom-8 right-5 z-40 w-11 h-11 rounded-full bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 backdrop-blur-md shadow-xl border border-white/20 dark:border-slate-800 flex items-center justify-center cursor-pointer group hover:bg-[#FF4846] dark:hover:bg-[#FF4846] dark:hover:text-slate-950 transition-colors"
         >
           <ArrowUp size={18} className="group-hover:-translate-y-0.5 transition-transform duration-200" />
         </motion.button>
@@ -308,7 +308,7 @@ export function SectionScrollNavigator({
                   aria-label={`Jump to ${section.label}`}
                   className={`transition-all duration-300 rounded-full flex items-center justify-center cursor-pointer ${
                     isActive
-                      ? "w-6 h-6 bg-[#22c55e] text-slate-950 font-black shadow-md shadow-emerald-500/40 text-[9px]"
+                      ? "w-6 h-6 bg-[#FF4846] text-slate-950 font-black shadow-md shadow-emerald-500/40 text-[9px]"
                       : "w-2.5 h-2.5 bg-slate-500/60 hover:bg-slate-300 dark:hover:bg-slate-200"
                   }`}
                 >
@@ -337,11 +337,11 @@ export function SectionScrollNavigator({
           disabled={currentIndex >= sections.length - 1}
           className="flex items-center gap-2 bg-slate-950/85 dark:bg-slate-900/90 text-white backdrop-blur-md py-1.5 px-3 rounded-full border border-white/15 dark:border-slate-800 shadow-xl text-xs font-semibold cursor-pointer active:scale-95 transition disabled:opacity-40"
         >
-          <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-[#FF4846] animate-pulse" />
           <span className="text-[11px] font-bold text-slate-200">
             {sections[currentIndex]?.label || "Next Section"}
           </span>
-          <ChevronDown size={13} className="text-[#22c55e]" />
+          <ChevronDown size={13} className="text-[#FF4846]" />
         </button>
       </div>
     </>
@@ -371,7 +371,7 @@ export function HeroScrollCue({ targetId = "section-search" }: { targetId?: stri
       <motion.span
         animate={{ y: [0, 3, 0] }}
         transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-        className="text-[#22c55e]"
+        className="text-[#FF4846]"
       >
         <ChevronDown size={14} />
       </motion.span>
@@ -391,7 +391,7 @@ export function SectionDivider() {
         whileInView={{ x: "100%" }}
         viewport={{ once: false, amount: "some" }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[#22c55e]/70 to-transparent"
+        className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[#FF4846]/70 to-transparent"
       />
     </div>
   );

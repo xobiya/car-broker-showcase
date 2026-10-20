@@ -37,7 +37,7 @@ export default function Logo({ className = "", iconOnly, size = "md", inverted, 
       />
       {!iconOnly && (
         <p className={`${textSize} font-black ${textColor} uppercase tracking-tight leading-none whitespace-nowrap`}>
-          Arif <span className="text-[#22c55e]">Car Sell</span>
+          Arif <span className="text-[#FF4846]">Car Sell</span>
         </p>
       )}
     </div>

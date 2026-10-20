@@ -6,11 +6,38 @@
 @theme {
   --font-sans: "Inter", "Noto Sans Ethiopic", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-brand: #FF4846;
+  --color-brand-hover: #E63D3B;
+  --color-primary: #FF4846;
+  --color-primary-hover: #E63D3B;
+  --color-emerald-50: #FFF1F1;
+  --color-emerald-100: #FFE2E2;
+  --color-emerald-200: #FFC9C8;
+  --color-emerald-300: #FFA4A2;
+  --color-emerald-400: #FF7472;
+  --color-emerald-500: #FF4846;
+  --color-emerald-600: #E63D3B;
+  --color-emerald-700: #C42C2A;
+  --color-emerald-800: #A12523;
+  --color-emerald-900: #842322;
+  --color-emerald-950: #480D0D;
 }
 
 /* Global Cross-Browser Scrollbar styling (WebKit & Firefox) */
 html {
   scroll-behavior: smooth;
+}
+html {
+  width: 100%;
+  overflow-x: hidden;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 html, body {
   scrollbar-width: thin;
@@ -19,6 +46,19 @@ html, body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  max-width: 100%;
+}
+
+pre, code {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* Ensure in-page section scrolling accounts for sticky header */
@@ -80,7 +120,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #22c55e;
+  background: #FF4846;
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
@@ -89,7 +129,7 @@ input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #22c55e;
+  background: #FF4846;
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
@@ -105,7 +145,7 @@ input[type="range"]::-moz-range-track {
 
 /* Accessible focus ring for keyboard navigation */
 :focus-visible {
-  outline: 2px solid #22c55e;
+  outline: 2px solid #FF4846;
   outline-offset: 2px;
 }
 
@@ -122,7 +162,7 @@ input[type="range"]::-moz-range-track {
   transition: all 0.15s ease-in-out;
 }
 .input:focus {
-  border-color: #22c55e;
+  border-color: #FF4846;
   background-color: #ffffff;
 }
 .dark .input {
@@ -131,7 +171,7 @@ input[type="range"]::-moz-range-track {
   color: #ffffff;
 }
 .dark .input:focus {
-  border-color: #22c55e;
+  border-color: #FF4846;
   background-color: #1e293b;
 }
 
