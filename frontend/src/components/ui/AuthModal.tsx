@@ -108,7 +108,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
                 onClick={() => switchTab(tTab)}
                 className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   tab === tTab
-                    ? "bg-[#0B0F19] text-[#22c55e] shadow-sm font-black"
+                    ? "bg-[#0B0F19] text-[#FF4846] shadow-sm font-black"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -219,7 +219,7 @@ export default function AuthModal({ onClose, onSuccess, onNotify, defaultRole, i
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-2.5 rounded-lg text-xs tracking-wider transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20"
+              className="w-full bg-[#FF4846] hover:bg-[#E63D3B] text-white font-bold py-2.5 rounded-lg text-xs tracking-wider transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20"
             >
               {loading ? (
                 <><Loader2 size={14} className="animate-spin" /> {t("common:status.loading")}</>

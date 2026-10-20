@@ -16,7 +16,7 @@ export function useAuth() {
     return res.user;
   };
 
-  const register = async (payload: { name: string; email: string; password: string; phone?: string; role: "buyer" | "broker" }) => {
+  const register = async (payload: { name: string; email: string; password: string; phone?: string; role: "buyer" | "broker" | "seller" }) => {
     const res = await authApi.register(payload);
     setToken(res.token);
     setUser(res.user);
