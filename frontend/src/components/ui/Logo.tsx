@@ -33,7 +33,7 @@ export default function Logo({ className = "", iconOnly, size = "md", inverted, 
       <img
         src="/logo.png"
         alt="Arif Car Sell"
-        className={`shrink-0 object-contain w-auto ${imgSizeClass}`}
+        className={`shrink-0 object-contain w-auto dark:bg-slate-100 dark:rounded-lg ${imgSizeClass}`}
       />
       {!iconOnly && (
         <p className={`${textSize} font-black ${textColor} uppercase tracking-tight leading-none whitespace-nowrap`}>

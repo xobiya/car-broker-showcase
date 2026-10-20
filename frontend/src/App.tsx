@@ -407,7 +407,7 @@ export default function App() {
               )}
 
               {/* Header Language Switcher */}
-              <LanguageSwitcher variant="header" className="hidden shrink-0 sm:inline-block" />
+              <LanguageSwitcher variant="header" className="!hidden shrink-0 sm:!inline-block" />
 
               {/* Mobile Theme Toggle Icon Button */}
               <button

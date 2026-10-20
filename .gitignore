@@ -7,6 +7,4 @@ coverage/
 .env*
 !.env.example
 .vercel
-
-.vercel
-.env*
+.vscode/
