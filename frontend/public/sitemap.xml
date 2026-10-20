@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Home Page -->
+  <url>
+    <loc>https://arifcarsell.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Showroom / Car Listings -->
+  <url>
+    <loc>https://arifcarsell.com/showroom</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/showroom" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/showroom" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/showroom" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/showroom" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Vehicle Inspection & Brokerage Services -->
+  <url>
+    <loc>https://arifcarsell.com/services</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/services" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/services" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/services" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/services" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Side-by-Side Car Comparison -->
+  <url>
+    <loc>https://arifcarsell.com/compare</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/compare" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/compare" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/compare" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/compare" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- About Us & Broker Team -->
+  <url>
+    <loc>https://arifcarsell.com/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/about" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/about" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/about" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Contact & Office Info -->
+  <url>
+    <loc>https://arifcarsell.com/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/contact" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/contact" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/contact" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/contact" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Help & Support / FAQs -->
+  <url>
+    <loc>https://arifcarsell.com/help</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/help" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/help" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/help" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/help" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://arifcarsell.com/terms</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/terms" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/terms" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/terms" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/terms" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://arifcarsell.com/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arifcarsell.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="am" href="https://arifcarsell.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="om" href="https://arifcarsell.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifcarsell.com/privacy" />
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

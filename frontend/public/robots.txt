@@ -1,0 +1,26 @@
+# robots.txt for Arif Car Sell — https://arifcarsell.com
+User-agent: *
+Allow: /
+Allow: /showroom
+Allow: /vehicle/
+Allow: /services
+Allow: /about
+Allow: /contact
+Allow: /compare
+Allow: /help
+Allow: /terms
+Allow: /privacy
+Allow: /images/
+
+# Disallow private management portals and internal endpoints
+Disallow: /admin
+Disallow: /admin/
+Disallow: /broker-dashboard
+Disallow: /broker-dashboard/
+Disallow: /buyer-dashboard
+Disallow: /buyer-dashboard/
+Disallow: /api/
+Disallow: /uploads/temp/
+
+# XML Sitemap
+Sitemap: https://arifcarsell.com/sitemap.xml

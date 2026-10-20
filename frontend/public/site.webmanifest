@@ -1,0 +1,21 @@
+{
+  "name": "Arif Car Sell — Ethiopia's Trusted Auto Marketplace",
+  "short_name": "Arif Car Sell",
+  "description": "Ethiopia's trusted vehicle marketplace. Buy and sell verified cars with 150-point inspections and title deed verification in Addis Ababa.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#0B0F19",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
