@@ -53,7 +53,7 @@ export default function LanguageSwitcher({
                 type="button"
                 onClick={() => setLocale(code)}
                 className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${isSelected
-                    ? "bg-[#0B0F19] dark:bg-emerald-500 text-[#22c55e] dark:text-slate-950 shadow-sm font-black"
+                    ? "bg-[#0B0F19] dark:bg-emerald-500 text-[#FF4846] dark:text-slate-950 shadow-sm font-black"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
                   }`}
               >
@@ -76,11 +76,11 @@ export default function LanguageSwitcher({
         aria-label="Select language"
         className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200/90 dark:border-slate-700/80 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
       >
-        <Globe size={13} className="text-[#22c55e] shrink-0" />
+        <Globe size={13} className="text-[#FF4846] shrink-0" />
         <span className="font-extrabold tracking-tight">{meta.nativeName}</span>
         <ChevronDown
           size={12}
-          className={`text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#22c55e]" : ""}`}
+          className={`text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#FF4846]" : ""}`}
         />
       </button>
 
@@ -110,7 +110,7 @@ export default function LanguageSwitcher({
                     setIsOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2 text-xs font-bold transition cursor-pointer text-left ${isSelected
-                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#22c55e]"
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#FF4846]"
                       : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                     }`}
                 >
@@ -120,7 +120,7 @@ export default function LanguageSwitcher({
                       {loc.name}
                     </span>
                   </div>
-                  {isSelected && <Check size={14} className="text-[#22c55e] shrink-0" />}
+                  {isSelected && <Check size={14} className="text-[#FF4846] shrink-0" />}
                 </button>
               );
             })}

@@ -74,14 +74,14 @@ export default function ReportModal({ targetType, targetId, targetLabel, onClose
             <label className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Your Name *</label>
             <input type="text" required value={reporterName} onChange={e => setReporterName(e.target.value)}
               placeholder="Your full name"
-              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:outline-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#FF4846] focus:outline-none transition-colors"
             />
           </div>
 
           <div className="space-y-1">
             <label className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Reason *</label>
             <select required value={reason} onChange={e => setReason(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:outline-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#FF4846] focus:outline-none transition-colors"
             >
               <option value="">Select a reason...</option>
               {REPORT_REASONS.map(r => <option key={r} value={r} className="dark:bg-slate-900">{r}</option>)}
@@ -92,7 +92,7 @@ export default function ReportModal({ targetType, targetId, targetLabel, onClose
             <label className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Description (Optional)</label>
             <textarea rows={4} value={description} onChange={e => setDescription(e.target.value)}
               placeholder="Provide additional details to help our investigation..."
-              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#22c55e] focus:outline-none resize-none transition-colors"
+              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#FF4846] focus:outline-none resize-none transition-colors"
             />
           </div>
 
