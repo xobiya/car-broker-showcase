@@ -111,6 +111,7 @@ export default function App() {
   const { toasts, removeToast } = useToast();
   const { t } = useTranslation(["navigation", "common", "homepage"]);
   const fullScreen = isFullScreenRoute(location.pathname);
+  const isAccountRoute = location.pathname === "/profile";
   const userRole = user?.role || "buyer";
 
   useEffect(() => {
@@ -248,7 +249,7 @@ export default function App() {
 
             {/* Actual Pages Navigation: Clean, Professional, Emerald Accents */}
             <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-              {userRole !== "admin" && (
+              {userRole !== "admin" && !isAccountRoute && (
                 <button
                   onClick={() => navigate("/")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#FF4846] transition-colors ${
@@ -258,7 +259,7 @@ export default function App() {
                   {t("navigation:menu.home")}
                 </button>
               )}
-              {userRole !== "admin" && (
+              {userRole !== "admin" && !isAccountRoute && (
                 <button
                   onClick={() => navigate("/browse")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#FF4846] transition-colors ${
@@ -335,8 +336,6 @@ export default function App() {
                 <Plus size={14} strokeWidth={3} />
                 <span>Add Listing</span>
               </button>
-
-
 
               {user ? (
                 <div className="relative">
@@ -425,7 +424,7 @@ export default function App() {
               </button>
 
               {/* Mobile Menu Hamburger Button */}
-              {userRole !== "admin" && (
+              {userRole !== "admin" && !isAccountRoute && (
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -498,17 +497,26 @@ export default function App() {
                     </div>
 
                     {/* Drawer Footer: Language & Theme Controls */}
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 px-3.5">
+                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3 px-3">
                       <LanguageSwitcher variant="mobile" />
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Theme</span>
+                      <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          {theme === "dark" ? <Moon size={15} className="text-[#FF4846]" /> : <Sun size={15} className="text-amber-500" />}
+                          <div>
+                            <span className="block text-xs font-black text-slate-700 dark:text-slate-200">Theme</span>
+                            <span className="block text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                              {theme === "dark" ? "Dark mode" : "Light mode"}
+                            </span>
+                          </div>
+                        </div>
                         <button
                           onClick={toggleTheme}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer shadow-xs"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-2 text-[10px] font-black text-slate-700 dark:text-slate-200 hover:border-[#FF4846] hover:text-[#FF4846] transition cursor-pointer shadow-xs"
                           title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
                           aria-label="Toggle theme mode"
                         >
-                          {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-slate-400" />}
+                          {theme === "dark" ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-slate-500" />}
+                          <span>{theme === "dark" ? "Light" : "Dark"}</span>
                         </button>
                       </div>
                     </div>
@@ -564,7 +572,7 @@ export default function App() {
         </Suspense>
       </main>
 
-      {!fullScreen && userRole !== "admin" && (
+      {!fullScreen && userRole !== "admin" && !isAccountRoute && (
         <footer className="shrink-0 bg-slate-950 border-t border-slate-800/80 pt-16 pb-10 px-6 md:px-12 mt-auto text-slate-300">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-16">
             <div className="md:col-span-1 space-y-6">
@@ -608,7 +616,7 @@ export default function App() {
         </footer>
       )}
 
-      {!fullScreen && userRole !== "admin" && (
+      {!fullScreen && userRole !== "admin" && !isAccountRoute && (
         <div className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-40 flex items-center gap-1 rounded-[2rem] border border-slate-200/80 bg-white/95 px-2 py-2 shadow-[0_8px_30px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-[#171B25]/95 md:hidden">
           <button
             onClick={() => { navigate("/"); setMobileMenuOpen(false); window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }}
