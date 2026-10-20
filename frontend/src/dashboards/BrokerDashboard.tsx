@@ -1683,7 +1683,7 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
 
       {showForm && (
         <VehicleFormModal
-          sellerId={myBrokerId || currentUserId || "broker"}
+          sellerId={brokerInfo?.id || currentUserId || "broker"}
           editing={editingVehicle}
           role="broker"
           onClose={() => { setShowForm(false); setEditingVehicle(null); }}
