@@ -36,6 +36,8 @@ function mapVehicle(v: DBVehicle): VehicleListing {
     videoUrl: v.video_url, inspectionStatus: v.inspection_status,
     inspectionNotes: v.inspection_notes, inspectionDate: v.inspection_date,
     coverPhotoIndex: v.cover_photo_index, rejectionReason: v.rejection_reason,
+    ownershipDocumentUrl: v.ownership_document_url,
+    ownershipDocumentName: v.ownership_document_name,
   };
 }
 
@@ -218,9 +220,9 @@ export const db = {
     return mapVehicle(toPlain<DBVehicle>(doc));
   },
 
-  addVehicle: async (v: Omit<DBVehicle, "id" | "status">): Promise<VehicleListing> => {
+  addVehicle: async (v: Omit<DBVehicle, "id"> & { status?: DBVehicle["status"] }): Promise<VehicleListing> => {
     const id = genId("veh");
-    const status = "draft" as const;
+    const status = v.status || "pending";
     await VehicleModel.create({ id, ...v, status });
     return mapVehicle({ ...v, id, status });
   },

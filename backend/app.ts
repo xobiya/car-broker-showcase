@@ -169,15 +169,17 @@ export function escapeRegex(text: string): string {
   return String(text).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 }
 
-// Helper to persist base64 data URLs directly into MongoDB
-async function persistBase64Image(dataUri: string, folder = "vehicles"): Promise<string> {
-  if (!dataUri || typeof dataUri !== "string" || !dataUri.startsWith("data:image/")) return dataUri;
+// Helper to persist base64 data URLs (images and PDF documents) directly into MongoDB
+async function persistBase64Media(dataUri: string, folder = "vehicles"): Promise<string> {
+  if (!dataUri || typeof dataUri !== "string") return dataUri;
+  if (!dataUri.startsWith("data:image/") && !dataUri.startsWith("data:application/pdf")) return dataUri;
   try {
-    const match = dataUri.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/);
+    const match = dataUri.match(/^data:(image\/[a-zA-Z0-9+.-]+|application\/pdf);base64,(.+)$/);
     if (!match) return dataUri;
     const mimetype = match[1];
     const buffer = Buffer.from(match[2], "base64");
-    const ext = mimetype.split("/")[1] || "jpg";
+    const rawExt = mimetype.split("/")[1] || "jpg";
+    const ext = rawExt.includes("pdf") ? "pdf" : rawExt.includes("jpeg") ? "jpg" : rawExt;
     const filename = `${folder}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${ext}`;
     const url = await db.saveMedia({
       filename,
@@ -187,10 +189,11 @@ async function persistBase64Image(dataUri: string, folder = "vehicles"): Promise
     });
     return url;
   } catch (err) {
-    console.warn("[Media] Failed to persist base64 image into database:", err);
+    console.warn("[Media] Failed to persist base64 media into database:", err);
     return dataUri;
   }
 }
+const persistBase64Image = persistBase64Media;
 
 
 
@@ -402,29 +405,36 @@ app.get("/api/auth/me", authenticateToken, async (req: AuthenticatedRequest, res
 // --- Vehicles ---
 app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const isPublicOrBuyer = !req.user || req.user.role === "buyer";
+    const isUnauthenticated = !req.user;
     const hasQueryParams = Object.keys(req.query).length > 0;
     const publicCacheKey = "vehicles:public:approved";
 
-    if (isPublicOrBuyer && !hasQueryParams) {
+    if (isUnauthenticated && !hasQueryParams) {
       const cached = getCached<any[]>(publicCacheKey);
       if (cached) return res.json(cached);
     }
 
     let dbFilter: any = {};
-    if (isPublicOrBuyer) {
+    if (isUnauthenticated) {
       dbFilter = { status: { $in: ["approved", "sold"] } };
+    } else if (req.user!.role === "buyer" || req.user!.role === "seller") {
+      dbFilter = { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: req.user!.id }] };
     } else if (req.user!.role === "broker") {
       const broker = await db.getBrokerByUserId(req.user!.id);
       const brokerId = broker ? broker.id : null;
       dbFilter = brokerId
-        ? { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: brokerId }] }
+        ? { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: brokerId }, { broker_id: req.user!.id }] }
         : { status: { $in: ["approved", "sold"] } };
-    } else if (req.user!.role === "seller") {
-      dbFilter = { $or: [{ status: { $in: ["approved", "sold"] } }, { broker_id: req.user!.id }] };
     }
 
     // Server-side filtering parameters (sanitized against ReDoS)
+    if (req.query.status && req.query.status !== "all") {
+      const requestedStatus = String(req.query.status);
+      if (req.user && (req.user.role === "admin" || req.user.role === "broker")) {
+        dbFilter.status = requestedStatus;
+      }
+    }
+
     if (req.query.brand && req.query.brand !== "Any Brand") dbFilter.brand = req.query.brand;
     if (req.query.model && req.query.model !== "Any Model") dbFilter.model = req.query.model;
     if (req.query.condition && req.query.condition !== "all") dbFilter.condition = req.query.condition;
@@ -496,29 +506,36 @@ app.get("/api/vehicles", optionalAuth, async (req: AuthenticatedRequest, res) =>
 
     const enriched = filteredVehicles.map(v => {
       const broker = brokers.find(b => b.id === v.brokerId);
-      const sellerUser = broker ? null : users.find(u => u.id === v.brokerId && u.role === "seller");
+      const sellerUser = broker ? null : users.find(u => u.id === v.brokerId);
       const user = broker ? users.find(u => u.id === broker.userId) : sellerUser || null;
       const isOwner = req.user && (broker ? broker.userId === req.user.id : v.brokerId === req.user.id);
       const isAdmin = req.user && req.user.role === "admin";
+      const isBroker = req.user && req.user.role === "broker";
 
       const item: any = {
         ...v,
-        brokerName: user?.name || "Unknown Broker",
-        brokerPhone: user?.phone || "",
+        sellerName: sellerUser ? sellerUser.name : (broker ? (user?.name || "Broker") : "Direct Owner"),
+        sellerEmail: sellerUser ? sellerUser.email : (broker ? (user?.email || "") : ""),
+        sellerPhone: sellerUser ? (sellerUser.phone || v.phone || "") : (user?.phone || v.phone || ""),
+        sellerRole: sellerUser ? sellerUser.role : (broker ? "broker" : "seller"),
+        brokerName: broker ? (user?.name || "Unknown Broker") : (sellerUser?.name ? `${sellerUser.name} (Direct Seller)` : "Customer Seller"),
+        brokerPhone: user?.phone || v.phone || "",
         brokerLicense: broker?.licenseNumber || "",
         brokerVerified: broker?.verified || false,
       };
 
-      // Sanitize sensitive info for non-owner and non-admin users
-      if (!isOwner && !isAdmin) {
+      // Sanitize sensitive info for non-owner, non-admin, non-broker users
+      if (!isOwner && !isAdmin && !isBroker) {
         delete item.chassisNumber;
         delete item.commissionRate;
         delete item.rejectionReason;
+        delete item.ownershipDocumentUrl;
+        delete item.ownershipDocumentName;
       }
       return item;
     });
 
-    if (isPublicOrBuyer && !hasQueryParams) {
+    if (isUnauthenticated && !hasQueryParams) {
       setCache(publicCacheKey, enriched, 120);
     }
 
@@ -535,14 +552,15 @@ app.get("/api/vehicles/:id", optionalAuth, async (req: AuthenticatedRequest, res
 
     let broker: any = null;
     let user: any = null;
+    let sellerUser: any = null;
 
     if (v.brokerId) {
       broker = (await db.getBrokersByIds([v.brokerId]))[0] || null;
       if (broker) {
         user = (await db.getUsersByIds([broker.userId]))[0] || null;
       } else {
-        const sellerUser = (await db.getUsersByIds([v.brokerId]))[0] || null;
-        if (sellerUser && sellerUser.role === "seller") {
+        sellerUser = (await db.getUsersByIds([v.brokerId]))[0] || null;
+        if (sellerUser) {
           user = sellerUser;
         }
       }
@@ -558,16 +576,24 @@ app.get("/api/vehicles/:id", optionalAuth, async (req: AuthenticatedRequest, res
 
     const item: any = {
       ...v,
-      brokerName: user?.name || "Unknown Broker",
-      brokerPhone: user?.phone || "",
+      sellerName: sellerUser ? sellerUser.name : (broker ? (user?.name || "Broker") : "Direct Owner"),
+      sellerEmail: sellerUser ? sellerUser.email : (broker ? (user?.email || "") : ""),
+      sellerPhone: sellerUser ? (sellerUser.phone || v.phone || "") : (user?.phone || v.phone || ""),
+      sellerRole: sellerUser ? sellerUser.role : (broker ? "broker" : "seller"),
+      brokerName: broker ? (user?.name || "Unknown Broker") : (sellerUser?.name ? `${sellerUser.name} (Direct Seller)` : "Customer Seller"),
+      brokerPhone: user?.phone || v.phone || "",
       brokerLicense: broker?.licenseNumber || "",
       brokerVerified: broker?.verified || false,
     };
 
-    if (!isOwner && !isAdmin) {
+    const isBroker = req.user && req.user.role === "broker";
+
+    if (!isOwner && !isAdmin && !isBroker) {
       delete item.chassisNumber;
       delete item.commissionRate;
       delete item.rejectionReason;
+      delete item.ownershipDocumentUrl;
+      delete item.ownershipDocumentName;
     }
 
     res.json(item);
@@ -607,6 +633,18 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "b
       finalGallery = await Promise.all(req.body.gallery.map((img: string) => persistBase64Image(img, "vehicles")));
     }
 
+    let finalOwnershipDoc = req.body.ownership_document_url;
+    if (finalOwnershipDoc && finalOwnershipDoc.startsWith("data:")) {
+      finalOwnershipDoc = await persistBase64Image(finalOwnershipDoc, "documents");
+    }
+    const ownershipDocName = req.body.ownership_document_name || "Ownership Certificate (Libre)";
+
+    // Customer listings (buyer/seller/broker) default to pending approval by admin
+    const initialStatus: "draft" | "pending" | "approved" | "rejected" | "sold" = 
+      req.user!.role === "admin" 
+        ? (req.body.status || "approved") 
+        : "pending";
+
     const newVehicle = await db.addVehicle({
       broker_id: brokerId,
       brand: req.body.brand,
@@ -635,7 +673,39 @@ app.post("/api/vehicles", authenticateToken, requireRole(["broker", "seller", "b
       video_url: req.body.video_url,
       gallery: finalGallery,
       cover_photo_index: req.body.cover_photo_index,
+      ownership_document_url: finalOwnershipDoc,
+      ownership_document_name: ownershipDocName,
+      status: initialStatus,
     });
+
+    if (finalOwnershipDoc) {
+      try {
+        await db.addDocument({
+          vehicle_id: newVehicle.id,
+          name: ownershipDocName,
+          type: "title",
+          file_url: finalOwnershipDoc,
+        });
+      } catch (docErr) {
+        console.warn("[Document] Auto-link notice:", docErr);
+      }
+    }
+
+    if (initialStatus === "pending") {
+      try {
+        await db.addAuditLog({
+          action: "listing_submitted",
+          admin_id: req.user!.id,
+          admin_name: req.user!.name || "Customer",
+          target_type: "vehicle",
+          target_id: newVehicle.id,
+          details: `New listing submitted by ${req.user!.name || "Customer"} (${req.user!.email || ""}): ${newVehicle.brand} ${newVehicle.model} (${newVehicle.year}) awaiting admin review.`
+        });
+      } catch (logErr) {
+        console.warn("[AuditLog] Failed to record submission log:", logErr);
+      }
+    }
+
     clearCache("vehicles");
     res.status(201).json(newVehicle);
   } catch (error: any) {
@@ -723,7 +793,7 @@ app.delete("/api/vehicles/:id", authenticateToken, async (req: AuthenticatedRequ
   }
 });
 
-app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin"]), async (req: AuthenticatedRequest, res) => {
+app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin", "broker"]), async (req: AuthenticatedRequest, res) => {
   try {
     const success = await db.updateVehicle(req.params.id, { status: "approved" });
     if (success) {
@@ -733,7 +803,7 @@ app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin"]), 
         admin_name: req.user!.name,
         target_type: "vehicle",
         target_id: req.params.id,
-        details: "Approved vehicle listing"
+        details: `Approved vehicle listing by ${req.user!.role}`
       });
       clearCache("vehicles");
       const vehicle = await db.getVehicleById(req.params.id);
@@ -743,6 +813,11 @@ app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin"]), 
           const brokerUser = await db.getUserById(broker.userId);
           if (brokerUser?.email) {
             notifyListingApproved(vehicle.brand, vehicle.model, brokerUser.email);
+          }
+        } else {
+          const customerUser = await db.getUserById(vehicle.brokerId);
+          if (customerUser?.email) {
+            notifyListingApproved(vehicle.brand, vehicle.model, customerUser.email);
           }
         }
       }
@@ -755,7 +830,7 @@ app.put("/api/vehicles/:id/approve", authenticateToken, requireRole(["admin"]), 
   }
 });
 
-app.put("/api/vehicles/:id/reject", authenticateToken, requireRole(["admin"]), async (req: AuthenticatedRequest, res) => {
+app.put("/api/vehicles/:id/reject", authenticateToken, requireRole(["admin", "broker"]), async (req: AuthenticatedRequest, res) => {
   try {
     const { reason } = req.body;
     const success = await db.updateVehicle(req.params.id, { status: "rejected", rejection_reason: reason || "" });
@@ -776,6 +851,11 @@ app.put("/api/vehicles/:id/reject", authenticateToken, requireRole(["admin"]), a
           const brokerUser = await db.getUserById(broker.userId);
           if (brokerUser?.email) {
             notifyListingRejected(vehicle.brand, vehicle.model, reason || "No reason specified", brokerUser.email);
+          }
+        } else {
+          const customerUser = await db.getUserById(vehicle.brokerId);
+          if (customerUser?.email) {
+            notifyListingRejected(vehicle.brand, vehicle.model, reason || "No reason specified", customerUser.email);
           }
         }
       }
@@ -1631,6 +1711,87 @@ app.put("/api/settings/:key", authenticateToken, requireRole(["admin"]), async (
     res.json({ message: "Setting updated successfully", key: req.params.key, value });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to update setting" });
+  }
+});
+
+// --- SEO Endpoints: robots.txt & dynamic sitemap.xml ---
+app.get("/robots.txt", (_req, res) => {
+  const host = process.env.APP_URL || "https://arifcarsell.com";
+  res.type("text/plain");
+  res.send(
+`# robots.txt for Arif Car Sell — https://arifcarsell.com
+User-agent: *
+Allow: /
+Allow: /showroom
+Allow: /vehicle/
+Allow: /services
+Allow: /about
+Allow: /contact
+Allow: /compare
+Allow: /help
+Allow: /terms
+Allow: /privacy
+Allow: /images/
+
+Disallow: /admin
+Disallow: /admin/
+Disallow: /broker-dashboard
+Disallow: /broker-dashboard/
+Disallow: /buyer-dashboard
+Disallow: /buyer-dashboard/
+Disallow: /api/
+Disallow: /uploads/temp/
+
+Sitemap: ${host}/sitemap.xml
+`
+  );
+});
+
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const host = process.env.APP_URL || (req.get("host")?.includes("localhost") ? `http://${req.get("host")}` : "https://arifcarsell.com");
+    const today = new Date().toISOString().split("T")[0];
+
+    const staticRoutes = [
+      { path: "", changefreq: "daily", priority: "1.0" },
+      { path: "showroom", changefreq: "daily", priority: "0.9" },
+      { path: "services", changefreq: "weekly", priority: "0.8" },
+      { path: "compare", changefreq: "weekly", priority: "0.7" },
+      { path: "about", changefreq: "monthly", priority: "0.7" },
+      { path: "contact", changefreq: "monthly", priority: "0.7" },
+      { path: "help", changefreq: "monthly", priority: "0.6" },
+      { path: "terms", changefreq: "yearly", priority: "0.3" },
+      { path: "privacy", changefreq: "yearly", priority: "0.3" },
+    ];
+
+    let vehicleUrls = "";
+    try {
+      const vehicles = await db.getVehicles({ status: { $in: ["approved", "sold"] } });
+      if (Array.isArray(vehicles)) {
+        vehicleUrls = vehicles
+          .map((v: any) => {
+            const lastmod = v.updated_at ? new Date(v.updated_at).toISOString().split("T")[0] : today;
+            return `  <url>\n    <loc>${host}/vehicle/${v.id}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`;
+          })
+          .join("\n");
+      }
+    } catch (dbErr) {
+      console.warn("[Sitemap] Failed to fetch vehicles for dynamic sitemap:", dbErr);
+    }
+
+    const staticUrls = staticRoutes
+      .map(
+        (r) => `  <url>\n    <loc>${host}/${r.path}</loc>\n    <xhtml:link rel="alternate" hreflang="en" href="${host}/${r.path}" />\n    <xhtml:link rel="alternate" hreflang="am" href="${host}/${r.path}" />\n    <xhtml:link rel="alternate" hreflang="om" href="${host}/${r.path}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="${host}/${r.path}" />\n    <lastmod>${today}</lastmod>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
+      )
+      .join("\n");
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n        xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${staticUrls}\n${vehicleUrls}\n</urlset>`;
+
+    res.header("Content-Type", "application/xml");
+    res.header("Cache-Control", "public, max-age=3600");
+    res.send(xml);
+  } catch (error: any) {
+    res.status(500).type("text/plain").send("Error generating sitemap");
   }
 });
 

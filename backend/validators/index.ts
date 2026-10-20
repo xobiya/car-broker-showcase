@@ -39,6 +39,12 @@ export const vehicleSchema = z.object({
   commission_type: z.string().optional(),
   video_url: z.string().optional(),
   gallery: z.array(z.string()).optional(),
+  gallery_images: z.any().optional(),
+  ownership_document_url: z.string().optional(),
+  ownership_document_name: z.string().optional(),
+  status: z.enum(["draft", "pending", "approved", "rejected", "sold"]).optional(),
+  registration_year: z.coerce.number().int().optional(),
+  phone: z.string().optional(),
   cover_photo_index: z.coerce.number().int().optional(),
 });
 
@@ -120,7 +126,7 @@ export const brokerUpdateSchema = z.object({
   license_number: z.string().optional(),
 });
 
-export const vehicleUpdateSchema = vehicleSchema.partial();
+export const vehicleUpdateSchema = vehicleSchema.omit({ status: true }).partial();
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

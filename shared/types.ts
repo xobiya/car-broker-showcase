@@ -59,10 +59,18 @@ export interface VehicleListing {
   brokerName?: string;
   brokerPhone?: string;
   brokerLicense?: string;
+  brokerVerified?: boolean;
+  sellerName?: string;
+  sellerEmail?: string;
+  sellerPhone?: string;
+  sellerRole?: string;
+  phone?: string;
   commissionRate?: number;
   commissionType?: string;
   videoUrl?: string;
   documents?: VehicleDocument[];
+  ownershipDocumentUrl?: string;
+  ownershipDocumentName?: string;
   inspectionStatus?: "not_inspected" | "pending" | "passed" | "failed";
   inspectionNotes?: string;
   inspectionDate?: string;

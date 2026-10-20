@@ -22,6 +22,7 @@ const vehicleSchema = new Schema({
   condition: String, body_type: String, drive_type: String, color: String, doors: Number, seats: Number,
   engine_size: String, engine_type: String, horsepower: Number, chassis_number: String,
   gallery: [String], commission_rate: Number, commission_type: String, video_url: String,
+  ownership_document_url: String, ownership_document_name: String,
   inspection_status: { type: String, enum: ['not_inspected', 'pending', 'passed', 'failed'], default: 'not_inspected' },
   inspection_notes: String, inspection_date: String, cover_photo_index: Number, rejection_reason: String,
 });

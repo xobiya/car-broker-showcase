@@ -53,6 +53,8 @@ export interface DBVehicle {
   commission_rate?: number;
   commission_type?: string;
   video_url?: string;
+  ownership_document_url?: string;
+  ownership_document_name?: string;
   inspection_status?: 'not_inspected' | 'pending' | 'passed' | 'failed';
   inspection_notes?: string;
   inspection_date?: string;
