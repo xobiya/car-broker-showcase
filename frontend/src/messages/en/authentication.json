@@ -55,5 +55,39 @@
   "modal": {
     "signInTab": "Sign In",
     "registerTab": "Register New Account"
+  },
+  "showcase": {
+    "badge": "Ethiopia's Verified Marketplace",
+    "headline": "Buy, Sell & Finance with Total Peace of Mind",
+    "subheading": "Join thousands of buyers and licensed brokers in Addis Ababa. Every vehicle is physically inspected and backed by legal contracts.",
+    "inspectionTitle": "150-Point Mechanic Inspection",
+    "inspectionDesc": "Engine, transmission, chassis & electronics thoroughly inspected before handover.",
+    "escrowTitle": "Legal Title & Escrow Security",
+    "escrowDesc": "Verified documents, transparent ownership history, and hassle-free name transfers.",
+    "brokerTitle": "Verified Broker Network",
+    "brokerDesc": "Certified automotive professionals ready to assist with test drives and negotiations.",
+    "testimonialQuote": "\"Buying my Suzuki Dzire through Arif Car Sell was totally hassle-free. The broker handled the transfer paperwork in 24 hours!\"",
+    "testimonialAuthor": "Tewodros Kassahun",
+    "testimonialRole": "Verified Buyer • Addis Ababa",
+    "statListings": "500+ Verified Cars",
+    "statSatisfaction": "99.4% Buyer Satisfaction",
+    "statTransfer": "24h Rapid Transfer",
+    "securityNote": "256-Bit SSL Encrypted • Your credentials & personal data are strictly protected"
+  },
+  "strength": {
+    "label": "Password strength:",
+    "weak": "Weak",
+    "fair": "Fair",
+    "strong": "Strong"
+  },
+  "overlay": {
+    "welcomeBackTitle": "Welcome Back!",
+    "welcomeBackText": "Enter your personal details to use all of site features",
+    "signInButton": "Sign In",
+    "helloFriendTitle": "Hello, Friend!",
+    "helloFriendText": "Register with your personal details to use all of site features",
+    "signUpButton": "Sign Up",
+    "orEmailRegister": "or use your email for registration",
+    "orEmailLogin": "or use your email password"
   }
 }

@@ -18,7 +18,11 @@
     "signIn": "ይግቡ",
     "register": "ይመዝገቡ",
     "signOut": "ውጣ",
-    "profile": "የግል መለያዬ"
+    "profile": "የግል መለያዬ",
+    "menuTitle": "ዋና ማውጫ",
+    "menuOptions": "የማውጫ አማራጮች",
+    "showroom": "የመኪኖች ማሳያ",
+    "sellCar": "መኪና ይሽጡ"
   },
   "roles": {
     "admin": "የሲስተም አስተዳዳሪ",

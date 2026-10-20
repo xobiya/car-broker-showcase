@@ -55,5 +55,39 @@
   "modal": {
     "signInTab": "Seenaa",
     "registerTab": "Galmaa'aa"
+  },
+  "showcase": {
+    "badge": "Gabaa Konkolaataa Itoophiyaa Isa Mirkanaa'e",
+    "headline": "Nageenya Guutuun Bitaa, Gurguraa, Daldalaa",
+    "subheading": "Finfinnee fi magaalota naannoo keessatti bittattoota kumaatamaafi dilaalota seera qabeeyyii wajjin hirmaadhaa. Konkolaataan hundi qoratamee waliigaltee seeraan deeggarama.",
+    "inspectionTitle": "Qorannoo Makaanikaa Qabxiilee 150",
+    "inspectionDesc": "Mootora, geejjiba, shaasiifi kutaaleen elektirooniksii hunduu ogeessaan qoratamu.",
+    "escrowTitle": "Nageenya Abbaa Qabeenyummaa fi Seeraa",
+    "escrowDesc": "Ragaalee mirkanaa'an, seenaa qulqulluu fi gargaarsa jijjiirraa maqaa battalaa.",
+    "brokerTitle": "Neetwoorkii Dilaalota Mirkanaa'anii",
+    "brokerDesc": "Ogeeyyii eeyyama qaban yaalii ooftuu fi dhimmoota marii irratti isin gargaaran.",
+    "testimonialQuote": "\"Konkolaataa koo Suzuki Dzire karaa Arif Car Sell yeroon bitu baay'ee amansiisaa fi salphaa ture. Dilaalli sa'aatii 24 keessatti naaf xumure!\"",
+    "testimonialAuthor": "Tewodros Kassahun",
+    "testimonialRole": "Bittaa Mirkanaa'e • Finfinnee",
+    "statListings": "Konkolaattota 500+ Mirkanaa'an",
+    "statSatisfaction": "99.4% Itti Quufinsa Maamilaa",
+    "statTransfer": "Jijjiirraa Sa'aatii 24",
+    "securityNote": "Eegumsa SSL 256-Bit • Ragaan dhuunfaa keessanii amanamummaadhaan eegama"
+  },
+  "strength": {
+    "label": "Jabina jecha darbii:",
+    "weak": "Dadhabaa",
+    "fair": "Giddu-galeessa",
+    "strong": "Jabaa"
+  },
+  "overlay": {
+    "welcomeBackTitle": "Baga Nagaan Deebitan!",
+    "welcomeBackText": "Tajaajila marsariitii guutuu argachuuf odeeffannoo keessan galchaa",
+    "signInButton": "Seenaa",
+    "helloFriendTitle": "Akkam jirtu, Hiriyaa!",
+    "helloFriendText": "Gabaa konkolaataa keenyatti makamuuf herrega haaraa uumaa",
+    "signUpButton": "Galmaa'aa",
+    "orEmailRegister": "yookiin imeelii keessaniin galmaa'aa",
+    "orEmailLogin": "yookiin imeelii keessaniin seenaa"
   }
 }

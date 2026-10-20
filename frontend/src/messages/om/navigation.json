@@ -18,7 +18,11 @@
     "signIn": "Seenaa",
     "register": "Galmaa'aa",
     "signOut": "Ba'aa",
-    "profile": "Herrega Koo"
+    "profile": "Herrega Koo",
+    "menuTitle": "Baafata Guddaa",
+    "menuOptions": "Filannoowwan Baafataa",
+    "showroom": "Agarsiisa Konkolaattotaa",
+    "sellCar": "Konkolaataa Gurguraa"
   },
   "roles": {
     "admin": "Bulchaa Sirnaa",

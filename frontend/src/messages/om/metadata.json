@@ -1,6 +1,6 @@
 {
   "siteTitle": "Arif Car Sell — Gabaafi Dilaala Konkolaataa Itoophiyaa Isa Amanamaa",
-  "siteDescription": "Finfinneefi guutuu Itoophiyaa keessatti konkolaattota mirkanaa'an qorannoo qabxii 50, mirkaneessa libreef koomishinii 1.5%n bitaa ykn gurguraa.",
+  "siteDescription": "Finfinneefi guutuu Itoophiyaa keessatti konkolaattota mirkanaa'an qorannoo qabxii 150, mirkaneessa libreef koomishinii 1.5%n bitaa ykn gurguraa.",
   "pages": {
     "home": "Fuula Duraa — Gabaa Konkolaataa Itoophiyaa Isa Mirkanaa'e",
     "showroom": "Agarsiisa — Konkolaattota Mirkanaa'an Daawwadhaa",
@@ -13,5 +13,31 @@
     "terms": "Waliigaltee Tajaajilaa — Arif Car Sell",
     "privacy": "Imaammata Mateenyaa — Arif Car Sell",
     "help": "Deeggarsaafi Gargaarsa — Arif Car Sell"
+  },
+  "descriptions": {
+    "home": "Finfinnee keessatti konkolaattota haarawaafi kan duraan itti fayyadaman mirkanaa'an barbaadaa. Qorannoo qabxii 150, mirkaneessa libreef koomishinii 1.5% fayyadamaa.",
+    "showroom": "Tarree konkolaattota Toyota, Hyundai, Suzuki, BYD elektirikii fi SUV qananii Itoophiyaa keessatti gurguraman qorannoo guutuu waliin daawwadhaa.",
+    "services": "Tajaajila dilaala konkolaataa ogummaa Finfinnee keessatti: Qorannoo makaanikaalii qabxii 150, mirkaneessa libreefi kaffaltii wabii baankii.",
+    "compare": "Murtee bittaa gaarii gochuuf ulaagaalee teeknikaa, gatii, fayyadama boba'aafi qabxii qorannoo konkolaattotaa walbira qabaatii madaalaa.",
+    "about": "Waa'ee Arif Car Sell baraa — Dilaala konkolaataa seera qabeessa Finfinnee keessatti gatii ifa ta'eefi dilaalummaa amanamaa mirkaneessu.",
+    "contact": "Arif Car Sell waajjira muummee Boolee Maddahaani'aalam Finfinnee keessatti argamuun nu qunnamaa. +251 91 123 4567 bilbilaa ykn beellama qabadhaa.",
+    "login": "Konkolaattota maxxansitan, gaaffiilee maamiltootaafi odeeffannoo beellamaa to'achuuf gara herrega Arif Car Sell keessaniitti seenaa.",
+    "register": "Gabaa konkolaataa Itoophiyaa isa filatamaa fayyadamuuf akka bitaa, gurguraa ykn dilaala seera qabeessaatti galmaa'aa.",
+    "terms": "Waliigaltee tajaajilaa Arif Car Sell kan seera qorannoo konkolaataa, naamusa dilaalotaafi imaammata koomishinii 1.5% ibsu dubbisaa.",
+    "privacy": "Imaammata mateenyaa Arif Car Sell kan odeeffannoo dhuunfaa, lakkoofsa bilbilaafi ragaalee bittaa eeguuf qophaa'e daawwadhaa.",
+    "help": "Gaaffilee waa'ee bittaa, gurgurtaa, qorannoo teeknikaa, mirkaneessa libreef koomishinii dilaalaa yeroo baay'ee ka'aniif deebii argadhaa."
+  },
+  "keywords": {
+    "home": "konkolaataa gurguraa Finfinnee, konkolaataa bituu Itoophiyaa, gabaa konkolaataa Itoophiyaa, Toyota Finfinnee, BYD elektirikii Itoophiyaa",
+    "showroom": "agarsiisa konkolaataa Itoophiyaa, Toyota Land Cruiser bituu, BYD Song Plus Finfinnee, Suzuki Swift Itoophiyaa, Hyundai Tucson",
+    "services": "qorannoo konkolaataa Finfinnee, libre mirkaneessuu Itoophiyaa, tajaajila dilaala konkolaataa, qorannoo qabxii 150",
+    "compare": "konkolaataa walbira qabuu, madaallii gatii konkolaataa Finfinnee, konkolaataa elektirikiifi boba'aa, madaallii SUV",
+    "about": "dilaala konkolaataa seera qabeessa, dilaala amanamaa Itoophiyaa, garee Arif Car Sell, dilaala Boolee Maddahaani'aalam",
+    "contact": "lakkoofsa bilbila dilaala konkolaataa, teessoo Arif Car Sell, waajjira Boolee Finfinnee, imeelii dilaala",
+    "login": "seensa Arif Car Sell, balbala dilaala konkolaataa, seensa bittaa Finfinnee",
+    "register": "herrega bittaa konkolaataa banuu, dilaala konkolaataa ta'uu Finfinnee, galmee gurguraa",
+    "terms": "waliigaltee tajaajilaa Arif Car Sell, seera dilaalotaa Itoophiyaa, qajeelfama gabaa konkolaataa",
+    "privacy": "imaammata mateenyaa Arif Car Sell, eegumsa ragaa fayyadamtootaa Itoophiyaa",
+    "help": "gaaffilee bittaa konkolaataa Itoophiyaa, akkamitti konkolaataa gurguru, qorannoo konkolaataa, qajeelfama libre"
   }
 }

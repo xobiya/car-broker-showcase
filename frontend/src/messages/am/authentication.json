@@ -55,5 +55,39 @@
   "modal": {
     "signInTab": "ይግቡ",
     "registerTab": "አዲስ ይመዝገቡ"
+  },
+  "showcase": {
+    "badge": "የኢትዮጵያ ህጋዊ የመኪና ገበያ",
+    "headline": "በሙሉ እምነትና ዋስትና ይግዙ፣ ይሽጡ፣ ይገበያዩ",
+    "subheading": "በአዲስ አበባ እና በክልል ከተሞች በሺዎች የሚቆጠሩ ገዢዎችንና ህጋዊ ደላሎችን ይቀላቀሉ። እያንዳንዱ መኪና በቴክኒክ ተፈትሾ በህጋዊ ውል የተረጋገጠ ነው።",
+    "inspectionTitle": "የ150 ነጥብ ቴክኒካል ፍተሻ",
+    "inspectionDesc": "ሞተር፣ ጊርቦክስ፣ ቻሲስ እና ኤሌክትሪክ አካላት ሙሉ በሙሉ በባለሙያዎች ተፈትሸዋል።",
+    "escrowTitle": "ህጋዊ ዋስትና እና የባለቤትነት ማረጋገጫ",
+    "escrowDesc": "የተረጋገጡ ሰነዶች፣ ግልጽ ታሪክ እና ቀጥተኛ የስም ዝውውር ድጋፍ።",
+    "brokerTitle": "የህጋዊ ደላሎች ኔትወርክ",
+    "brokerDesc": "የሙከራ ጉዞዎችንና ድርድሮችን በታማኝነት የሚያስተባብሩ ፈቃድ ያላቸው ባለሙያዎች።",
+    "testimonialQuote": "«በአሪፍ ካር ሴል በኩል ሱዙኪ ዲዛየር መኪናዬን ስገዛ ምንም እንከን አልነበረውም። ደላላው የስም ዝውውሩን በ24 ሰዓት ውስጥ ጨረሰልኝ!»",
+    "testimonialAuthor": "ቴዎድሮስ ካሳሁን",
+    "testimonialRole": "የተረጋገጠ ገዢ • አዲስ አበባ",
+    "statListings": "500+ የተረጋገጡ መኪኖች",
+    "statSatisfaction": "99.4% የደንበኞች እርካታ",
+    "statTransfer": "የ24 ሰዓት ፈጣን ዝውውር",
+    "securityNote": "256-Bit SSL ምስጠራ • የእርስዎ መረጃና ግላዊነት በከፍተኛ ሁኔታ የተጠበቀ ነው"
+  },
+  "strength": {
+    "label": "የይለፍ ቃል ጥንካሬ፡",
+    "weak": "ደካማ",
+    "fair": "መካከለኛ",
+    "strong": "ጠንካራ"
+  },
+  "overlay": {
+    "welcomeBackTitle": "እንኳን ደህና መጡ!",
+    "welcomeBackText": "ሁሉንም የጣቢያችን አገልግሎቶች ለመጠቀም የግል መረጃዎን ያስገቡ",
+    "signInButton": "ይግቡ",
+    "helloFriendTitle": "ሰላም፣ እንኳን መጡ!",
+    "helloFriendText": "የመኪና ግብይት ጉዞዎን ለመጀመር በአዲስ መለያ ይመዝገቡ",
+    "signUpButton": "ይመዝገቡ",
+    "orEmailRegister": "ወይም ኢሜይልዎን በመጠቀም ይመዝገቡ",
+    "orEmailLogin": "ወይም በኢሜይልና ይለፍ ቃልዎ ይግቡ"
   }
 }

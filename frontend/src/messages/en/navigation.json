@@ -18,7 +18,11 @@
     "signIn": "Sign In",
     "register": "Register",
     "signOut": "Sign Out",
-    "profile": "My Account"
+    "profile": "My Account",
+    "menuTitle": "Navigation",
+    "menuOptions": "Menu Options",
+    "showroom": "Showroom",
+    "sellCar": "Sell Car"
   },
   "roles": {
     "admin": "Platform Administrator",

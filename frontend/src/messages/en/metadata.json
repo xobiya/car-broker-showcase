@@ -1,6 +1,6 @@
 {
   "siteTitle": "Arif Car Sell — Ethiopia's Trusted Auto Marketplace & Vehicle Procurement",
-  "siteDescription": "Buy and sell verified cars in Addis Ababa and across Ethiopia with 50-point mechanic inspections, title deed (libre) verification, and 1.5% fixed commission.",
+  "siteDescription": "Buy and sell verified cars in Addis Ababa and across Ethiopia with 150-point mechanic inspections, title deed (libre) verification, and 1.5% fixed commission.",
   "pages": {
     "home": "Home — Verified Ethiopian Vehicle Marketplace",
     "showroom": "Showroom — Browse Verified Vehicles in Ethiopia",
@@ -13,5 +13,31 @@
     "terms": "Terms of Service — Arif Car Sell",
     "privacy": "Privacy Policy — Arif Car Sell",
     "help": "Help & Support — Arif Car Sell"
+  },
+  "descriptions": {
+    "home": "Discover verified used and new cars for sale in Addis Ababa. Benefit from 150-point mechanic inspections, title deed verification, and 1.5% fixed commission.",
+    "showroom": "Browse certified inventory of Toyota, Hyundai, Suzuki, BYD electric vehicles and luxury SUVs for sale in Ethiopia with full inspection scorecards.",
+    "services": "Professional auto brokerage services in Addis Ababa: 150-point mechanical audits, Transport Bureau libre verification, and secure bank escrow settlements.",
+    "compare": "Compare specs, prices, fuel efficiency, and inspection ratings of top cars side-by-side to make the best vehicle purchase decision in Ethiopia.",
+    "about": "Learn about Arif Car Sell — Addis Ababa's premier licensed vehicle brokerage committed to transparent pricing, zero hidden markups, and buyer peace of mind.",
+    "contact": "Contact Arif Car Sell at our Bole Medhanialem office in Addis Ababa. Call +251 91 123 4567 or send an inquiry for test drives and vehicle listings.",
+    "login": "Sign in to your Arif Car Sell account to manage your car listings, test drive appointments, and buyer inquiries.",
+    "register": "Create an Arif Car Sell account as a buyer, private seller, or licensed broker to access Ethiopia's trusted vehicle marketplace.",
+    "terms": "Read Arif Car Sell Terms of Service covering listing verification, broker conduct standards, capped commission policies, and buyer protections.",
+    "privacy": "Review our Privacy Policy outlining how Arif Car Sell protects user personal information, phone numbers, and automotive transaction data.",
+    "help": "Find answers to frequently asked questions about buying, selling, inspecting cars, title deed clearance, and broker commissions in Ethiopia."
+  },
+  "keywords": {
+    "home": "cars for sale Ethiopia, buy car Addis Ababa, Ethiopian auto marketplace, Toyota Addis Ababa, BYD EV Ethiopia, verified used cars Addis Ababa",
+    "showroom": "Ethiopia car showroom, buy Toyota Land Cruiser Ethiopia, BYD Song Plus Addis Ababa, Suzuki Swift Ethiopia, Hyundai Tucson Addis Ababa",
+    "services": "vehicle inspection Addis Ababa, car libre verification Ethiopia, auto escrow brokerage Addis Ababa, 150 point car inspection Ethiopia",
+    "compare": "compare cars Ethiopia, vehicle price comparison Addis Ababa, hybrid vs electric cars Ethiopia, SUV comparison Ethiopia",
+    "about": "licensed car broker Addis Ababa, trusted auto broker Ethiopia, Arif Car Sell team, vehicle brokerage Bole Medhanialem",
+    "contact": "car broker phone number Addis Ababa, contact Arif Car Sell, Bole car showroom address, auto broker email Ethiopia",
+    "login": "Arif Car Sell login, car broker portal Ethiopia, buyer sign in Addis Ababa",
+    "register": "create car buyer account Ethiopia, become car broker Addis Ababa, register vehicle seller",
+    "terms": "Arif Car Sell terms of service, broker code of conduct Ethiopia, auto marketplace policies",
+    "privacy": "Arif Car Sell privacy policy, user data protection Ethiopia auto platform",
+    "help": "car buying FAQ Ethiopia, how to sell car Addis Ababa, car inspection FAQ Ethiopia, libre verification guide"
   }
 }
