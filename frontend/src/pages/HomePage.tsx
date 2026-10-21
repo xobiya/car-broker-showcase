@@ -45,7 +45,7 @@ import { useLocale } from "../i18n/useLocale";
 import SEO from "../components/common/SEO";
 import { buildAutoDealerSchema, buildWebSiteSchema, buildFaqSchema } from "../lib/seo";
 
-const DEFAULT_HERO_BG = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=2000&q=85";
+const DEFAULT_HERO_BG = "/images/hero/photo_2026-06-06_17-08-30.jpg";
 
 interface HomePageProps {
   currentUser?: User | null;

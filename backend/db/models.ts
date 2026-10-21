@@ -7,6 +7,7 @@ const userSchema = new Schema({
   role: { type: String, enum: ['buyer', 'broker', 'seller', 'admin'] }, verified: Boolean,
   verification_status: String, id_document: String, bio: String, avatar: String, join_date: String,
   token_version: { type: Number, default: 0 },
+  push_tokens: { type: [String], default: [] },
 });
 
 const brokerSchema = new Schema({

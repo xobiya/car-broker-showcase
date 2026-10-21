@@ -30,11 +30,13 @@ export default function Logo({ className = "", iconOnly, size = "md", inverted, 
 
   return (
     <div className={`flex items-center gap-2 sm:gap-2.5 ${className}`}>
-      <img
-        src="/logo.png"
-        alt="Arif Car Sell"
-        className={`shrink-0 object-contain w-auto dark:bg-slate-100 dark:rounded-lg ${imgSizeClass}`}
-      />
+      <span className={`shrink-0 flex items-center justify-center rounded-xl bg-white ring-1 ring-slate-200/80 shadow-sm p-1 ${imgSizeClass}`}>
+        <img
+          src="/logo.png"
+          alt="Arif Car Sell"
+          className="h-full w-auto max-w-[4rem] object-contain"
+        />
+      </span>
       {!iconOnly && (
         <p className={`${textSize} font-black ${textColor} uppercase tracking-tight leading-none whitespace-nowrap`}>
           Arif <span className="text-[#FF4846]">Car Sell</span>

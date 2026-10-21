@@ -12,6 +12,7 @@ export interface DBUser {
   avatar?: string;
   join_date?: string;
   token_version?: number;
+  push_tokens?: string[];
 }
 
 export interface DBBroker {
