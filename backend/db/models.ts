@@ -136,6 +136,7 @@ const mediaSchema = new Schema({
   filename: String,
   mimetype: String,
   folder: { type: String, default: 'general' },
+  owner_id: String,
   data: String, // Base64 encoded payload
   size: Number,
   created_at: { type: String, default: () => new Date().toISOString() },

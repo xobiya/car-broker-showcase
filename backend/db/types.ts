@@ -169,6 +169,7 @@ export interface DBMedia {
   filename: string;
   mimetype: string;
   folder?: string;
+  owner_id?: string;
   data: string;
   size: number;
   created_at: string;

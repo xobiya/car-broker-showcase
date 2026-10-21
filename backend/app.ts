@@ -167,7 +167,7 @@ app.get("/api/media/:id", optionalAuth, async (req: AuthenticatedRequest, res) =
     if (!media) {
       return res.status(404).json({ error: "Media not found in database." });
     }
-    if (media.folder === "documents" && !req.user) {
+    if (media.folder === "documents" && (!req.user || (media.ownerId && media.ownerId !== req.user.id && req.user.role !== "admin"))) {
       return res.status(401).json({ error: "Authentication required." });
     }
     res.setHeader("Content-Type", media.mimetype);
@@ -189,7 +189,7 @@ app.get("/uploads/:filename", optionalAuth, async (req: AuthenticatedRequest, re
   try {
     const media = await db.getMedia(req.params.filename);
     if (media) {
-      if (media.folder === "documents" && !req.user) {
+      if (media.folder === "documents" && (!req.user || (media.ownerId && media.ownerId !== req.user.id && req.user.role !== "admin"))) {
         return res.status(401).json({ error: "Authentication required." });
       }
       res.setHeader("Content-Type", media.mimetype);
@@ -222,6 +222,7 @@ export function escapeRegex(text: string): string {
 async function persistBase64Media(
   dataUri: string,
   folder = "vehicles",
+  ownerId?: string,
 ): Promise<string> {
   if (!dataUri || typeof dataUri !== "string") return dataUri;
   if (
@@ -247,6 +248,7 @@ async function persistBase64Media(
       filename,
       mimetype,
       folder,
+      owner_id: ownerId,
       buffer,
     });
     return url;
@@ -859,7 +861,7 @@ app.post(
 
       let finalImageUrl = req.body.image_url;
       if (finalImageUrl && finalImageUrl.startsWith("data:image/")) {
-        finalImageUrl = await persistBase64Image(finalImageUrl, "vehicles");
+        finalImageUrl = await persistBase64Image(finalImageUrl, "vehicles", req.user!.id);
       }
 
       let finalGallery: string[] | undefined = undefined;
@@ -871,7 +873,7 @@ app.post(
               : req.body.gallery_images;
           if (Array.isArray(raw) && raw.length > 0) {
             finalGallery = await Promise.all(
-              raw.map((img: string) => persistBase64Image(img, "vehicles")),
+              raw.map((img: string) => persistBase64Image(img, "vehicles", req.user!.id)),
             );
           }
         } catch {}
@@ -881,7 +883,7 @@ app.post(
       ) {
         finalGallery = await Promise.all(
           req.body.gallery.map((img: string) =>
-            persistBase64Image(img, "vehicles"),
+            persistBase64Image(img, "vehicles", req.user!.id),
           ),
         );
       }
@@ -891,6 +893,7 @@ app.post(
         finalOwnershipDoc = await persistBase64Image(
           finalOwnershipDoc,
           "documents",
+          req.user!.id,
         );
       }
       const ownershipDocName =
@@ -1013,6 +1016,7 @@ app.put(
         updates.image_url = await persistBase64Image(
           updates.image_url,
           "vehicles",
+          req.user!.id,
         );
       }
       if (updates.gallery_images) {
@@ -1023,7 +1027,7 @@ app.put(
               : updates.gallery_images;
           if (Array.isArray(raw) && raw.length > 0) {
             updates.gallery = await Promise.all(
-              raw.map((img: string) => persistBase64Image(img, "vehicles")),
+              raw.map((img: string) => persistBase64Image(img, "vehicles", req.user!.id)),
             );
           }
         } catch {}
@@ -1031,7 +1035,7 @@ app.put(
       } else if (Array.isArray(updates.gallery) && updates.gallery.length > 0) {
         updates.gallery = await Promise.all(
           updates.gallery.map((img: string) =>
-            persistBase64Image(img, "vehicles"),
+            persistBase64Image(img, "vehicles", req.user!.id),
           ),
         );
       }
@@ -1605,7 +1609,7 @@ app.put(
         typeof updates.avatar === "string" &&
         updates.avatar.startsWith("data:image/")
       ) {
-        updates.avatar = await persistBase64Image(updates.avatar, "avatars");
+        updates.avatar = await persistBase64Image(updates.avatar, "avatars", req.user!.id);
       }
       if (req.user!.role !== "admin") {
         delete updates.verified;
@@ -1714,7 +1718,7 @@ app.put(
       if (req.body.avatar !== undefined) {
         let avatar = req.body.avatar;
         if (typeof avatar === "string" && avatar.startsWith("data:image/")) {
-          avatar = await persistBase64Image(avatar, "avatars");
+          avatar = await persistBase64Image(avatar, "avatars", req.user!.id);
         }
         allowedUpdates.avatar = avatar;
       }
@@ -1906,7 +1910,7 @@ app.post(
         typeof finalFileUrl === "string" &&
         finalFileUrl.startsWith("data:")
       ) {
-        finalFileUrl = await persistBase64Image(finalFileUrl, "documents");
+        finalFileUrl = await persistBase64Image(finalFileUrl, "documents", req.user!.id);
       }
 
       const doc = await db.addDocument({
@@ -2041,6 +2045,7 @@ app.post(
         undefined,
         req.file.mimetype,
         req.file.originalname,
+        req.user!.id,
       );
       res.json({ url, filename: req.file.originalname });
     } catch (error: any) {
@@ -2067,6 +2072,7 @@ app.post(
             undefined,
             f.mimetype,
             f.originalname,
+            req.user!.id,
           ),
         ),
       );
