@@ -216,7 +216,10 @@ The Expo client currently has:
 - Modal/detail routes: Login, vehicle detail, listing form, settings.
 - Native vehicle cards, loading/error states, filters, saved vehicles, contact actions, and partial seller/broker lead/test-drive management.
 
-The mobile README explicitly identifies missing capabilities: seller dashboards, full listing management/photo upload, test-drive booking UX, inquiries completion, and account editing.
+The mobile client now includes a seller workspace, listing creation/editing/deletion and submission,
+vehicle photo/Libre uploads, inquiry and test-drive flows, and account editing. Remaining mobile
+work includes native push-notification presentation, password recovery, account deletion, and
+device-level Android/iOS smoke testing.
 
 ### Web-only dependencies requiring adapters or redesign
 

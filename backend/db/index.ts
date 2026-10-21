@@ -596,7 +596,7 @@ export const db = {
     return `/api/media/${id}`;
   },
 
-  getMedia: async (idOrFilename: string): Promise<{ mimetype: string; buffer: Buffer; filename: string } | null> => {
+  getMedia: async (idOrFilename: string): Promise<{ mimetype: string; buffer: Buffer; filename: string; folder: string } | null> => {
     const doc = await MediaModel.findOne({
       $or: [{ id: idOrFilename }, { filename: idOrFilename }]
     }).lean();
@@ -605,6 +605,7 @@ export const db = {
       mimetype: (doc as any).mimetype || "image/jpeg",
       buffer: Buffer.from((doc as any).data, "base64"),
       filename: (doc as any).filename || "image.jpg",
+      folder: (doc as any).folder || "general",
     };
   },
 };

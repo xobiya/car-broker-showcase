@@ -34,6 +34,8 @@ import {
   changePasswordSchema,
   contactSchema,
   brokerUpdateSchema,
+  leadStatusSchema,
+  testDriveStatusSchema,
 } from "./validators/index";
 import { upload, uploadToCloudinary } from "./services/cloudinary";
 import {
@@ -66,8 +68,7 @@ app.use(
         !origin ||
         process.env.NODE_ENV !== "production" ||
         allowedOrigins.includes(origin) ||
-        origin.endsWith(".vercel.app") ||
-        origin.endsWith(".onrender.com")
+        allowedOrigins.includes(origin)
       ) {
         callback(null, true);
       } else {
@@ -160,15 +161,23 @@ app.use((req, res, next) => {
 });
 
 // --- Media Serving Directly from Database ---
-app.get("/api/media/:id", async (req, res) => {
+app.get("/api/media/:id", optionalAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const media = await db.getMedia(req.params.id);
     if (!media) {
       return res.status(404).json({ error: "Media not found in database." });
     }
+    if (media.folder === "documents" && !req.user) {
+      return res.status(401).json({ error: "Authentication required." });
+    }
     res.setHeader("Content-Type", media.mimetype);
     res.setHeader("Content-Length", media.buffer.length);
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader(
+      "Cache-Control",
+      media.folder === "documents"
+        ? "private, no-store"
+        : "public, max-age=31536000, immutable",
+    );
     res.send(media.buffer);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -176,13 +185,21 @@ app.get("/api/media/:id", async (req, res) => {
 });
 
 // Database-first fallback for legacy /uploads/:filename URLs
-app.get("/uploads/:filename", async (req, res, next) => {
+app.get("/uploads/:filename", optionalAuth, async (req: AuthenticatedRequest, res, next) => {
   try {
     const media = await db.getMedia(req.params.filename);
     if (media) {
+      if (media.folder === "documents" && !req.user) {
+        return res.status(401).json({ error: "Authentication required." });
+      }
       res.setHeader("Content-Type", media.mimetype);
       res.setHeader("Content-Length", media.buffer.length);
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.setHeader(
+        "Cache-Control",
+        media.folder === "documents"
+          ? "private, no-store"
+          : "public, max-age=31536000, immutable",
+      );
       return res.send(media.buffer);
     }
     next();
@@ -216,7 +233,7 @@ async function persistBase64Media(
     const match = dataUri.match(
       /^data:(image\/[a-zA-Z0-9+.-]+|application\/pdf);base64,(.+)$/,
     );
-    if (!match) return dataUri;
+    if (!match) throw new Error("Invalid base64 media payload.");
     const mimetype = match[1];
     const buffer = Buffer.from(match[2], "base64");
     const rawExt = mimetype.split("/")[1] || "jpg";
@@ -235,7 +252,7 @@ async function persistBase64Media(
     return url;
   } catch (err) {
     console.warn("[Media] Failed to persist base64 media into database:", err);
-    return dataUri;
+    throw new Error("Media upload failed. Please try again.");
   }
 }
 const persistBase64Image = persistBase64Media;
@@ -274,7 +291,7 @@ function setAuthCookies(
   res.cookie("autobroker_token", accessToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "lax",
     maxAge: 15 * 60 * 1000,
   });
 
@@ -282,7 +299,7 @@ function setAuthCookies(
   res.cookie("autobroker_refresh_token", refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "lax",
     path: "/api/auth",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -683,8 +700,6 @@ app.get(
           req.user &&
           (broker ? broker.userId === req.user.id : v.brokerId === req.user.id);
         const isAdmin = req.user && req.user.role === "admin";
-        const isBroker = req.user && req.user.role === "broker";
-
         const item: any = {
           ...v,
           sellerName: sellerUser
@@ -715,8 +730,8 @@ app.get(
           brokerVerified: broker?.verified || false,
         };
 
-        // Sanitize sensitive info for non-owner, non-admin, non-broker users
-        if (!isOwner && !isAdmin && !isBroker) {
+        // Only the listing owner and administrators may view sensitive fields.
+        if (!isOwner && !isAdmin) {
           delete item.chassisNumber;
           delete item.commissionRate;
           delete item.rejectionReason;
@@ -802,9 +817,7 @@ app.get(
         brokerVerified: broker?.verified || false,
       };
 
-      const isBroker = req.user && req.user.role === "broker";
-
-      if (!isOwner && !isAdmin && !isBroker) {
+      if (!isOwner && !isAdmin) {
         delete item.chassisNumber;
         delete item.commissionRate;
         delete item.rejectionReason;
@@ -1081,7 +1094,7 @@ app.delete(
 app.put(
   "/api/vehicles/:id/approve",
   authenticateToken,
-  requireRole(["admin", "broker"]),
+  requireRole(["admin"]),
   async (req: AuthenticatedRequest, res) => {
     try {
       const success = await db.updateVehicle(req.params.id, {
@@ -1133,7 +1146,7 @@ app.put(
 app.put(
   "/api/vehicles/:id/reject",
   authenticateToken,
-  requireRole(["admin", "broker"]),
+  requireRole(["admin"]),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { reason } = req.body;
@@ -2170,6 +2183,14 @@ app.get(
         const brokerVehicles = await db.getVehicles({ broker_id: brokerId });
         const vehicleIds = brokerVehicles.map((v) => v.id);
         filtered = await db.getTestDrives({ vehicle_id: { $in: vehicleIds } });
+      } else if (req.user!.role === "seller") {
+        const sellerVehicles = await db.getVehicles({
+          broker_id: req.user!.id,
+        });
+        const vehicleIds = sellerVehicles.map((v) => v.id);
+        filtered = await db.getTestDrives({
+          vehicle_id: { $in: vehicleIds },
+        });
       } else {
         filtered = await db.getTestDrives();
       }
@@ -2236,13 +2257,11 @@ app.post(
 app.put(
   "/api/test-drives/:id/status",
   authenticateToken,
-  requireRole(["broker", "admin"]),
+  requireRole(["broker", "seller", "admin"]),
+  validate(testDriveStatusSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { status } = req.body;
-      if (!status)
-        return res.status(400).json({ error: "Status is required." });
-
+      const { status } = testDriveStatusSchema.parse(req.body);
       const drive = await db.getTestDriveById(req.params.id);
       if (!drive)
         return res.status(404).json({ error: "Test drive request not found." });

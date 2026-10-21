@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { User } from "../shared/types";
 
-const DEFAULT_DEV_SECRET = "super-secret-dev-key-for-autobroker-ethiopia";
+const DEFAULT_DEV_SECRET = "local-development-only-jwt-secret";
+const DEFAULT_DEV_REFRESH_SECRET = "local-development-only-refresh-secret";
 
 // Fatal error in production if using insecure or missing secret
 if (process.env.NODE_ENV === "production") {
@@ -17,7 +18,20 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_DEV_SECRET;
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || (process.env.JWT_SECRET ? process.env.JWT_SECRET + "_refresh" : "super-secret-refresh-dev-key-for-autobroker-ethiopia");
+const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET ||
+  (process.env.NODE_ENV === "production"
+    ? ""
+    : process.env.JWT_SECRET
+      ? `${process.env.JWT_SECRET}_refresh`
+      : DEFAULT_DEV_REFRESH_SECRET);
+
+if (!JWT_REFRESH_SECRET) {
+  console.error(
+    "\n❌ FATAL SECURITY ERROR: JWT_REFRESH_SECRET must be set in production.\n",
+  );
+  process.exit(1);
+}
 
 export interface TokenPayload {
   id: string;

@@ -9,9 +9,16 @@ Expo and React Native mobile client for Android and iOS. It uses the existing Ex
 - View vehicle details and contact a seller by phone or WhatsApp when a number is available.
 - Register, sign in and sign out using the existing JWT API.
 - Save and remove vehicles for the signed-in account.
+- Create, edit, delete, and submit seller listings for review.
+- Upload up to five vehicle photos and an ownership document (Libre).
+- Send buyer inquiries and test-drive requests from vehicle details.
+- Manage owned-listing inquiries and test-drive status from the seller workspace.
+- Edit profile details and change the account password.
 - Loading, empty and error states for network requests.
 
-Seller dashboards, listing management, photo upload, test drive booking, inquiries and account editing are not implemented in the mobile app yet.
+The mobile seller workspace and listing form are implemented. Push-notification registration,
+password recovery, account deletion, and native device notification presentation still require
+additional backend/provider work.
 
 ## Project layout
 
@@ -81,8 +88,10 @@ If you change `.env`, restart Expo so it reloads the public API URL.
 3. Open a vehicle and confirm its specs and contact actions.
 4. Register a test buyer account, then sign in.
 5. Tap the heart on a vehicle; confirm it appears on Saved. Tap again to remove it.
-6. Sign out and confirm the Profile screen returns to its signed-out state.
-7. Stop the backend briefly and confirm the app shows a readable error and retry action.
+6. Sign in as a seller, create a listing with photos and a Libre document, and confirm it enters pending review.
+7. Open a vehicle as a buyer, submit an inquiry and test-drive request, then confirm they appear in the seller workspace.
+8. Sign out and confirm the Profile screen returns to its signed-out state.
+9. Stop the backend briefly and confirm the app shows a readable error and retry action.
 
 Registration writes a user to the configured backend database. Use a test environment and test account while developing.
 
