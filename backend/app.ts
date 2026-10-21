@@ -167,7 +167,10 @@ app.get("/api/media/:id", optionalAuth, async (req: AuthenticatedRequest, res) =
     if (!media) {
       return res.status(404).json({ error: "Media not found in database." });
     }
-    if (media.folder === "documents" && (!req.user || (media.ownerId && media.ownerId !== req.user.id && req.user.role !== "admin"))) {
+    if (
+      media.folder === "documents" &&
+      (!req.user || (req.user.role !== "admin" && media.ownerId !== req.user.id))
+    ) {
       return res.status(401).json({ error: "Authentication required." });
     }
     res.setHeader("Content-Type", media.mimetype);
@@ -189,7 +192,10 @@ app.get("/uploads/:filename", optionalAuth, async (req: AuthenticatedRequest, re
   try {
     const media = await db.getMedia(req.params.filename);
     if (media) {
-      if (media.folder === "documents" && (!req.user || (media.ownerId && media.ownerId !== req.user.id && req.user.role !== "admin"))) {
+      if (
+        media.folder === "documents" &&
+        (!req.user || (req.user.role !== "admin" && media.ownerId !== req.user.id))
+      ) {
         return res.status(401).json({ error: "Authentication required." });
       }
       res.setHeader("Content-Type", media.mimetype);
