@@ -12,6 +12,7 @@ export interface DBUser {
   avatar?: string;
   join_date?: string;
   token_version?: number;
+  push_tokens?: string[];
 }
 
 export interface DBBroker {
@@ -168,6 +169,7 @@ export interface DBMedia {
   filename: string;
   mimetype: string;
   folder?: string;
+  owner_id?: string;
   data: string;
   size: number;
   created_at: string;

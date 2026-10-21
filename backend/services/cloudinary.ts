@@ -24,7 +24,8 @@ export async function uploadToCloudinary(
   folder: string = "autobroker",
   publicId?: string,
   mimetype?: string,
-  originalname?: string
+  originalname?: string,
+  ownerId?: string
 ): Promise<string> {
   // If Cloudinary credentials are not configured, store directly in MongoDB database
   if (!process.env.CLOUDINARY_CLOUD_NAME) {
@@ -33,6 +34,7 @@ export async function uploadToCloudinary(
         filename: originalname,
         mimetype: mimetype || "image/jpeg",
         folder,
+        owner_id: ownerId,
         buffer: fileBuffer,
       });
       return url;

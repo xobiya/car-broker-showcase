@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Arif Car Sell",
+    "slug": "arif-car-sell",
+    "scheme": "arifcarsell",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": ["expo-router", "expo-secure-store", "expo-font", "expo-image-picker", "expo-document-picker"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.arifcarsell.mobile"
+    },
+    "android": {
+      "package": "com.arifcarsell.mobile",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "arifcarsell.et", "pathPrefix": "/vehicles" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    }
+  }
+}

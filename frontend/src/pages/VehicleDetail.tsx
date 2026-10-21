@@ -242,7 +242,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
         schema={buildVehicleSchema(vehicle)}
         breadcrumbs={[
           { name: "Home", url: "/" },
-          { name: "Showroom", url: "/showroom" },
+          { name: "Vehicles", url: "/vehicles" },
           { name: `${vehicle.year} ${vehicle.brand} ${vehicle.model}`, url: `/vehicle/${vehicle.id}` }
         ]}
       />

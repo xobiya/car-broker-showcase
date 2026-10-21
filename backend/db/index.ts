@@ -178,11 +178,15 @@ export async function initDB() {
     console.warn("[Media Migration] Notice:", e);
   }
 
-  // Auto-populate initial catalog and tables if database is fresh (0 vehicles or 0 users) or if SEED_DB=true
+  // Never seed production automatically. Production data must be provisioned explicitly.
   try {
     const vehicleCount = await VehicleModel.countDocuments();
     const userCount = await UserModel.countDocuments();
-    if (process.env.SEED_DB === "true" || vehicleCount === 0 || userCount === 0) {
+    if (String(process.env.NODE_ENV) === "production") {
+      console.log(
+        `[Database Init] Production database ready (Vehicles: ${vehicleCount}, Users: ${userCount}). Seeding is disabled.`,
+      );
+    } else if (process.env.SEED_DB === "true" || vehicleCount === 0 || userCount === 0) {
       console.log(`[Database Init] Initializing collections & seeding catalog (Vehicles: ${vehicleCount}, Users: ${userCount})...`);
       await seedDatabase();
       console.log("[Database Init] Successfully seeded initial catalog, users, and brokers!");
@@ -576,7 +580,7 @@ export const db = {
   },
 
   // --- Media & File Storage (in Database) ---
-  saveMedia: async (data: { filename?: string; mimetype?: string; folder?: string; buffer: Buffer }): Promise<string> => {
+  saveMedia: async (data: { filename?: string; mimetype?: string; folder?: string; owner_id?: string; buffer: Buffer }): Promise<string> => {
     const safeFolder = (data.folder || "general").replace(/[^a-zA-Z0-9-_]/g, "");
     const rawExt = data.mimetype ? (data.mimetype.split("/")[1] || "jpg").replace("+xml", "") : "jpg";
     const ext = rawExt === "jpeg" ? "jpg" : rawExt;
@@ -588,6 +592,7 @@ export const db = {
       filename,
       mimetype: data.mimetype || "image/jpeg",
       folder: safeFolder,
+      owner_id: data.owner_id,
       data: data.buffer.toString("base64"),
       size: data.buffer.length,
       created_at: new Date().toISOString(),
@@ -596,7 +601,7 @@ export const db = {
     return `/api/media/${id}`;
   },
 
-  getMedia: async (idOrFilename: string): Promise<{ mimetype: string; buffer: Buffer; filename: string } | null> => {
+  getMedia: async (idOrFilename: string): Promise<{ mimetype: string; buffer: Buffer; filename: string; folder: string; ownerId?: string } | null> => {
     const doc = await MediaModel.findOne({
       $or: [{ id: idOrFilename }, { filename: idOrFilename }]
     }).lean();
@@ -605,6 +610,8 @@ export const db = {
       mimetype: (doc as any).mimetype || "image/jpeg",
       buffer: Buffer.from((doc as any).data, "base64"),
       filename: (doc as any).filename || "image.jpg",
+      folder: (doc as any).folder || "general",
+      ownerId: (doc as any).owner_id,
     };
   },
 };
