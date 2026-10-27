@@ -30,16 +30,16 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   eyebrow: {
-    color: colors.green,
-    fontSize: 10,
+    color: colors.primary,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.5,
-    marginBottom: 5,
+    marginBottom: 4,
   },
   title: {
     color: colors.ink,
-    fontSize: 25,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: -0.6,
   },
 });

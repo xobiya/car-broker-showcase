@@ -1,41 +1,152 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
-import { colors, radius } from '../../theme/tokens';
+import { radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 
 export function ScreenContainer({ children, style }: React.PropsWithChildren<{ style?: ViewStyle }>) {
-  return <View style={[styles.screen, style]}>{children}</View>;
+  const { colors } = useTheme();
+  return <View style={[styles.screen, { backgroundColor: colors.paper }, style]}>{children}</View>;
 }
-export function Field({ label, hint, error, style, ...props }: TextInputProps & { label: string; hint?: string; error?: string }) {
-  return <View style={styles.fieldWrap}>
-    <Text style={styles.label}>{label}</Text>
-    <TextInput {...props} placeholderTextColor="#9AA0A8" style={[styles.field, props.multiline && styles.multiline, style]} />
-    {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={styles.hint}>{hint}</Text> : null}
-  </View>;
-}
-export function ActionButton({ label, onPress, busy, outline, disabled, icon, style }: {
-  label: string; onPress: () => void; busy?: boolean; outline?: boolean; disabled?: boolean; icon?: React.ReactNode; style?: ViewStyle;
+
+export function Field({
+  label,
+  hint,
+  error,
+  style,
+  containerStyle,
+  ...props
+}: TextInputProps & {
+  label: string;
+  hint?: string;
+  error?: string;
+  containerStyle?: ViewStyle;
 }) {
-  return <Pressable accessibilityRole="button" disabled={disabled || busy} onPress={onPress} style={[styles.button, outline && styles.outline, (disabled || busy) && styles.disabled, style]}>
-    {busy ? <ActivityIndicator color={outline ? colors.green : colors.white} /> : icon}
-    {!busy && <Text style={[styles.buttonText, outline && styles.outlineText]}>{label}</Text>}
-  </Pressable>;
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.fieldWrap, containerStyle]}>
+      <Text style={[styles.label, { color: colors.ink }]}>{label}</Text>
+      <TextInput
+        {...props}
+        placeholderTextColor="#9AA0A8"
+        style={[
+          styles.field,
+          {
+            backgroundColor: colors.white,
+            borderColor: error ? colors.red : colors.line,
+            color: colors.ink,
+          },
+          props.multiline && styles.multiline,
+          style,
+        ]}
+      />
+      {error ? (
+        <Text style={[styles.error, { color: colors.red }]}>{error}</Text>
+      ) : hint ? (
+        <Text style={[styles.hint, { color: colors.muted }]}>{hint}</Text>
+      ) : null}
+    </View>
+  );
 }
-export function SectionHeading({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
-  return <View style={styles.heading}><View style={{ flex: 1 }}><Text style={styles.headingTitle}>{title}</Text>{subtitle ? <Text style={styles.hint}>{subtitle}</Text> : null}</View>{action}</View>;
+
+export function ActionButton({
+  label,
+  onPress,
+  busy,
+  outline,
+  disabled,
+  icon,
+  style,
+}: {
+  label: string;
+  onPress: () => void;
+  busy?: boolean;
+  outline?: boolean;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+  style?: ViewStyle;
+}) {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled || busy}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: colors.primary, shadowColor: colors.primary },
+        outline && [styles.outline, { backgroundColor: colors.white, borderColor: colors.line }],
+        (disabled || busy) && styles.disabled,
+        pressed && styles.pressed,
+        style,
+      ]}
+    >
+      {busy ? <ActivityIndicator color={outline ? colors.primary : '#FFFFFF'} /> : icon}
+      {!busy && (
+        <Text style={[styles.buttonText, outline && [styles.outlineText, { color: colors.ink }]]}>
+          {label}
+        </Text>
+      )}
+    </Pressable>
+  );
 }
+
+export function SectionHeading({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.heading}>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.headingTitle, { color: colors.ink }]}>{title}</Text>
+        {subtitle ? <Text style={[styles.hint, { color: colors.muted }]}>{subtitle}</Text> : null}
+      </View>
+      {action}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.paper },
-  fieldWrap: { marginBottom: 14 },
-  label: { color: colors.ink, fontSize: 12, fontWeight: '700', marginBottom: 7 },
-  field: { minHeight: 50, borderWidth: 1, borderColor: colors.line, borderRadius: radius.small, backgroundColor: colors.white, paddingHorizontal: 14, color: colors.ink, fontSize: 14 },
-  multiline: { minHeight: 110, paddingTop: 12, textAlignVertical: 'top' },
-  hint: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 5 },
-  error: { color: colors.red, fontSize: 11, marginTop: 5 },
-  button: { minHeight: 50, backgroundColor: colors.green, borderRadius: radius.small, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 9, paddingHorizontal: 16 },
-  outline: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.line },
-  buttonText: { color: colors.white, fontSize: 14, fontWeight: '800' },
-  outlineText: { color: colors.ink },
+  screen: { flex: 1 },
+  fieldWrap: { marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '700', marginBottom: 8 },
+  field: {
+    minHeight: 52,
+    borderWidth: 1,
+    borderRadius: radius.medium,
+    paddingHorizontal: 16,
+    fontSize: 14,
+  },
+  multiline: { minHeight: 110, paddingTop: 14, textAlignVertical: 'top' },
+  hint: { fontSize: 12, lineHeight: 17, marginTop: 5 },
+  error: { fontSize: 12, marginTop: 5 },
+  button: {
+    minHeight: 54,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  outline: {
+    borderWidth: 1.5,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  buttonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
+  outlineText: {},
   disabled: { opacity: 0.55 },
-  heading: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 12 },
-  headingTitle: { color: colors.ink, fontSize: 19, fontWeight: '800' },
+  pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+  heading: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 12 },
+  headingTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
 });

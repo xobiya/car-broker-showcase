@@ -2,98 +2,155 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { colors, radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { radius } from '../../theme/tokens';
 
-const categories = [
-  { label: 'Sedan', icon: 'car-outline' },
-  { label: 'SUV', icon: 'car-sport-outline' },
-  { label: 'Hatchback', icon: 'car-outline' },
-  { label: 'Pickup', icon: 'car-outline' },
-  { label: 'Van', icon: 'bus-outline' },
-  { label: 'Bus', icon: 'bus-outline' },
-  { label: 'Truck', icon: 'car-outline' },
-  { label: 'Machinery', icon: 'construct-outline' },
-  { label: 'Motorcycle', icon: 'bicycle-outline' },
+const categoryDefs = [
+  { key: 'home.allCars', label: 'All Cars', icon: 'apps-outline', param: 'All' },
+  { key: 'home.suvs', label: 'SUVs', icon: 'car-sport-outline', param: 'SUV' },
+  { key: 'home.sedans', label: 'Sedans', icon: 'car-outline', param: 'Sedan' },
+  { key: 'home.luxury', label: 'Luxury', icon: 'diamond-outline', param: 'Luxury' },
+  { key: 'home.electric', label: 'Electric', icon: 'flash-outline', param: 'Electric' },
+  { key: 'Pickup', label: 'Pickup', icon: 'construct-outline', param: 'Pickup' },
+  { key: 'Trucks', label: 'Trucks', icon: 'bus-outline', param: 'Truck' },
 ] as const;
 
-export function VehicleCategories() {
+type VehicleCategoriesProps = {
+  activeCategory?: string;
+  onSelectCategory?: (category: string) => void;
+};
+
+export function VehicleCategories({
+  activeCategory = 'All Cars',
+  onSelectCategory,
+}: VehicleCategoriesProps) {
+  const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
+
+  const handlePress = (label: string, param: string) => {
+    if (onSelectCategory) {
+      onSelectCategory(label);
+    } else {
+      router.push({
+        pathname: '/(tabs)/search',
+        params: param === 'All' ? {} : { bodyType: param },
+      });
+    }
+  };
+
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.eyebrow}>BROWSE BY TYPE</Text>
-      <Text style={styles.title}>Find the shape you need</Text>
+      <View style={styles.headerRow}>
+        <Text style={[styles.title, { color: colors.ink }]}>
+          {t('home.categories', 'Categories')}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/(tabs)/search')}
+        >
+          <Text style={[styles.seeAll, { color: colors.muted }]}>
+            {t('home.viewAll', 'See all')}
+          </Text>
+        </Pressable>
+      </View>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.row}
+        contentContainerStyle={styles.scrollRow}
       >
-        {categories.map((category) => (
-          <Pressable
-            key={category.label}
-            accessibilityRole="button"
-            accessibilityLabel={`Browse ${category.label} vehicles`}
-            onPress={() =>
-              router.push({
-                pathname: '/(tabs)/search',
-                params: { bodyType: category.label },
-              })
-            }
-            style={styles.item}
-          >
-            <View style={styles.iconWrap}>
+        {categoryDefs.map((category) => {
+          const isActive = activeCategory === category.label;
+          const displayLabel = t(category.key, category.label);
+          return (
+            <Pressable
+              key={category.label}
+              accessibilityRole="button"
+              accessibilityLabel={`Browse ${displayLabel} vehicles`}
+              accessibilityState={{ selected: isActive }}
+              onPress={() => handlePress(category.label, category.param)}
+              style={[
+                styles.pill,
+                {
+                  backgroundColor: isActive ? colors.primary : colors.card,
+                  borderColor: isActive ? colors.primary : colors.line,
+                },
+                isActive && styles.pillActive,
+              ]}
+            >
               <Ionicons
                 name={category.icon as keyof typeof Ionicons.glyphMap}
-                size={25}
-                color={colors.green}
+                size={16}
+                color={isActive ? '#FFFFFF' : isDark ? '#9CA3AF' : '#4B5563'}
               />
-            </View>
-            <Text style={styles.label}>{category.label}</Text>
-          </Pressable>
-        ))}
+              <Text
+                style={[
+                  styles.pillText,
+                  { color: isActive ? '#FFFFFF' : colors.muted },
+                  isActive && styles.pillTextActive,
+                ]}
+              >
+                {displayLabel}
+              </Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { marginTop: 22 },
-  eyebrow: {
-    color: colors.green,
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1.3,
+  wrapper: {
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
   title: {
-    color: colors.ink,
-    fontSize: 20,
-    fontWeight: '900',
-    marginTop: 5,
-    marginBottom: 13,
-  },
-  row: { gap: 8, paddingRight: 16 },
-  item: {
-    width: 82,
-    minHeight: 88,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    borderColor: colors.line,
-    borderWidth: 1,
-    borderRadius: radius.medium,
-    paddingVertical: 10,
-  },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 15,
-    backgroundColor: colors.mint,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 7,
-  },
-  label: {
-    color: colors.ink,
-    fontSize: 10,
+    fontSize: 18,
     fontWeight: '800',
-    textAlign: 'center',
+    letterSpacing: -0.3,
+  },
+  seeAll: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  scrollRow: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  pillActive: {
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  pillText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  pillTextActive: {
+    fontWeight: '800',
   },
 });

@@ -7,13 +7,15 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/tokens';
+import { radius } from '../../theme/tokens';
+import { useTheme } from '../../theme/ThemeContext';
 
 export function LoadingState({ label = 'Loading…' }: { label?: string }) {
+  const { colors } = useTheme();
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={colors.green} />
-      <Text style={styles.helper}>{label}</Text>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <Text style={[styles.helper, { color: colors.muted }]}>{label}</Text>
     </View>
   );
 }
@@ -24,16 +26,17 @@ type ErrorStateProps = {
 };
 
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.container}>
       <Ionicons name="cloud-offline-outline" size={34} color={colors.muted} />
-      <Text style={styles.title}>Couldn’t load data</Text>
-      <Text style={styles.helper}>{message}</Text>
+      <Text style={[styles.title, { color: colors.ink }]}>Couldn’t load data</Text>
+      <Text style={[styles.helper, { color: colors.muted }]}>{message}</Text>
       {onRetry ? (
         <Pressable
           accessibilityRole="button"
           onPress={onRetry}
-          style={styles.retry}
+          style={[styles.retry, { backgroundColor: colors.primary }]}
         >
           <Text style={styles.retryText}>Try again</Text>
         </Pressable>
@@ -50,25 +53,23 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   title: {
-    color: colors.ink,
     fontSize: 16,
     fontWeight: '700',
   },
   helper: {
-    color: colors.muted,
     fontSize: 13,
     lineHeight: 19,
     textAlign: 'center',
   },
   retry: {
-    backgroundColor: colors.green,
-    borderRadius: 12,
-    marginTop: 7,
-    paddingHorizontal: 18,
-    paddingVertical: 11,
+    borderRadius: radius.full,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   retryText: {
-    color: colors.white,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 13,
   },
 });
