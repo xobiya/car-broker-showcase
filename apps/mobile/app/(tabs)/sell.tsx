@@ -15,6 +15,7 @@ import {
   LoadingState,
   ErrorState,
 } from '../../src/components/common/RequestState';
+import { SellerGarageSkeleton } from '../../src/components/common/Skeleton';
 import { VehicleCard } from '../../src/components/vehicles/VehicleCard';
 import {
   ActionButton,
@@ -27,8 +28,12 @@ import {
   useTestDrives,
   useUpdateLeadStatus,
   useUpdateTestDriveStatus,
+  useUpdateVehicle,
   useVehicles,
 } from '../../src/features/vehicles/vehicle-queries';
+import { useTheme } from '../../src/theme/ThemeContext';
+import { useLanguage } from '../../src/i18n/LanguageContext';
+import { QuickHeaderSwitcher } from '../../src/components/common/PreferencesSwitcher';
 import { colors, radius } from '../../src/theme/tokens';
 import { formatPrice } from '../../src/utils/currency';
 import type { Lead, TestDriveRequest, Vehicle } from '../../src/types/models';
@@ -44,6 +49,8 @@ function statusColor(status: string) {
 
 export default function GarageScreen() {
   const { user } = useSession();
+  const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const params = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<Tab>(
     params.tab === 'Inquiries' || params.tab === 'Test drives'
@@ -64,8 +71,30 @@ export default function GarageScreen() {
     user?.role === 'buyer' || user?.role === 'broker' || user?.role === 'admin';
   const drivesQuery = useTestDrives(canViewDrives);
   const deleteVehicle = useRemoveVehicle();
+  const updateVehicle = useUpdateVehicle();
   const updateLead = useUpdateLeadStatus();
   const updateDrive = useUpdateTestDriveStatus();
+
+  const handleMarkSold = (v: Vehicle) => {
+    Alert.alert(
+      'Mark as Sold',
+      `Congratulations on selling the ${v.year} ${v.brand} ${v.model}! Mark this car as sold in the marketplace?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Mark as Sold',
+          onPress: async () => {
+            try {
+              await updateVehicle.mutateAsync({ id: v.id, body: { status: 'sold' } });
+              Alert.alert('Success', 'Vehicle marked as sold!');
+            } catch {
+              Alert.alert('Error', 'Failed to update vehicle status.');
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const ownedVehicles = useMemo(() => {
     if (!user) return [];
@@ -185,19 +214,22 @@ export default function GarageScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.paper }]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <PageTitle
-          eyebrow={
-            user.role === 'buyer'
-              ? 'YOUR VEHICLES'
-              : `${user.role.toUpperCase()} WORKSPACE`
-          }
-          title="Vehicle listings"
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <PageTitle
+            eyebrow={
+              user.role === 'buyer'
+                ? 'YOUR VEHICLES'
+                : `${user.role.toUpperCase()} WORKSPACE`
+            }
+            title={t('profile.myGarage', 'Vehicle listings')}
+          />
+          <QuickHeaderSwitcher />
+        </View>
         <View style={styles.summary}>
           <Metric label="My listings" value={ownedVehicles.length} />
           <Metric
@@ -228,7 +260,7 @@ export default function GarageScreen() {
           ))}
         </View>
         {busy ? (
-          <LoadingState />
+          <SellerGarageSkeleton />
         ) : error ? (
           <ErrorState message={error.message} onRetry={retry} />
         ) : tab === 'Listings' ? (
@@ -261,6 +293,20 @@ export default function GarageScreen() {
                       </Text>
                     </View>
                     <View style={styles.rowActions}>
+                      {v.status !== 'sold' && (
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel="Mark as sold"
+                          onPress={() => handleMarkSold(v)}
+                          style={[styles.iconAction, { backgroundColor: '#05966915' }]}
+                        >
+                          <Ionicons
+                            name="checkmark-done-circle-outline"
+                            size={19}
+                            color="#059669"
+                          />
+                        </Pressable>
+                      )}
                       <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="Edit listing"
@@ -549,9 +595,9 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     paddingHorizontal: 4,
   },
-  tabActive: { backgroundColor: colors.white },
-  tabText: { fontSize: 10, fontWeight: '700', color: colors.muted },
-  tabTextActive: { color: colors.ink },
+  tabActive: { backgroundColor: colors.white, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 },
+  tabText: { fontSize: 11, fontWeight: '700', color: colors.muted },
+  tabTextActive: { color: colors.primary, fontWeight: '800' },
   listingWrap: {
     backgroundColor: colors.white,
     borderRadius: radius.medium,
@@ -635,5 +681,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   linkButton: { padding: 8 },
-  linkText: { color: colors.green, fontWeight: '800', fontSize: 12 },
+  linkText: { color: colors.primary, fontWeight: '800', fontSize: 12 },
 });
