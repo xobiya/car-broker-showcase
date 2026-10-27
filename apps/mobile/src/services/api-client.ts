@@ -1,13 +1,31 @@
 import { secureSession } from './secure-session';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-const configuredApiBaseUrl = (
-  process.env.EXPO_PUBLIC_API_BASE_URL ?? ''
-).replace(/\/$/, '');
-const API_BASE_URL =
-  Platform.OS === 'web' && configuredApiBaseUrl.includes('10.0.2.2')
-    ? 'http://localhost:3000'
-    : configuredApiBaseUrl;
+function getApiBaseUrl(): string {
+  const configured = (process.env.EXPO_PUBLIC_API_BASE_URL ?? '').replace(/\/$/, '');
+
+  if (Platform.OS === 'web') {
+    return configured || 'http://localhost:3000';
+  }
+
+  // If hostUri is available from Expo packager (e.g. "192.168.1.100:8081"), use its IP:
+  const hostUri = Constants.expoConfig?.hostUri;
+  const devIp = hostUri ? hostUri.split(':')[0] : null;
+
+  if (devIp && (!configured || configured.includes('localhost') || configured.includes('127.0.0.1'))) {
+    return `http://${devIp}:3000`;
+  }
+
+  // Android emulator fallback
+  if (Platform.OS === 'android' && (!configured || configured.includes('localhost') || configured.includes('127.0.0.1'))) {
+    return 'http://10.0.2.2:3000';
+  }
+
+  return configured || 'http://localhost:3000';
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 type RequestOptions = RequestInit & {
   json?: unknown;

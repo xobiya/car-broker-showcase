@@ -1,11 +1,27 @@
 import { request } from '../../services/api-client';
 import type { Lead, SavedVehicle, TestDriveRequest, Vehicle, VehicleFilters } from '../../types/models';
+import { FALLBACK_VEHICLES } from './fallback-vehicles';
 
 export const vehicleService = {
-  list: (filters: VehicleFilters = {}) => request<Vehicle[]>('/api/vehicles', {
-    params: { limit: 20, ...filters },
-  }),
-  get: (id: string) => request<Vehicle>(`/api/vehicles/${encodeURIComponent(id)}`),
+  list: async (filters: VehicleFilters = {}): Promise<Vehicle[]> => {
+    try {
+      const data = await request<Vehicle[]>('/api/vehicles', {
+        params: { limit: 50, ...filters },
+      });
+      if (Array.isArray(data) && data.length > 0) return data;
+      return FALLBACK_VEHICLES;
+    } catch {
+      return FALLBACK_VEHICLES;
+    }
+  },
+  get: async (id: string): Promise<Vehicle> => {
+    try {
+      return await request<Vehicle>(`/api/vehicles/${encodeURIComponent(id)}`);
+    } catch {
+      const found = FALLBACK_VEHICLES.find((x) => x.id === id);
+      return found || FALLBACK_VEHICLES[0];
+    }
+  },
   saved: (userId: string) => request<SavedVehicle[]>('/api/saved-vehicles', { params: { userId } }),
   save: (userId: string, vehicleId: string) => request('/api/saved-vehicles', { method: 'POST', json: { userId, vehicleId } }),
   removeSaved: (userId: string, vehicleId: string) => request('/api/saved-vehicles', { method: 'DELETE', json: { userId, vehicleId } }),
