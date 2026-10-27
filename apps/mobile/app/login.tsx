@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -9,34 +10,53 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSession } from '../src/features/auth/SessionContext';
 import { useTheme } from '../src/theme/ThemeContext';
 import { useLanguage } from '../src/i18n/LanguageContext';
-import { colors, radius } from '../src/theme/tokens';
 import { AppLogo } from '../src/components/common/AppLogo';
+import { QuickHeaderSwitcher } from '../src/components/common/PreferencesSwitcher';
+import { radius } from '../src/theme/tokens';
 
 const roles = [
-  { id: 'buyer', title: 'Buyer', copy: 'Save cars, compare specs & contact brokers.' },
-  { id: 'seller', title: 'Seller', copy: 'List and manage your vehicles.' },
-  { id: 'broker', title: 'Broker', copy: 'Manage listings, leads & test drives.' },
-] as const;
+  {
+    id: 'buyer' as const,
+    title: 'Buyer',
+    icon: 'cart-outline' as const,
+    copy: 'Browse, save cars & contact brokers',
+  },
+  {
+    id: 'seller' as const,
+    title: 'Seller',
+    icon: 'car-sport-outline' as const,
+    copy: 'List cars & manage your Libre deed',
+  },
+  {
+    id: 'broker' as const,
+    title: 'Broker',
+    icon: 'briefcase-outline' as const,
+    copy: 'Licensed agent managing client deals',
+  },
+];
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { signIn, register } = useSession();
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const params = useLocalSearchParams<{ returnTo?: string; tab?: string }>();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('+251 9');
-  const [role, setRole] = useState<'buyer' | 'seller' | 'broker'>('buyer');
   const [creating, setCreating] = useState(params.tab === 'signup');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('+251 9');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'buyer' | 'seller' | 'broker'>('buyer');
+  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -51,22 +71,40 @@ export default function LoginScreen() {
     else router.replace('/(tabs)');
   };
 
+  const handleQuickDemo = (demoRole: 'buyer' | 'seller' | 'broker') => {
+    setError('');
+    setRole(demoRole);
+    if (demoRole === 'buyer') {
+      setEmail('buyer@arifauto.et');
+      setPassword('password123');
+    } else if (demoRole === 'seller') {
+      setEmail('seller@arifauto.et');
+      setPassword('password123');
+    } else {
+      setEmail('broker@arifauto.et');
+      setPassword('password123');
+    }
+  };
+
   const submit = async () => {
     setError('');
-    if (!/^\S+@\S+\.\S+$/.test(email.trim()))
-      return setError('Enter a valid email address.');
-    if (creating && name.trim().length < 2)
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      return setError('Please enter a valid email address.');
+    }
+    if (creating && name.trim().length < 2) {
       return setError('Your name must be at least 2 characters.');
-    if (password.length < (creating ? 6 : 1))
+    }
+    if (password.length < (creating ? 6 : 1)) {
       return setError(
         creating
           ? 'Use at least 6 characters for your password.'
           : 'Enter your password.',
       );
+    }
 
     setBusy(true);
     try {
-      if (creating)
+      if (creating) {
         await register({
           name: name.trim(),
           email: email.trim(),
@@ -74,14 +112,17 @@ export default function LoginScreen() {
           phone: phone.trim(),
           role,
         });
-      else await signIn(email.trim(), password);
+      } else {
+        await signIn(email.trim(), password);
+      }
 
       const returnTo = params.returnTo;
       const safeRoute =
         returnTo &&
         (returnTo.startsWith('/vehicles/') ||
           returnTo.startsWith('/(tabs)/') ||
-          returnTo.startsWith('/listing-form'))
+          returnTo.startsWith('/listing-form') ||
+          returnTo.startsWith('/brokers/'))
           ? (returnTo as Href)
           : '/(tabs)';
       router.replace(safeRoute);
@@ -98,209 +139,506 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.screen, { backgroundColor: colors.paper }]}
+      style={[styles.screen, { backgroundColor: isDark ? '#0C0E14' : '#F8F9FB' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Top Header */}
+      {/* ---------------------------------------------------- */}
+      {/* ARTISTIC TOP & BOTTOM WAVE ACCENTS (Background)      */}
+      {/* ---------------------------------------------------- */}
+      {/* Top Wave Shapes */}
+      <View style={styles.topWaveContainer} pointerEvents="none">
+        {/* Layer 1: Deep primary curve */}
+        <View
+          style={[
+            styles.topWaveLayer1,
+            { backgroundColor: isDark ? '#3D150B' : '#FFE2D5' },
+          ]}
+        />
+        {/* Layer 2: Main vibrant brand curve */}
+        <View
+          style={[
+            styles.topWaveLayer2,
+            { backgroundColor: colors.primary },
+          ]}
+        />
+      </View>
+
+      {/* Bottom Wave Shapes (Rendered strictly under/behind the card) */}
+      <View style={styles.bottomWaveContainer} pointerEvents="none">
+        {/* Layer 1: Darker accent curve */}
+        <View
+          style={[
+            styles.bottomWaveLayer1,
+            { backgroundColor: isDark ? '#230E07' : '#FFD6C2' },
+          ]}
+        />
+        {/* Layer 2: Main primary curve */}
+        <View
+          style={[
+            styles.bottomWaveLayer2,
+            { backgroundColor: colors.primary },
+          ]}
+        />
+      </View>
+
+      {/* ---------------------------------------------------- */}
+      {/* TOP NAVIGATION HEADER (Close & Preferences)          */}
+      {/* ---------------------------------------------------- */}
       <View
         style={[
-          styles.top,
-          {
-            paddingTop: Math.max(insets.top + 8, 44),
-            backgroundColor: colors.card,
-            borderBottomColor: colors.line,
-          },
+          styles.topNav,
+          { paddingTop: Math.max(insets.top + 6, 42) },
         ]}
       >
-        <View style={styles.brandRow}>
-          <AppLogo size="sm" iconOnly />
-          <View>
-            <Text style={[styles.brandTitle, { color: colors.ink }]}>
-              Arif <Text style={{ color: '#FF4846' }}>Car Sell</Text>
-            </Text>
-            <Text style={[styles.brandSubtitle, { color: colors.muted }]}>
-              {creating ? t('action.signUp', 'Create Account') : t('action.signIn', 'Sign In')}
-            </Text>
-          </View>
-        </View>
-
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Close sign in"
-          style={[styles.close, { backgroundColor: colors.paper, borderColor: colors.line }]}
           onPress={close}
+          style={[
+            styles.navCircleBtn,
+            {
+              backgroundColor: isDark ? 'rgba(26, 31, 44, 0.85)' : '#FFFFFF',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : colors.line,
+            },
+          ]}
         >
           <Ionicons name="close" size={20} color={colors.ink} />
         </Pressable>
+
+        <AppLogo size="sm" />
+
+        <QuickHeaderSwitcher />
       </View>
 
       <ScrollView
+        style={styles.scrollView}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={[
-          styles.scroll,
-          { paddingBottom: Math.max(insets.bottom + 40, 50) },
+          styles.scrollContent,
+          { paddingBottom: Math.max(insets.bottom + 48, 60) },
         ]}
       >
-        <View style={styles.content}>
-          <Text style={styles.eyebrow}>
-            {creating ? 'CREATE YOUR ACCOUNT' : 'WELCOME BACK'}
-          </Text>
-          <Text style={[styles.title, { color: colors.ink }]}>
-            {creating ? 'Start your car journey.' : 'Good to see you again.'}
-          </Text>
-          <Text style={[styles.sub, { color: colors.muted }]}>
-            {creating
-              ? 'Join Arif Auto to save vehicles, compare specs, and connect with certified Ethiopian brokers.'
-              : 'Sign in to access your saved vehicles, compare cars, and check viewing schedules.'}
-          </Text>
+        {/* ---------------------------------------------------- */}
+        {/* MAIN AUTHENTICATION CARD                             */}
+        {/* ---------------------------------------------------- */}
+        <View
+          style={[
+            styles.authCard,
+            {
+              backgroundColor: isDark ? '#141822' : '#FFFFFF',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+            },
+          ]}
+        >
+          {/* Main Title matching Mockup */}
+          <View style={styles.headerBlock}>
+            <Text style={[styles.mainTitle, { color: colors.primary }]}>
+              {creating ? 'Sign Up' : 'Log In'}
+            </Text>
+            <Text style={[styles.mainSubtitle, { color: colors.muted }]}>
+              {creating
+                ? 'Create your verified account on Arif Auto'
+                : 'Welcome back to your Ethiopian car showroom'}
+            </Text>
+          </View>
 
+          {/* Error Banner */}
+          {error ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={17} color="#DC2626" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
+
+          {/* ---------------------------------------------------- */}
+          {/* SIGN UP FORM FIELDS                                  */}
+          {/* ---------------------------------------------------- */}
           {creating ? (
             <>
-              <Label title="FULL NAME *" inkColor={colors.ink} />
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-                autoComplete="name"
-                placeholder="Abebe Bikila"
-                placeholderTextColor="#969DA5"
-                style={[styles.input, { backgroundColor: colors.card, borderColor: colors.line, color: colors.ink }]}
-              />
+              {/* Role Selection: Buyer, Seller, Broker */}
+              <View style={styles.roleSection}>
+                <Text style={[styles.inputLabel, { color: colors.ink }]}>
+                  I AM JOINING AS
+                </Text>
+                <View style={styles.rolesRow}>
+                  {roles.map((r) => {
+                    const isSelected = role === r.id;
+                    return (
+                      <Pressable
+                        key={r.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Join as ${r.title}`}
+                        accessibilityState={{ selected: isSelected }}
+                        onPress={() => setRole(r.id)}
+                        style={[
+                          styles.roleCard,
+                          {
+                            backgroundColor: isSelected
+                              ? isDark
+                                ? '#2C1B14'
+                                : '#FFF3EB'
+                              : isDark
+                              ? '#1C212E'
+                              : '#F4F5F7',
+                            borderColor: isSelected
+                              ? colors.primary
+                              : isDark
+                              ? 'rgba(255, 255, 255, 0.06)'
+                              : '#E5E7EB',
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name={r.icon}
+                          size={18}
+                          color={isSelected ? colors.primary : colors.muted}
+                        />
+                        <Text
+                          style={[
+                            styles.roleTitleText,
+                            {
+                              color: isSelected ? colors.primary : colors.ink,
+                              fontWeight: isSelected ? '800' : '600',
+                            },
+                          ]}
+                        >
+                          {r.title}
+                        </Text>
+                        {isSelected && (
+                          <View
+                            style={[
+                              styles.roleCheckDot,
+                              { backgroundColor: colors.primary },
+                            ]}
+                          >
+                            <Ionicons name="checkmark" size={10} color="#FFFFFF" />
+                          </View>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Text style={[styles.roleHint, { color: colors.muted }]}>
+                  {roles.find((r) => r.id === role)?.copy}
+                </Text>
+              </View>
 
-              <Label title="PHONE NUMBER (OPTIONAL)" inkColor={colors.ink} />
-              <TextInput
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                placeholder="+251 91 123 4567"
-                placeholderTextColor="#969DA5"
-                style={[styles.input, { backgroundColor: colors.card, borderColor: colors.line, color: colors.ink }]}
-              />
+              {/* Full Name Input */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.ink }]}>
+                  FULL NAME
+                </Text>
+                <View
+                  style={[
+                    styles.pillInputWrap,
+                    {
+                      backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+                    },
+                  ]}
+                >
+                  <Ionicons name="person-outline" size={17} color={colors.muted} />
+                  <TextInput
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                    autoComplete="name"
+                    placeholder="e.g. Abebe Bikila"
+                    placeholderTextColor="#9CA3AF"
+                    style={[styles.pillTextInput, { color: colors.ink }]}
+                  />
+                </View>
+              </View>
 
-              <Text style={[styles.label, { color: colors.ink }]}>I AM JOINING AS</Text>
-              <View style={styles.roles}>
-                {roles.map((item) => (
-                  <Pressable
-                    key={item.id}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: role === item.id }}
-                    onPress={() => setRole(item.id)}
-                    style={[
-                      styles.role,
-                      { backgroundColor: colors.card, borderColor: colors.line },
-                      role === item.id && [styles.roleActive, { backgroundColor: isDark ? '#2C1B14' : '#FFFBF8' }],
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.roleTitle,
-                        { color: colors.ink },
-                        role === item.id && styles.roleTitleActive,
-                      ]}
-                    >
-                      {item.title}
-                    </Text>
-                    <Text style={[styles.roleCopy, { color: colors.muted }]}>{item.copy}</Text>
-                  </Pressable>
-                ))}
+              {/* Phone Number Input */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.ink }]}>
+                  PHONE NUMBER (OPTIONAL)
+                </Text>
+                <View
+                  style={[
+                    styles.pillInputWrap,
+                    {
+                      backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+                    },
+                  ]}
+                >
+                  <Ionicons name="call-outline" size={17} color={colors.muted} />
+                  <TextInput
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                    autoComplete="tel"
+                    placeholder="+251 91 123 4567"
+                    placeholderTextColor="#9CA3AF"
+                    style={[styles.pillTextInput, { color: colors.ink }]}
+                  />
+                </View>
               </View>
             </>
           ) : null}
 
-          <Label title="EMAIL ADDRESS *" inkColor={colors.ink} />
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            placeholder="you@example.com"
-            placeholderTextColor="#969DA5"
-            style={[styles.input, { backgroundColor: colors.card, borderColor: colors.line, color: colors.ink }]}
-          />
-
-          <Label title="PASSWORD *" inkColor={colors.ink} />
-          <View style={[styles.passwordWrap, { backgroundColor: colors.card, borderColor: colors.line }]}>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              autoCapitalize="none"
-              autoComplete={creating ? 'new-password' : 'current-password'}
-              textContentType={creating ? 'newPassword' : 'password'}
-              secureTextEntry={!showPassword}
-              placeholder={
-                creating ? 'At least 6 characters' : 'Enter your password'
-              }
-              placeholderTextColor="#969DA5"
-              style={[styles.passwordInput, { color: colors.ink }]}
-            />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                showPassword ? 'Hide password' : 'Show password'
-              }
-              onPress={() => setShowPassword((v) => !v)}
-              style={styles.eye}
+          {/* Email Address / Username Input */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.inputLabel, { color: colors.ink }]}>
+              {creating ? 'EMAIL ADDRESS' : 'EMAIL OR USERNAME'}
+            </Text>
+            <View
+              style={[
+                styles.pillInputWrap,
+                {
+                  backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+                },
+              ]}
             >
-              <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={19}
-                color={colors.muted}
+              <Ionicons name="mail-outline" size={17} color={colors.muted} />
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                placeholder={creating ? 'you@example.com' : 'Email or username'}
+                placeholderTextColor="#9CA3AF"
+                style={[styles.pillTextInput, { color: colors.ink }]}
               />
-            </Pressable>
+            </View>
           </View>
 
-          {error ? (
-            <Text accessibilityRole="alert" style={styles.error}>
-              {error}
+          {/* Password Input */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.inputLabel, { color: colors.ink }]}>
+              PASSWORD
             </Text>
-          ) : null}
+            <View
+              style={[
+                styles.pillInputWrap,
+                {
+                  backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+                },
+              ]}
+            >
+              <Ionicons name="lock-closed-outline" size={17} color={colors.muted} />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
+                autoComplete={creating ? 'new-password' : 'current-password'}
+                textContentType={creating ? 'newPassword' : 'password'}
+                secureTextEntry={!showPassword}
+                placeholder={
+                  creating ? 'At least 6 characters' : 'Enter your password'
+                }
+                placeholderTextColor="#9CA3AF"
+                style={[styles.pillTextInput, { color: colors.ink }]}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                onPress={() => setShowPassword((v) => !v)}
+                hitSlop={8}
+                style={styles.eyeBtn}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={19}
+                  color={colors.muted}
+                />
+              </Pressable>
+            </View>
+          </View>
 
+          {/* REMEMBER ME Checkbox (Matching Mockup) */}
+          <View style={styles.rememberMeRow}>
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: rememberMe }}
+              onPress={() => setRememberMe(!rememberMe)}
+              style={styles.checkboxTouchable}
+            >
+              <View
+                style={[
+                  styles.checkboxBox,
+                  {
+                    backgroundColor: rememberMe
+                      ? colors.primary
+                      : isDark
+                      ? '#1C212E'
+                      : '#FFFFFF',
+                    borderColor: rememberMe
+                      ? colors.primary
+                      : isDark
+                      ? 'rgba(255, 255, 255, 0.2)'
+                      : '#CBD5E1',
+                  },
+                ]}
+              >
+                {rememberMe && (
+                  <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                )}
+              </View>
+              <Text
+                style={[
+                  styles.rememberMeText,
+                  { color: isDark ? '#9CA3AF' : '#64748B' },
+                ]}
+              >
+                REMEMBER ME
+              </Text>
+            </Pressable>
+
+            {!creating && (
+              <Pressable
+                onPress={() =>
+                  Alert.alert(
+                    'Password Reset',
+                    'A password recovery link has been sent to your registered email address.',
+                  )
+                }
+              >
+                <Text style={[styles.forgotText, { color: colors.primary }]}>
+                  Forgot?
+                </Text>
+              </Pressable>
+            )}
+          </View>
+
+          {/* Main Vibrant Pill Action Button (Signup / Log In) */}
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ disabled: busy }}
             disabled={busy}
-            style={[styles.button, { backgroundColor: colors.primary }, busy && { opacity: 0.6 }]}
             onPress={() => void submit()}
+            style={({ pressed }) => [
+              styles.mainActionButton,
+              {
+                backgroundColor: colors.primary,
+                opacity: busy ? 0.7 : pressed ? 0.92 : 1,
+              },
+            ]}
           >
-            <Text style={styles.buttonText}>
-              {busy
-                ? 'Please wait…'
-                : creating
-                ? 'Create Free Account'
-                : 'Sign In to Arif Auto'}
+            <Text style={styles.mainActionButtonText}>
+              {busy ? 'Please wait…' : creating ? 'Signup' : 'Log in'}
             </Text>
-            {!busy ? (
-              <Ionicons name="arrow-forward" size={17} color="#FFFFFF" />
-            ) : null}
+            {!busy && (
+              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            )}
           </Pressable>
 
-          {/* Toggle question */}
+          {/* Switch Mode: "Already have an account? LOG IN" / "Don't Have An Account? Sign Up" */}
           <Pressable
             accessibilityRole="button"
             onPress={() => {
-              setCreating((v) => !v);
+              setCreating(!creating);
               setError('');
             }}
-            style={styles.switchRow}
+            style={styles.switchModeRow}
+            hitSlop={6}
           >
-            <Text style={[styles.switchPrompt, { color: colors.muted }]}>
-              {creating ? 'Already have an account? ' : 'New to Arif Auto? '}
-              <Text style={[styles.switchLink, { color: colors.primary }]}>
-                {creating ? 'Sign in' : 'Create an account'}
+            <Text style={[styles.switchPromptText, { color: colors.muted }]}>
+              {creating
+                ? 'Already have an account? '
+                : "Don't Have An Account? "}
+              <Text
+                style={[
+                  styles.switchHighlightText,
+                  { color: colors.primary },
+                ]}
+              >
+                {creating ? 'LOG IN' : 'Sign Up'}
               </Text>
             </Text>
           </Pressable>
 
+          {/* ---------------------------------------------------- */}
+          {/* QUICK DEMO LOGIN ROLE SELECTOR                       */}
+          {/* ---------------------------------------------------- */}
+          {!creating && (
+            <View style={styles.demoSection}>
+              <Text style={[styles.demoSectionTitle, { color: colors.muted }]}>
+                QUICK DEMO LOGIN
+              </Text>
+              <View style={styles.demoChipsRow}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => handleQuickDemo('buyer')}
+                  style={[
+                    styles.demoChip,
+                    {
+                      backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                      borderColor: role === 'buyer' && email === 'buyer@arifauto.et' ? colors.primary : colors.line,
+                    },
+                  ]}
+                >
+                  <Ionicons name="cart-outline" size={13} color={colors.primary} />
+                  <Text style={[styles.demoChipText, { color: colors.ink }]}>
+                    Buyer
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => handleQuickDemo('seller')}
+                  style={[
+                    styles.demoChip,
+                    {
+                      backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                      borderColor: role === 'seller' && email === 'seller@arifauto.et' ? colors.primary : colors.line,
+                    },
+                  ]}
+                >
+                  <Ionicons name="car-sport-outline" size={13} color="#059669" />
+                  <Text style={[styles.demoChipText, { color: colors.ink }]}>
+                    Seller
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => handleQuickDemo('broker')}
+                  style={[
+                    styles.demoChip,
+                    {
+                      backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                      borderColor: role === 'broker' && email === 'broker@arifauto.et' ? colors.primary : colors.line,
+                    },
+                  ]}
+                >
+                  <Ionicons name="briefcase-outline" size={13} color="#2563EB" />
+                  <Text style={[styles.demoChipText, { color: colors.ink }]}>
+                    Broker
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
           {/* Continue as Guest Link */}
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.replace('/(tabs)')}
-            style={styles.guestLinkWrap}
+            accessibilityLabel="Skip and continue as guest"
+            onPress={() => {
+              if (
+                params.returnTo &&
+                (params.returnTo.startsWith('/listing-form') ||
+                  params.returnTo.startsWith('/vehicles/'))
+              ) {
+                router.replace(params.returnTo as Href);
+              } else if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace('/(tabs)');
+              }
+            }}
+            style={styles.guestLinkButton}
+            hitSlop={8}
           >
-            <Text style={[styles.guestLinkText, { color: colors.primary }]}>
+            <Text style={[styles.guestLinkButtonText, { color: colors.muted }]}>
               Skip & Continue as Guest &rsaquo;
             </Text>
           </Pressable>
@@ -310,197 +648,332 @@ export default function LoginScreen() {
   );
 }
 
-function Label({ title, inkColor }: { title: string; inkColor?: string }) {
-  return <Text style={[styles.label, inkColor ? { color: inkColor } : null]}>{title}</Text>;
-}
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.paper },
-  top: {
+  screen: {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+
+  /* Top Wave Shapes */
+  topWaveContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '100%',
+    height: 180,
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  topWaveLayer1: {
+    position: 'absolute',
+    top: -90,
+    right: -40,
+    width: 280,
+    height: 240,
+    borderRadius: 120,
+    opacity: 0.85,
+    transform: [{ rotate: '25deg' }],
+  },
+  topWaveLayer2: {
+    position: 'absolute',
+    top: -120,
+    right: -80,
+    width: 320,
+    height: 250,
+    borderRadius: 130,
+    opacity: 0.95,
+    transform: [{ rotate: '40deg' }],
+  },
+
+  /* Bottom Wave Shapes (Rendered under the form) */
+  bottomWaveContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: 200,
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  bottomWaveLayer1: {
+    position: 'absolute',
+    bottom: -70,
+    left: -40,
+    width: 260,
+    height: 210,
+    borderRadius: 105,
+    opacity: 0.65,
+    transform: [{ rotate: '-20deg' }],
+  },
+  bottomWaveLayer2: {
+    position: 'absolute',
+    bottom: -100,
+    left: -60,
+    width: 300,
+    height: 240,
+    borderRadius: 120,
+    opacity: 0.95,
+    transform: [{ rotate: '-35deg' }],
+  },
+
+  /* Top Nav Bar */
+  topNav: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
-    backgroundColor: colors.white,
+    paddingBottom: 8,
+    zIndex: 20,
   },
-  brandMark: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  brandTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: -0.3,
-  },
-  brandSubtitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 1,
-  },
-  close: {
+  navCircleBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.line,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scroll: { flexGrow: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40 },
-  eyebrow: {
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1.4,
-    marginBottom: 6,
+
+  /* Scroll Content & View */
+  scrollView: {
+    flex: 1,
+    zIndex: 5,
   },
-  title: {
-    color: colors.ink,
-    fontSize: 26,
-    lineHeight: 32,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    zIndex: 5,
+  },
+
+  /* Auth Card */
+  authCard: {
+    borderRadius: 28,
+    borderWidth: 1,
+    paddingHorizontal: 22,
+    paddingVertical: 26,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 6,
+    zIndex: 6,
+  },
+
+  /* Title Block */
+  headerBlock: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  mainTitle: {
+    fontSize: 28,
     fontWeight: '900',
     letterSpacing: -0.5,
   },
-  sub: {
-    color: colors.muted,
-    fontSize: 13,
-    lineHeight: 20,
-    marginTop: 6,
-    marginBottom: 20,
+  mainSubtitle: {
+    fontSize: 12.5,
+    marginTop: 4,
+    textAlign: 'center',
+    lineHeight: 18,
   },
-  label: {
-    color: colors.ink,
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-    marginTop: 14,
+
+  /* Error Banner */
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    marginBottom: 16,
+  },
+  errorText: {
+    flex: 1,
+    color: '#B91C1C',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  /* Role Selection */
+  roleSection: {
+    marginBottom: 16,
+  },
+  rolesRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  roleCard: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  roleTitleText: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  roleCheckDot: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roleHint: {
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+
+  /* Input Fields */
+  inputGroup: {
+    marginBottom: 14,
+  },
+  inputLabel: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
     marginBottom: 6,
   },
-  input: {
-    height: 50,
-    borderRadius: radius.medium,
-    backgroundColor: colors.white,
+  pillInputWrap: {
+    height: 48,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: colors.line,
-    paddingHorizontal: 16,
-    color: colors.ink,
-    fontSize: 14,
-  },
-  passwordWrap: {
-    height: 50,
-    borderRadius: radius.medium,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.line,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
+    gap: 10,
   },
-  passwordInput: {
+  pillTextInput: {
     flex: 1,
-    color: colors.ink,
-    fontSize: 14,
+    fontSize: 13.5,
+    paddingVertical: 0,
   },
-  eye: {
-    padding: 6,
+  eyeBtn: {
+    padding: 4,
   },
-  roles: {
-    gap: 8,
+
+  /* Remember Me Row */
+  rememberMeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 4,
+    marginBottom: 20,
+    paddingHorizontal: 4,
   },
-  role: {
-    padding: 12,
-    borderRadius: radius.medium,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.line,
+  checkboxTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  roleActive: {
-    borderColor: colors.primary,
-    backgroundColor: '#FFFBF8',
+  checkboxBox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  roleTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: colors.ink,
-  },
-  roleTitleActive: {
-    color: colors.primary,
-  },
-  roleCopy: {
+  rememberMeText: {
     fontSize: 11,
-    color: colors.muted,
-    marginTop: 2,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
-  error: {
-    color: colors.red,
+  forgotText: {
     fontSize: 12,
     fontWeight: '700',
-    marginTop: 12,
   },
-  button: {
-    height: 52,
-    borderRadius: radius.full,
-    backgroundColor: colors.primary,
+
+  /* Main Action Button */
+  mainActionButton: {
+    height: 50,
+    borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 22,
-    shadowColor: colors.primary,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 4,
   },
-  buttonText: {
-    color: colors.white,
+  mainActionButtonText: {
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '900',
-    letterSpacing: 0.2,
+    letterSpacing: 0.4,
   },
-  switchRow: {
+
+  /* Switch Mode */
+  switchModeRow: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
-    paddingVertical: 6,
+    marginTop: 18,
+    paddingVertical: 4,
   },
-  switchPrompt: {
+  switchPromptText: {
     fontSize: 13,
     fontWeight: '600',
   },
-  switchLink: {
+  switchHighlightText: {
     fontWeight: '800',
-    textDecorationLine: 'underline',
   },
-  guestLinkWrap: {
+
+  /* Demo Logins */
+  demoSection: {
+    marginTop: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(128, 128, 128, 0.12)',
+    alignItems: 'center',
+  },
+  demoSectionTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  demoChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  demoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  demoChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  /* Guest Link */
+  guestLinkButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 12,
-    paddingVertical: 8,
+    marginTop: 14,
+    paddingVertical: 6,
   },
-  guestLinkText: {
-    color: colors.muted,
+  guestLinkButtonText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

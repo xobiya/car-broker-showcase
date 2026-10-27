@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { ActionButton, Field, SectionHeading } from '../src/components/common/Controls';
+import { ComboDropdown } from '../src/components/common/ComboDropdown';
 import { ErrorState, LoadingState } from '../src/components/common/RequestState';
 import { useSession } from '../src/features/auth/SessionContext';
 import {
@@ -29,7 +30,7 @@ import { useTheme } from '../src/theme/ThemeContext';
 import { useLanguage } from '../src/i18n/LanguageContext';
 import { QuickHeaderSwitcher } from '../src/components/common/PreferencesSwitcher';
 import { radius } from '../src/theme/tokens';
-import type { Vehicle } from '../src/types/models';
+import { formatPrice } from '../src/utils/currency';
 
 type ListingFields = {
   brand: string;
@@ -63,6 +64,194 @@ const initialFields: ListingFields = {
   engineSize: '',
 };
 
+const ALL_BRANDS = [
+  'Toyota',
+  'Hyundai',
+  'Suzuki',
+  'Kia',
+  'Mercedes-Benz',
+  'BMW',
+  'Nissan',
+  'Ford',
+  'Volkswagen',
+  'Mitsubishi',
+  'BYD',
+  'Jetour',
+  'Geely',
+  'Isuzu',
+  'Chery',
+  'Peugeot',
+  'Land Rover',
+  'Audi',
+  'Honda',
+  'Mazda',
+  'Chevrolet',
+  'Jeep',
+  'Lexus',
+  'Subaru',
+];
+
+const BRAND_MODELS: Record<string, string[]> = {
+  Toyota: [
+    'Land Cruiser 300',
+    'Land Cruiser Prado',
+    'RAV4',
+    'Hilux',
+    'Fortuner',
+    'Corolla',
+    'Corolla Cross',
+    'Yaris',
+    'Vitz',
+    'Rush',
+    'HiAce',
+    'Camry',
+    'Land Cruiser 79',
+    'Urban Cruiser',
+  ],
+  Hyundai: [
+    'Tucson',
+    'Santa Fe',
+    'Elantra',
+    'Creta',
+    'Kona',
+    'Venue',
+    'Grand i10',
+    'Palisade',
+    'Ioniq 5',
+    'Sonata',
+  ],
+  Suzuki: [
+    'Dzire',
+    'Swift',
+    'Jimny',
+    'Vitara',
+    'Grand Vitara',
+    'Ciaz',
+    'Baleno',
+    'S-Presso',
+    'Ertiga',
+    'Alto',
+  ],
+  Kia: [
+    'Sportage',
+    'Seltos',
+    'Sorento',
+    'Pegas',
+    'Picanto',
+    'Carnival',
+    'EV6',
+    'Sonet',
+  ],
+  'Mercedes-Benz': [
+    'C-Class (C200 / C300)',
+    'E-Class (E200 / E300)',
+    'S-Class (S500)',
+    'GLE 450',
+    'GLC 300',
+    'G-Wagon (G63)',
+    'CLA 200',
+    'A-Class',
+  ],
+  BMW: [
+    '3 Series (320i / 330i)',
+    '5 Series (520i / 530i)',
+    '7 Series',
+    'X1',
+    'X3',
+    'X5',
+    'X6',
+    'X7',
+  ],
+  Nissan: [
+    'Patrol',
+    'X-Trail',
+    'Qashqai',
+    'Navara',
+    'Sunny',
+    'Kicks',
+    'Altima',
+  ],
+  Ford: [
+    'Ranger',
+    'Everest',
+    'Explorer',
+    'F-150',
+    'Edge',
+    'EcoSport',
+  ],
+  Volkswagen: [
+    'Tiguan',
+    'Touareg',
+    'Golf',
+    'Passat',
+    'ID.4',
+    'Amarok',
+    'T-Cross',
+  ],
+  Mitsubishi: [
+    'Pajero',
+    'Outlander',
+    'L200 Pickup',
+    'Eclipse Cross',
+    'ASX',
+  ],
+  BYD: [
+    'Song Plus',
+    'Tang',
+    'Han',
+    'Atto 3',
+    'Seagull',
+    'Dolphin',
+    'Seal',
+  ],
+  Jetour: [
+    'Dashing',
+    'X70 Plus',
+    'X90 Plus',
+    'T2 Traveller',
+  ],
+  Geely: [
+    'Coolray',
+    'Azkarra',
+    'Monjaro',
+    'Emgrand',
+  ],
+  Isuzu: [
+    'D-Max Pickup',
+    'mu-X SUV',
+    'NPR Truck',
+    'FSR Truck',
+  ],
+};
+
+const COMMON_MODELS = [
+  'RAV4',
+  'Land Cruiser',
+  'Tucson',
+  'Swift',
+  'Dzire',
+  'Hilux',
+  'Corolla',
+  'Sportage',
+  'C-Class',
+  '3 Series',
+  'Patrol',
+  'Song Plus',
+  'Dashing',
+];
+
+const YEARS = Array.from({ length: 27 }, (_, i) => String(2026 - i));
+
+const bodies = [
+  'SUV',
+  'Sedan',
+  'Hatchback',
+  'Pickup',
+  'Van',
+  'Electric',
+  'Luxury',
+];
+
 const fuels = [
   { label: 'Petrol', icon: 'flame-outline' as const },
   { label: 'Diesel', icon: 'water-outline' as const },
@@ -80,14 +269,66 @@ const conditions = [
   { label: 'Used', icon: 'time-outline' as const },
 ];
 
-const bodies = [
-  'SUV',
-  'Sedan',
-  'Hatchback',
-  'Pickup',
-  'Van',
-  'Electric',
-  'Luxury',
+const ENGINE_SIZES = [
+  '1.0L',
+  '1.2L',
+  '1.3L',
+  '1.5L',
+  '1.6L',
+  '1.8L',
+  '2.0L',
+  '2.0L Turbo',
+  '2.4L',
+  '2.5L',
+  '2.8L Diesel',
+  '3.0L V6',
+  '3.5L V6',
+  '4.0L V6',
+  '4.5L V8 Turbo',
+  '5.7L V8',
+  'Electric (Single Motor)',
+  'Electric (Dual Motor AWD)',
+];
+
+const COLORS = [
+  'Pearl White',
+  'Metallic Silver',
+  'Jet Black',
+  'Dark Grey / Charcoal',
+  'Navy Blue',
+  'Crimson Red',
+  'Golden Bronze',
+  'Desert Sand / Beige',
+  'Forest Green',
+  'Brown',
+];
+
+const ETHIOPIAN_LOCATIONS = [
+  'Addis Ababa, Bole',
+  'Addis Ababa, Kazanchis',
+  'Addis Ababa, CMC / Ayat',
+  'Addis Ababa, Sarbet',
+  'Addis Ababa, Piassa / Arat Kilo',
+  'Addis Ababa, Megenagna',
+  'Addis Ababa, Gerji / Summit',
+  'Addis Ababa, Mexico / Lideta',
+  'Addis Ababa, Lebu / Jemo',
+  'Addis Ababa, Gotera / Kera',
+  'Hawassa',
+  'Adama (Nazret)',
+  'Bahir Dar',
+  'Dire Dawa',
+  'Bishoftu (Debre Zeit)',
+  'Gondar',
+  'Mekelle',
+  'Jimma',
+];
+
+const STEPS = [
+  { id: 1, title: 'Basics', icon: 'car-sport-outline' as const },
+  { id: 2, title: 'Specs', icon: 'speedometer-outline' as const },
+  { id: 3, title: 'Price & Area', icon: 'cash-outline' as const },
+  { id: 4, title: 'Media & Review', icon: 'images-outline' as const },
 ];
 
 const assetMime = (asset: ImagePicker.ImagePickerAsset) =>
@@ -101,7 +342,7 @@ export default function ListingFormScreen() {
   const { width } = useWindowDimensions();
   const isCompact = width < 360;
 
-  const { user } = useSession();
+  const { user, ready } = useSession();
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
 
@@ -109,6 +350,7 @@ export default function ListingFormScreen() {
   const create = useCreateVehicle();
   const update = useUpdateVehicle();
 
+  const [step, setStep] = useState(1);
   const [fields, setFields] = useState<ListingFields>(initialFields);
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
@@ -150,6 +392,19 @@ export default function ListingFormScreen() {
   const photoCount = existingPhotos.length + photos.length;
   const updateField = (key: keyof ListingFields, value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
+
+  // Dynamically compute available model suggestions based on selected brand
+  const modelSuggestions = useMemo(() => {
+    const currentBrand = fields.brand.trim();
+    if (!currentBrand) return COMMON_MODELS;
+    const match = Object.keys(BRAND_MODELS).find(
+      (b) => b.toLowerCase() === currentBrand.toLowerCase(),
+    );
+    if (match && BRAND_MODELS[match]) {
+      return BRAND_MODELS[match];
+    }
+    return COMMON_MODELS;
+  }, [fields.brand]);
 
   const choosePhotos = async () => {
     if (photoCount >= 5) {
@@ -209,12 +464,82 @@ export default function ListingFormScreen() {
     }
   };
 
+  // Step Validation logic
+  const validateStep = (targetStep: number): boolean => {
+    setError('');
+    if (targetStep === 1) {
+      if (!fields.brand.trim()) {
+        setError('Please select or type the vehicle Brand / Make (e.g. Toyota).');
+        return false;
+      }
+      if (!fields.model.trim()) {
+        setError('Please select or type the vehicle Model (e.g. RAV4 / Land Cruiser).');
+        return false;
+      }
+      const year = Number(fields.year);
+      if (
+        !Number.isInteger(year) ||
+        year < 1980 ||
+        year > new Date().getFullYear() + 1
+      ) {
+        setError('Please choose or enter a valid model year (e.g. 2022).');
+        return false;
+      }
+    } else if (targetStep === 2) {
+      const mileage = Number(fields.mileage.replace(/\D/g, '') || 0);
+      if (!Number.isFinite(mileage) || mileage < 0) {
+        setError('Please enter a valid odometer mileage in kilometers.');
+        return false;
+      }
+    } else if (targetStep === 3) {
+      const price = Number(fields.price.replace(/[^\d.]/g, ''));
+      if (!Number.isFinite(price) || price <= 0) {
+        setError('Please enter a valid listing price in ETB.');
+        return false;
+      }
+      if (!fields.location.trim()) {
+        setError('Please select or specify the vehicle city / area in Ethiopia.');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (validateStep(step)) {
+      setStep((prev) => Math.min(prev + 1, 4));
+    }
+  };
+
+  const handlePrevStep = () => {
+    setError('');
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
+
   const saveListing = async () => {
     setError('');
+    // Session verification: prompt only if not logged in
     if (!user) {
-      return router.push('/login');
+      Alert.alert(
+        'Sign In to Submit Listing',
+        'Your vehicle details are saved! Please sign in or register to publish your car listing.',
+        [
+          { text: 'Keep Editing', style: 'cancel' },
+          {
+            text: 'Sign In / Register',
+            onPress: () =>
+              router.push({
+                pathname: '/login',
+                params: { tab: 'signin', returnTo: '/listing-form' },
+              }),
+          },
+        ],
+      );
+      return;
     }
+
     if (!fields.brand.trim() || !fields.model.trim()) {
+      setStep(1);
       return setError('Please enter the make and model (e.g. Toyota RAV4).');
     }
     const year = Number(fields.year);
@@ -226,23 +551,25 @@ export default function ListingFormScreen() {
       year < 1980 ||
       year > new Date().getFullYear() + 1
     ) {
+      setStep(1);
       return setError('Please enter a valid model year (e.g. 2022).');
     }
     if (!Number.isFinite(price) || price <= 0) {
+      setStep(3);
       return setError('Please enter a valid price greater than zero.');
     }
-    if (!Number.isFinite(mileage) || mileage < 0) {
-      return setError('Please enter a valid mileage.');
-    }
     if (!fields.location.trim()) {
+      setStep(3);
       return setError('Please add the vehicle city or area (e.g. Addis Ababa, Bole).');
     }
     if (photoCount === 0) {
+      setStep(4);
       return setError('Please add at least one clear vehicle photo.');
     }
     if (!existingLibre && !libre) {
+      setStep(4);
       return setError(
-        'Upload genuine vehicle ownership documentation (Libre) for broker review.',
+        'Please upload genuine vehicle ownership documentation (Libre) for broker review.',
       );
     }
 
@@ -308,7 +635,7 @@ export default function ListingFormScreen() {
         isEdit ? 'Listing Updated' : 'Listing Submitted',
         isEdit
           ? 'Your vehicle changes have been saved.'
-          : 'Your listing has been submitted for verified Libre review. An accredited broker will review it shortly.',
+          : 'Your vehicle has been submitted for broker review.',
         [{ text: 'View My Garage', onPress: () => router.replace('/(tabs)/sell') }],
       );
     } catch (e) {
@@ -322,26 +649,10 @@ export default function ListingFormScreen() {
     }
   };
 
-  if (!user) {
-    return (
-      <View style={[styles.screen, styles.center, { backgroundColor: colors.paper }]}>
-        <View style={[styles.guestBox, { backgroundColor: colors.white, borderColor: colors.line }]}>
-          <Ionicons name="car-outline" size={44} color={colors.primary} />
-          <Text style={[styles.title, { color: colors.ink }]}>Sign In to Sell Your Car</Text>
-          <Text style={[styles.guestSub, { color: colors.muted }]}>
-            Create a verified seller account with authentic Libre documentation to connect with buyers.
-          </Text>
-          <ActionButton
-            label="Sign In / Register"
-            onPress={() => router.push('/login')}
-            style={{ width: '100%', marginTop: 8 }}
-          />
-        </View>
-      </View>
-    );
+  // Wait for session readiness before rendering form
+  if (!ready || loading) {
+    return <LoadingState label="Loading vehicle details…" />;
   }
-
-  if (loading) return <LoadingState label="Loading vehicle details…" />;
 
   if (isEdit && (existing.error || !existing.data)) {
     return (
@@ -354,13 +665,17 @@ export default function ListingFormScreen() {
     );
   }
 
+  const numericPrice = Number(fields.price.replace(/[^\d.]/g, '') || 0);
+
   return (
     <KeyboardAvoidingView
       style={[styles.screen, { backgroundColor: colors.paper }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
     >
-      {/* Responsive Safe Header */}
+      {/* ---------------------------------------------------- */}
+      {/* HEADER WITH CLOSE & PREFERENCES                      */}
+      {/* ---------------------------------------------------- */}
       <View
         style={[
           styles.header,
@@ -374,404 +689,827 @@ export default function ListingFormScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Go Back"
-          style={[styles.backBtn, { backgroundColor: isDark ? '#232733' : '#F4F5F8', borderColor: colors.line }]}
-          onPress={() => router.back()}
+          style={[
+            styles.backBtn,
+            {
+              backgroundColor: isDark ? '#232733' : '#F4F5F8',
+              borderColor: colors.line,
+            },
+          ]}
+          onPress={() => {
+            if (step > 1) {
+              handlePrevStep();
+            } else if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          }}
         >
-          <Ionicons name="close" size={22} color={colors.ink} />
+          <Ionicons
+            name={step > 1 ? 'arrow-back' : 'close'}
+            size={22}
+            color={colors.ink}
+          />
         </Pressable>
 
         <View style={styles.headerTitleCol}>
           <Text style={[styles.eyebrow, { color: colors.primary }]}>
-            {isEdit ? 'UPDATE LISTING' : 'VERIFIED SELLER PORTAL'}
+            {isEdit ? 'EDIT LISTING' : `STEP ${step} OF ${STEPS.length}`}
           </Text>
           <Text style={[styles.title, { color: colors.ink }]}>
-            {isEdit ? 'Edit Vehicle Details' : 'Post Vehicle for Sale'}
+            {STEPS[step - 1].title}
           </Text>
         </View>
 
         <QuickHeaderSwitcher />
       </View>
 
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: Math.max(insets.bottom + 40, 60) },
+      {/* ---------------------------------------------------- */}
+      {/* STEP PROGRESS BAR & TABS                             */}
+      {/* ---------------------------------------------------- */}
+      <View
+        style={[
+          styles.stepperContainer,
+          {
+            backgroundColor: isDark ? '#141721' : '#FFFFFF',
+            borderBottomColor: colors.line,
+          },
         ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
       >
-        {/* Verification Guarantee Notice */}
+        <View style={styles.stepsRow}>
+          {STEPS.map((s) => {
+            const isActive = s.id === step;
+            const isCompleted = s.id < step;
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => {
+                  if (s.id < step) {
+                    setStep(s.id);
+                  } else if (s.id === step + 1 && validateStep(step)) {
+                    setStep(s.id);
+                  }
+                }}
+                style={styles.stepItem}
+              >
+                <View
+                  style={[
+                    styles.stepBadge,
+                    {
+                      backgroundColor: isActive
+                        ? colors.primary
+                        : isCompleted
+                        ? '#059669'
+                        : isDark
+                        ? '#22283A'
+                        : '#EDEFF2',
+                    },
+                  ]}
+                >
+                  {isCompleted ? (
+                    <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.stepNumber,
+                        { color: isActive ? '#FFFFFF' : colors.muted },
+                      ]}
+                    >
+                      {s.id}
+                    </Text>
+                  )}
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    styles.stepTitleText,
+                    {
+                      color: isActive
+                        ? colors.primary
+                        : isCompleted
+                        ? colors.ink
+                        : colors.muted,
+                      fontWeight: isActive ? '800' : '600',
+                    },
+                  ]}
+                >
+                  {s.title}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {/* Animated indicator bar */}
         <View
           style={[
-            styles.notice,
-            {
-              backgroundColor: isDark ? '#142820' : '#E8F5E9',
-              borderColor: isDark ? '#1E4233' : '#C8E6C9',
-            },
-          ]}
-        >
-          <Ionicons name="shield-checkmark" size={22} color="#059669" />
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.noticeHeading, { color: isDark ? '#4ADE80' : '#1B5E20' }]}>
-              100% Genuine Libre Verification
-            </Text>
-            <Text style={[styles.noticeText, { color: isDark ? '#A7F3D0' : '#2E7D32' }]}>
-              Every listed vehicle is cross-checked with the Addis Ababa Road & Transport Bureau. Clean title deeds build buyer trust and sell 3x faster.
-            </Text>
-          </View>
-        </View>
-
-        {/* Section 1: Basic Vehicle Specs */}
-        <SectionHeading
-          title="Vehicle Information"
-          subtitle="Essential details buyers filter for in the showroom."
-        />
-
-        <View style={[styles.two, isCompact && styles.columnStack]}>
-          <Field
-            label="Make / Brand *"
-            value={fields.brand}
-            onChangeText={(v) => updateField('brand', v)}
-            placeholder="Toyota"
-            autoCapitalize="words"
-            containerStyle={styles.half}
-          />
-          <Field
-            label="Model *"
-            value={fields.model}
-            onChangeText={(v) => updateField('model', v)}
-            placeholder="Land Cruiser / RAV4"
-            autoCapitalize="words"
-            containerStyle={styles.half}
-          />
-        </View>
-
-        <View style={[styles.two, isCompact && styles.columnStack]}>
-          <Field
-            label="Model Year *"
-            value={fields.year}
-            onChangeText={(v) =>
-              updateField('year', v.replace(/\D/g, '').slice(0, 4))
-            }
-            placeholder="2023"
-            keyboardType="number-pad"
-            containerStyle={styles.half}
-          />
-          <Field
-            label="Asking Price (ETB) *"
-            value={fields.price}
-            onChangeText={(v) =>
-              updateField('price', v.replace(/[^\d.]/g, ''))
-            }
-            placeholder="4,800,000"
-            keyboardType="decimal-pad"
-            containerStyle={styles.half}
-          />
-        </View>
-
-        <View style={[styles.two, isCompact && styles.columnStack]}>
-          <Field
-            label="Mileage (km) *"
-            value={fields.mileage}
-            onChangeText={(v) =>
-              updateField('mileage', v.replace(/\D/g, ''))
-            }
-            placeholder="38,000"
-            keyboardType="number-pad"
-            containerStyle={styles.half}
-          />
-          <Field
-            label="Location in Ethiopia *"
-            value={fields.location}
-            onChangeText={(v) => updateField('location', v)}
-            placeholder="Addis Ababa, Bole"
-            autoCapitalize="words"
-            containerStyle={styles.half}
-          />
-        </View>
-
-        {/* Choice: Condition */}
-        <ChoiceSelector
-          label="Vehicle Condition"
-          choices={conditions.map((c) => ({
-            value: c.label,
-            label: c.label,
-            icon: c.icon,
-          }))}
-          value={fields.condition}
-          onChange={(v) => updateField('condition', v)}
-        />
-
-        {/* Choice: Fuel Type */}
-        <ChoiceSelector
-          label="Fuel & Powertrain"
-          choices={fuels.map((f) => ({
-            value: f.label,
-            label: f.label,
-            icon: f.icon,
-          }))}
-          value={fields.fuelType}
-          onChange={(v) => updateField('fuelType', v)}
-        />
-
-        {/* Choice: Transmission */}
-        <ChoiceSelector
-          label="Transmission"
-          choices={transmissions.map((t) => ({
-            value: t.label,
-            label: t.label,
-            icon: t.icon,
-          }))}
-          value={fields.transmission}
-          onChange={(v) => updateField('transmission', v)}
-        />
-
-        {/* Choice: Body Type */}
-        <ChoiceSelector
-          label="Body Type"
-          choices={bodies.map((b) => ({ value: b, label: b }))}
-          value={fields.bodyType}
-          onChange={(v) => updateField('bodyType', v)}
-        />
-
-        <View style={[styles.two, isCompact && styles.columnStack]}>
-          <Field
-            label="Exterior Color (Optional)"
-            value={fields.color}
-            onChangeText={(v) => updateField('color', v)}
-            placeholder="Pearl White / Black"
-            containerStyle={styles.half}
-          />
-          <Field
-            label="Engine Displacement (Optional)"
-            value={fields.engineSize}
-            onChangeText={(v) => updateField('engineSize', v)}
-            placeholder="2.5 L / Dual Motor"
-            containerStyle={styles.half}
-          />
-        </View>
-
-        <Field
-          label="Description & Highlights *"
-          value={fields.description}
-          onChangeText={(v) => updateField('description', v)}
-          placeholder="Describe condition, accident history, service records, and special features."
-          multiline
-          maxLength={1200}
-        />
-
-        {/* Section 2: Photos */}
-        <SectionHeading
-          title="Vehicle Photos"
-          subtitle={`${photoCount}/5 photos · The first photo serves as the showroom cover.`}
-        />
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.photoScrollRow}
-        >
-          {/* Add Photo Button */}
-          {photoCount < 5 && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Add Photo"
-              onPress={() => void choosePhotos()}
-              style={[
-                styles.addPhotoCard,
-                {
-                  backgroundColor: isDark ? '#232733' : '#F8F9FA',
-                  borderColor: isDark ? '#374151' : '#D1D5DB',
-                },
-              ]}
-            >
-              <Ionicons name="camera" size={24} color={colors.primary} />
-              <Text style={[styles.addPhotoText, { color: colors.primary }]}>
-                + Add Photo
-              </Text>
-              <Text style={[styles.addPhotoSub, { color: colors.muted }]}>
-                {photoCount}/5
-              </Text>
-            </Pressable>
-          )}
-
-          {/* Photo Previews */}
-          {[
-            ...existingPhotos.map((uri) => ({ uri, source: 'saved' as const })),
-            ...photos.map((asset) => ({ uri: asset.uri, source: 'new' as const })),
-          ].map((photo, index) => (
-            <View key={`${photo.uri}-${index}`} style={styles.photoWrap}>
-              <Image source={{ uri: photo.uri }} style={styles.photoImg} />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Remove photo"
-                onPress={() => removePhoto(index)}
-                style={styles.removePhotoBadge}
-              >
-                <Ionicons name="close" size={14} color="#FFFFFF" />
-              </Pressable>
-              {index === 0 && (
-                <View style={styles.coverBadge}>
-                  <Text style={styles.coverBadgeText}>COVER</Text>
-                </View>
-              )}
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Section 3: Ownership Document (Libre) */}
-        <SectionHeading
-          title="Ownership Document (Libre)"
-          subtitle="Clear photo or PDF of the registered Ethiopian Libre certificate."
-        />
-
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => void chooseLibre()}
-          style={[
-            styles.documentCard,
-            {
-              backgroundColor: colors.white,
-              borderColor: libre || existingLibre ? '#059669' : colors.line,
-            },
+            styles.progressBarBg,
+            { backgroundColor: isDark ? '#232838' : '#E5E7EB' },
           ]}
         >
           <View
             style={[
-              styles.documentIconWrap,
+              styles.progressBarFill,
               {
-                backgroundColor:
-                  libre || existingLibre
-                    ? 'rgba(5, 150, 105, 0.12)'
-                    : isDark
-                    ? '#2C1B14'
-                    : '#FFF2EB',
+                backgroundColor: colors.primary,
+                width: `${(step / STEPS.length) * 100}%`,
               },
             ]}
-          >
-            <Ionicons
-              name={libre || existingLibre ? 'document-text' : 'cloud-upload-outline'}
-              size={24}
-              color={libre || existingLibre ? '#059669' : colors.primary}
-            />
-          </View>
-
-          <View style={styles.documentTextCol}>
-            <Text style={[styles.documentTitle, { color: colors.ink }]} numberOfLines={1}>
-              {libre?.name ||
-                (existingLibre
-                  ? 'Libre Document Uploaded & Verified'
-                  : 'Tap to Upload Libre (ሊብሬ)')}
-            </Text>
-            <Text style={[styles.documentSub, { color: colors.muted }]}>
-              {libre || existingLibre
-                ? 'Tap here to change or replace file'
-                : 'PDF, JPEG, PNG or WebP · Up to 10 MB'}
-            </Text>
-          </View>
-
-          <Ionicons
-            name={libre || existingLibre ? 'checkmark-circle' : 'chevron-forward'}
-            size={22}
-            color={libre || existingLibre ? '#059669' : colors.muted}
           />
-        </Pressable>
+        </View>
+      </View>
 
-        {/* Error Alert Banner */}
+      {/* ---------------------------------------------------- */}
+      {/* MAIN CONTENT FORM (Based on Active Step)             */}
+      {/* ---------------------------------------------------- */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: Math.max(insets.bottom + 90, 110) },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Error Banner */}
         {error ? (
           <View style={styles.errorBox}>
-            <Ionicons name="alert-circle" size={18} color="#EF4444" />
+            <Ionicons name="alert-circle" size={18} color="#DC2626" />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
 
-        {/* Submit Action Button */}
-        <View style={styles.submitWrap}>
-          <ActionButton
-            label={
-              saving
-                ? 'Submitting Listing…'
-                : isEdit
-                ? 'Save Vehicle Changes'
-                : 'Submit Listing for Review'
-            }
-            busy={saving}
-            onPress={() => void saveListing()}
-            style={styles.submitBtn}
-          />
-          <Text style={[styles.footnote, { color: colors.muted }]}>
-            By submitting, you certify that you possess legal authority to sell this vehicle and that the vehicle Libre documents are genuine.
-          </Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
-}
+        {/* ---------------------------------------------------- */}
+        {/* STEP 1: VEHICLE BASICS & MODEL                       */}
+        {/* ---------------------------------------------------- */}
+        {step === 1 && (
+          <View style={styles.stepSection}>
+            <SectionHeading
+              title="Vehicle Make & Model"
+              subtitle="Select from the dropdown or type your car's brand, model, and year."
+            />
 
-function ChoiceSelector({
-  label,
-  choices,
-  value,
-  onChange,
-}: {
-  label: string;
-  choices: Array<{
-    value: string;
-    label: string;
-    icon?: keyof typeof Ionicons.glyphMap;
-  }>;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const { colors, isDark } = useTheme();
+            {/* Brand Combobox Dropdown + Typing */}
+            <ComboDropdown
+              label="Make / Brand *"
+              value={fields.brand}
+              onChangeText={(val) => {
+                updateField('brand', val);
+              }}
+              options={ALL_BRANDS}
+              placeholder="e.g. Toyota, Hyundai, Suzuki…"
+            />
 
-  return (
-    <View style={styles.choiceWrap}>
-      <Text style={[styles.choiceLabel, { color: colors.ink }]}>{label}</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.choiceRow}
-      >
-        {choices.map((choice) => {
-          const isSelected = value === choice.value;
-          return (
-            <Pressable
-              key={choice.value}
-              accessibilityRole="button"
-              onPress={() => onChange(choice.value)}
+            {/* Model Combobox Dropdown + Typing (Suggestions based on brand) */}
+            <ComboDropdown
+              label="Model *"
+              value={fields.model}
+              onChangeText={(val) => updateField('model', val)}
+              options={modelSuggestions}
+              placeholder="e.g. RAV4, Land Cruiser, Tucson…"
+            />
+
+            <View style={[styles.two, isCompact && styles.columnStack]}>
+              {/* Year Combobox Dropdown + Typing */}
+              <View style={styles.half}>
+                <ComboDropdown
+                  label="Model Year *"
+                  value={fields.year}
+                  onChangeText={(val) =>
+                    updateField('year', val.replace(/\D/g, '').slice(0, 4))
+                  }
+                  options={YEARS}
+                  placeholder="e.g. 2022"
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.half}>
+                <Text style={[styles.label, { color: colors.ink }]}>
+                  Condition *
+                </Text>
+                <View style={styles.conditionRow}>
+                  {conditions.map((c) => {
+                    const isSelected = fields.condition === c.label;
+                    return (
+                      <Pressable
+                        key={c.label}
+                        onPress={() => updateField('condition', c.label)}
+                        style={[
+                          styles.segmentBtn,
+                          {
+                            backgroundColor: isSelected
+                              ? colors.primary
+                              : isDark
+                              ? '#1C212E'
+                              : '#F3F4F6',
+                            borderColor: isSelected
+                              ? colors.primary
+                              : colors.line,
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name={c.icon}
+                          size={15}
+                          color={isSelected ? '#FFFFFF' : colors.muted}
+                        />
+                        <Text
+                          style={[
+                            styles.segmentBtnText,
+                            { color: isSelected ? '#FFFFFF' : colors.ink },
+                          ]}
+                        >
+                          {c.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+
+            {/* Body Type Selection */}
+            <Text style={[styles.label, { color: colors.ink, marginTop: 4 }]}>
+              Body Type *
+            </Text>
+            <View style={styles.pillsWrap}>
+              {bodies.map((body) => {
+                const isSelected = fields.bodyType === body;
+                return (
+                  <Pressable
+                    key={body}
+                    onPress={() => updateField('bodyType', body)}
+                    style={[
+                      styles.pill,
+                      {
+                        backgroundColor: isSelected
+                          ? colors.primary
+                          : isDark
+                          ? '#1C212E'
+                          : '#F3F4F6',
+                        borderColor: isSelected ? colors.primary : colors.line,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.pillText,
+                        { color: isSelected ? '#FFFFFF' : colors.ink },
+                      ]}
+                    >
+                      {body}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* ---------------------------------------------------- */}
+        {/* STEP 2: MECHANICAL SPECS & DETAILS                   */}
+        {/* ---------------------------------------------------- */}
+        {step === 2 && (
+          <View style={styles.stepSection}>
+            <SectionHeading
+              title="Specifications & Mechanics"
+              subtitle="Choose transmission, fuel type, mileage, engine, and color."
+            />
+
+            {/* Transmission */}
+            <Text style={[styles.label, { color: colors.ink }]}>
+              Transmission *
+            </Text>
+            <View style={styles.specChipsRow}>
+              {transmissions.map((t) => {
+                const isSelected = fields.transmission === t.label;
+                return (
+                  <Pressable
+                    key={t.label}
+                    onPress={() => updateField('transmission', t.label)}
+                    style={[
+                      styles.specChip,
+                      {
+                        backgroundColor: isSelected
+                          ? colors.primary
+                          : isDark
+                          ? '#1C212E'
+                          : '#F3F4F6',
+                        borderColor: isSelected ? colors.primary : colors.line,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={t.icon}
+                      size={18}
+                      color={isSelected ? '#FFFFFF' : colors.muted}
+                    />
+                    <Text
+                      style={[
+                        styles.specChipText,
+                        { color: isSelected ? '#FFFFFF' : colors.ink },
+                      ]}
+                    >
+                      {t.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Fuel Type */}
+            <Text style={[styles.label, { color: colors.ink, marginTop: 14 }]}>
+              Fuel Type *
+            </Text>
+            <View style={styles.pillsWrap}>
+              {fuels.map((fuel) => {
+                const isSelected = fields.fuelType === fuel.label;
+                return (
+                  <Pressable
+                    key={fuel.label}
+                    onPress={() => updateField('fuelType', fuel.label)}
+                    style={[
+                      styles.pillWithIcon,
+                      {
+                        backgroundColor: isSelected
+                          ? colors.primary
+                          : isDark
+                          ? '#1C212E'
+                          : '#F3F4F6',
+                        borderColor: isSelected ? colors.primary : colors.line,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={fuel.icon}
+                      size={15}
+                      color={isSelected ? '#FFFFFF' : colors.muted}
+                    />
+                    <Text
+                      style={[
+                        styles.pillText,
+                        { color: isSelected ? '#FFFFFF' : colors.ink },
+                      ]}
+                    >
+                      {fuel.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Mileage */}
+            <Field
+              label="Mileage (km) *"
+              value={fields.mileage}
+              onChangeText={(v) =>
+                updateField('mileage', v.replace(/\D/g, ''))
+              }
+              placeholder="e.g. 45000"
+              keyboardType="numeric"
+              containerStyle={{ marginTop: 8 }}
+            />
+
+            {/* Engine Size Combobox Dropdown + Typing */}
+            <ComboDropdown
+              label="Engine Size"
+              value={fields.engineSize}
+              onChangeText={(v) => updateField('engineSize', v)}
+              options={ENGINE_SIZES}
+              placeholder="Select or type e.g. 2.0L Turbo / 2.5L…"
+              autoCapitalize="none"
+              containerStyle={{ marginTop: 4 }}
+            />
+
+            {/* Exterior Color Combobox Dropdown + Typing */}
+            <ComboDropdown
+              label="Exterior Color"
+              value={fields.color}
+              onChangeText={(v) => updateField('color', v)}
+              options={COLORS}
+              placeholder="Select or type e.g. Pearl White, Jet Black…"
+              containerStyle={{ marginTop: 4 }}
+            />
+          </View>
+        )}
+
+        {/* ---------------------------------------------------- */}
+        {/* STEP 3: PRICING & LOCATION                           */}
+        {/* ---------------------------------------------------- */}
+        {step === 3 && (
+          <View style={styles.stepSection}>
+            <SectionHeading
+              title="Pricing & Location"
+              subtitle="Set your asking price in Ethiopian Birr and where the car is located."
+            />
+
+            {/* Price Input with Live Formatted Display */}
+            <Field
+              label="Asking Price (ETB) *"
+              value={fields.price}
+              onChangeText={(v) => updateField('price', v.replace(/[^\d.]/g, ''))}
+              placeholder="e.g. 3850000"
+              keyboardType="numeric"
+            />
+            {numericPrice > 0 && (
+              <View
+                style={[
+                  styles.priceFormattedCard,
+                  {
+                    backgroundColor: isDark ? '#1C2333' : '#F0F9FF',
+                    borderColor: isDark ? '#2B3954' : '#BAE6FD',
+                  },
+                ]}
+              >
+                <Ionicons name="pricetag" size={17} color={colors.primary} />
+                <Text
+                  style={[styles.priceFormattedText, { color: colors.primary }]}
+                >
+                  {formatPrice(numericPrice)}
+                </Text>
+              </View>
+            )}
+
+            {/* Location in Ethiopia Combobox Dropdown + Typing */}
+            <View style={{ marginTop: 12 }}>
+              <ComboDropdown
+                label="City / Region in Ethiopia *"
+                value={fields.location}
+                onChangeText={(val) => updateField('location', val)}
+                options={ETHIOPIAN_LOCATIONS}
+                placeholder="Choose or type e.g. Addis Ababa, Bole…"
+              />
+            </View>
+
+            {/* Description */}
+            <Field
+              label="Vehicle Description & Key Features"
+              value={fields.description}
+              onChangeText={(v) => updateField('description', v)}
+              placeholder="Highlight condition, maintenance history, sunroof, leather seats, 360 camera, etc."
+              multiline
+              numberOfLines={4}
+              containerStyle={{ marginTop: 8 }}
+            />
+          </View>
+        )}
+
+        {/* ---------------------------------------------------- */}
+        {/* STEP 4: MEDIA, LIBRE DEED & FINAL REVIEW             */}
+        {/* ---------------------------------------------------- */}
+        {step === 4 && (
+          <View style={styles.stepSection}>
+            <SectionHeading
+              title="Media & Verification"
+              subtitle="Upload car photos and ownership title deed (Libre)."
+            />
+
+            {/* Photo Upload Section */}
+            <View
               style={[
-                styles.choiceChip,
+                styles.uploadCard,
                 {
-                  backgroundColor: isSelected
-                    ? isDark
-                      ? '#2C1B14'
-                      : '#FFF2EB'
-                    : colors.white,
-                  borderColor: isSelected ? colors.primary : colors.line,
+                  backgroundColor: colors.white,
+                  borderColor: colors.line,
                 },
               ]}
             >
-              {choice.icon && (
-                <Ionicons
-                  name={choice.icon}
-                  size={14}
-                  color={isSelected ? colors.primary : colors.muted}
+              <View style={styles.uploadHead}>
+                <View>
+                  <Text style={[styles.uploadTitle, { color: colors.ink }]}>
+                    Vehicle Photos ({photoCount}/5) *
+                  </Text>
+                  <Text style={[styles.uploadSub, { color: colors.muted }]}>
+                    First image is used as the showroom cover.
+                  </Text>
+                </View>
+                <ActionButton
+                  label="Add Photos"
+                  icon={<Ionicons name="camera-outline" size={16} color="#FFFFFF" />}
+                  onPress={choosePhotos}
+                  disabled={photoCount >= 5}
                 />
+              </View>
+
+              {photoCount > 0 ? (
+                <View style={styles.photoGrid}>
+                  {existingPhotos.map((uri, i) => (
+                    <View key={`existing-${i}`} style={styles.photoItem}>
+                      <Image source={{ uri }} style={styles.photoThumb} />
+                      {i === 0 && (
+                        <View style={styles.coverBadge}>
+                          <Text style={styles.coverBadgeText}>COVER</Text>
+                        </View>
+                      )}
+                      <Pressable
+                        onPress={() => removePhoto(i)}
+                        style={styles.deletePhotoBtn}
+                      >
+                        <Ionicons name="close" size={14} color="#FFFFFF" />
+                      </Pressable>
+                    </View>
+                  ))}
+                  {photos.map((asset, i) => (
+                    <View
+                      key={`new-${i}`}
+                      style={styles.photoItem}
+                    >
+                      <Image
+                        source={{ uri: asset.uri }}
+                        style={styles.photoThumb}
+                      />
+                      {existingPhotos.length === 0 && i === 0 && (
+                        <View style={styles.coverBadge}>
+                          <Text style={styles.coverBadgeText}>COVER</Text>
+                        </View>
+                      )}
+                      <Pressable
+                        onPress={() => removePhoto(existingPhotos.length + i)}
+                        style={styles.deletePhotoBtn}
+                      >
+                        <Ionicons name="close" size={14} color="#FFFFFF" />
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Pressable
+                  onPress={choosePhotos}
+                  style={[
+                    styles.emptyDropzone,
+                    {
+                      borderColor: colors.line,
+                      backgroundColor: isDark ? '#1C212E' : '#F9FAFB',
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="image-outline"
+                    size={38}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={[styles.dropzoneTitle, { color: colors.ink }]}
+                  >
+                    Tap to upload photos
+                  </Text>
+                  <Text style={[styles.dropzoneSub, { color: colors.muted }]}>
+                    Upload up to 5 clear exterior & interior shots
+                  </Text>
+                </Pressable>
               )}
-              <Text
-                style={[
-                  styles.choiceChipText,
-                  { color: isSelected ? colors.primary : colors.muted },
-                ]}
-              >
-                {choice.label}
+            </View>
+
+            {/* Libre Document Upload Section */}
+            <View
+              style={[
+                styles.uploadCard,
+                {
+                  backgroundColor: colors.white,
+                  borderColor: colors.line,
+                  marginTop: 14,
+                },
+              ]}
+            >
+              <View style={styles.uploadHead}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.uploadTitle, { color: colors.ink }]}>
+                    Vehicle Title Deed (Libre) *
+                  </Text>
+                  <Text style={[styles.uploadSub, { color: colors.muted }]}>
+                    Upload genuine title deed for broker review.
+                  </Text>
+                </View>
+                <ActionButton
+                  label={libre || existingLibre ? 'Change' : 'Upload'}
+                  icon={
+                    <Ionicons
+                      name="document-attach-outline"
+                      size={16}
+                      color="#FFFFFF"
+                    />
+                  }
+                  onPress={chooseLibre}
+                />
+              </View>
+
+              {libre || existingLibre ? (
+                <View
+                  style={[
+                    styles.documentRow,
+                    {
+                      backgroundColor: isDark ? '#1A2920' : '#E8F5E9',
+                      borderColor: '#059669',
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={24}
+                    color="#059669"
+                  />
+                  <View style={styles.documentTextCol}>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.documentTitle,
+                        { color: isDark ? '#A7F3D0' : '#166534' },
+                      ]}
+                    >
+                      {libre?.name || 'Verified Title Deed (Libre)'}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.documentSub,
+                        { color: isDark ? '#6EE7B7' : '#15803D' },
+                      ]}
+                    >
+                      {libre?.size
+                        ? `${(libre.size / (1024 * 1024)).toFixed(2)} MB • Ready for submission`
+                        : 'Document Attached'}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={chooseLibre}
+                  style={[
+                    styles.emptyDropzone,
+                    {
+                      borderColor: colors.line,
+                      backgroundColor: isDark ? '#1C212E' : '#F9FAFB',
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="document-text-outline"
+                    size={36}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={[styles.dropzoneTitle, { color: colors.ink }]}
+                  >
+                    Tap to attach Libre certificate
+                  </Text>
+                  <Text style={[styles.dropzoneSub, { color: colors.muted }]}>
+                    Supports PDF, PNG, JPG under 10 MB
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
+            {/* ---------------------------------------------------- */}
+            {/* FINAL SUMMARY PREVIEW CARD                           */}
+            {/* ---------------------------------------------------- */}
+            <View
+              style={[
+                styles.summaryCard,
+                {
+                  backgroundColor: isDark ? '#181C28' : '#FFFFFF',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : colors.line,
+                },
+              ]}
+            >
+              <Text style={[styles.summaryHeading, { color: colors.ink }]}>
+                Listing Summary
               </Text>
-            </Pressable>
-          );
-        })}
+              <View style={styles.summaryGrid}>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryKey, { color: colors.muted }]}>
+                    Car
+                  </Text>
+                  <Text style={[styles.summaryVal, { color: colors.ink }]}>
+                    {fields.year} {fields.brand} {fields.model}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryKey, { color: colors.muted }]}>
+                    Price
+                  </Text>
+                  <Text style={[styles.summaryVal, { color: colors.primary }]}>
+                    {numericPrice > 0 ? formatPrice(numericPrice) : 'Not specified'}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryKey, { color: colors.muted }]}>
+                    Specs
+                  </Text>
+                  <Text style={[styles.summaryVal, { color: colors.ink }]}>
+                    {fields.transmission} • {fields.fuelType} • {fields.mileage || '0'} km
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryKey, { color: colors.muted }]}>
+                    Location
+                  </Text>
+                  <Text style={[styles.summaryVal, { color: colors.ink }]}>
+                    {fields.location || 'Not specified'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
-    </View>
+
+      {/* ---------------------------------------------------- */}
+      {/* FIXED STEPPER BOTTOM ACTION BAR                      */}
+      {/* ---------------------------------------------------- */}
+      <View
+        style={[
+          styles.footerBar,
+          {
+            backgroundColor: isDark ? '#141721' : '#FFFFFF',
+            borderTopColor: colors.line,
+            paddingBottom: Math.max(insets.bottom + 8, 16),
+          },
+        ]}
+      >
+        {step > 1 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Previous Step"
+            onPress={handlePrevStep}
+            style={[
+              styles.navBtnSecondary,
+              {
+                backgroundColor: isDark ? '#1E2333' : '#F3F4F6',
+                borderColor: colors.line,
+              },
+            ]}
+          >
+            <Ionicons name="arrow-back" size={17} color={colors.ink} />
+            <Text style={[styles.navBtnSecondaryText, { color: colors.ink }]}>
+              Back
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+            onPress={() => {
+              if (router.canGoBack()) router.back();
+              else router.replace('/(tabs)');
+            }}
+            style={[
+              styles.navBtnSecondary,
+              {
+                backgroundColor: isDark ? '#1E2333' : '#F3F4F6',
+                borderColor: colors.line,
+              },
+            ]}
+          >
+            <Text style={[styles.navBtnSecondaryText, { color: colors.muted }]}>
+              Cancel
+            </Text>
+          </Pressable>
+        )}
+
+        {step < 4 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Continue to next step"
+            onPress={handleNextStep}
+            style={[
+              styles.navBtnPrimary,
+              { backgroundColor: colors.primary },
+            ]}
+          >
+            <Text style={styles.navBtnPrimaryText}>
+              Next: {STEPS[step].title}
+            </Text>
+            <Ionicons name="arrow-forward" size={17} color="#FFFFFF" />
+          </Pressable>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Submit Vehicle Listing"
+            onPress={saveListing}
+            disabled={saving}
+            style={[
+              styles.navBtnPrimary,
+              {
+                backgroundColor: colors.primary,
+                opacity: saving ? 0.75 : 1,
+              },
+            ]}
+          >
+            <Ionicons
+              name={saving ? 'hourglass-outline' : 'checkmark-done'}
+              size={18}
+              color="#FFFFFF"
+            />
+            <Text style={styles.navBtnPrimaryText}>
+              {saving
+                ? 'Submitting Listing…'
+                : isEdit
+                ? 'Update Vehicle'
+                : 'Post Vehicle for Sale'}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -779,203 +1517,276 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
-  center: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  guestBox: {
-    width: '100%',
-    maxWidth: 380,
-    borderRadius: radius.large,
-    padding: 24,
-    alignItems: 'center',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  guestSub: {
-    fontSize: 13,
-    lineHeight: 18,
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    gap: 12,
+  },
+  headerTitleCol: {
+    flex: 1,
+    marginHorizontal: 12,
+  },
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 2,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
-  headerTitleCol: {
-    flex: 1,
+
+  /* Stepper Tab Bar */
+  stepperContainer: {
+    borderBottomWidth: 1,
+    paddingTop: 10,
   },
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: -0.3,
-    marginTop: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  notice: {
+  stepsRow: {
     flexDirection: 'row',
-    gap: 12,
-    alignItems: 'flex-start',
-    borderRadius: radius.medium,
-    padding: 14,
-    marginBottom: 20,
-    borderWidth: 1,
+    justifyContent: 'space-around',
+    paddingHorizontal: 12,
+    paddingBottom: 8,
   },
-  noticeHeading: {
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 2,
+  stepItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
   },
-  noticeText: {
+  stepBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumber: {
     fontSize: 11,
-    lineHeight: 16,
-    fontWeight: '500',
+    fontWeight: '800',
   },
+  stepTitleText: {
+    fontSize: 12,
+  },
+  progressBarBg: {
+    height: 3,
+    width: '100%',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 1.5,
+  },
+
+  /* Scroll Content */
+  content: {
+    padding: 16,
+  },
+  stepSection: {
+    gap: 12,
+  },
+
+  label: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+
+  /* Form Layout */
   two: {
     flexDirection: 'row',
     gap: 12,
   },
-  columnStack: {
-    flexDirection: 'column',
-    gap: 0,
-  },
   half: {
     flex: 1,
   },
-  choiceWrap: {
-    marginBottom: 16,
-  },
-  choiceLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  choiceRow: {
+  columnStack: {
+    flexDirection: 'column',
     gap: 8,
-    paddingRight: 10,
   },
-  choiceChip: {
+
+  /* Pills & Selector Chips */
+  pillsWrap: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    height: 40,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 6,
+  },
+  pill: {
+    paddingHorizontal: 13,
+    paddingVertical: 7,
     borderRadius: 20,
     borderWidth: 1,
   },
-  choiceChipText: {
-    fontSize: 12,
+  pillWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  pillText: {
+    fontSize: 12.5,
     fontWeight: '700',
   },
-  photoScrollRow: {
-    gap: 12,
-    paddingBottom: 14,
-    paddingRight: 10,
+
+  conditionRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  addPhotoCard: {
-    width: 105,
-    height: 95,
+  segmentBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 10,
+    borderRadius: radius.medium,
+    borderWidth: 1,
+  },
+  segmentBtnText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+
+  specChipsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  specChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: radius.medium,
+    borderWidth: 1,
+  },
+  specChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  /* Price formatted banner */
+  priceFormattedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: radius.medium,
+    borderWidth: 1,
+    marginTop: -4,
+  },
+  priceFormattedText: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+
+  /* Upload Cards */
+  uploadCard: {
+    borderRadius: radius.medium,
+    borderWidth: 1,
+    padding: 14,
+  },
+  uploadHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 12,
+  },
+  uploadTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  uploadSub: {
+    fontSize: 11.5,
+    marginTop: 2,
+  },
+  emptyDropzone: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 26,
     borderRadius: radius.medium,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
+    gap: 6,
   },
-  addPhotoText: {
-    fontSize: 11,
-    fontWeight: '800',
+  dropzoneTitle: {
+    fontSize: 13.5,
+    fontWeight: '700',
   },
-  addPhotoSub: {
-    fontSize: 10,
-    fontWeight: '600',
+  dropzoneSub: {
+    fontSize: 11.5,
   },
-  photoWrap: {
-    width: 125,
-    height: 95,
-    borderRadius: radius.medium,
+
+  /* Photo Grid */
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  photoItem: {
+    width: 78,
+    height: 78,
+    borderRadius: radius.small,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#E5E7EB',
   },
-  photoImg: {
+  photoThumb: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
-  },
-  removePhotoBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   coverBadge: {
     position: 'absolute',
-    bottom: 6,
-    left: 6,
-    borderRadius: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    paddingHorizontal: 6,
+    top: 4,
+    left: 4,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 5,
     paddingVertical: 2,
+    borderRadius: 4,
   },
   coverBadgeText: {
-    fontSize: 8,
     color: '#FFFFFF',
-    fontWeight: '900',
-    letterSpacing: 0.5,
+    fontSize: 8.5,
+    fontWeight: '800',
   },
-  documentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderWidth: 1,
-    borderRadius: radius.medium,
-    padding: 14,
-    minHeight: 70,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 5,
-    elevation: 1,
-  },
-  documentIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  deletePhotoBtn: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#DC2626',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  /* Document Row */
+  documentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.medium,
+    borderWidth: 1,
   },
   documentTextCol: {
     flex: 1,
@@ -986,9 +1797,42 @@ const styles = StyleSheet.create({
   },
   documentSub: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     marginTop: 2,
   },
+
+  /* Summary Card */
+  summaryCard: {
+    borderRadius: radius.medium,
+    borderWidth: 1,
+    padding: 16,
+    marginTop: 14,
+  },
+  summaryHeading: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 10,
+  },
+  summaryGrid: {
+    gap: 8,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryKey: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  summaryVal: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    maxWidth: '65%',
+    textAlign: 'right',
+  },
+
+  /* Error Box */
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -998,8 +1842,7 @@ const styles = StyleSheet.create({
     borderColor: '#FCA5A5',
     borderRadius: radius.medium,
     padding: 12,
-    marginTop: 8,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   errorText: {
     flex: 1,
@@ -1008,18 +1851,52 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 16,
   },
-  submitWrap: {
-    marginTop: 8,
-    marginBottom: 20,
+
+  /* Fixed Bottom Nav Bar */
+  footerBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -3 },
+    elevation: 8,
   },
-  submitBtn: {
-    minHeight: 52,
+  navBtnSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: radius.medium,
+    borderWidth: 1,
   },
-  footnote: {
-    textAlign: 'center',
-    fontSize: 11,
-    lineHeight: 16,
-    marginTop: 12,
-    paddingHorizontal: 8,
+  navBtnSecondaryText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  navBtnPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    paddingHorizontal: 18,
+    borderRadius: radius.medium,
+  },
+  navBtnPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '800',
   },
 });

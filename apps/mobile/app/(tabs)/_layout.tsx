@@ -35,26 +35,14 @@ export default function TabLayout() {
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const { user } = useSession();
-  const handleCenterAddPress = () => {
-    if (!user) {
-      Alert.alert(
-        'Sign In Required',
-        'Please sign in or register an account to add a vehicle listing.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Sign In / Register',
-            onPress: () =>
-              router.push({
-                pathname: '/login',
-                params: { tab: 'signin', returnTo: '/listing-form' },
-              }),
-          },
-        ],
-      );
-      return;
+  const handleCenterAddPress = (e?: any) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
     }
-    // Directly open the adding form vehicles as requested
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
+    // Directly open the adding vehicle form smoothly
     router.push('/listing-form');
   };
 
@@ -122,27 +110,30 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarLabel: () => null,
-          tabBarButton: (props) => (
-            <Pressable
-              {...props}
-              accessibilityRole="button"
-              accessibilityLabel="Add car listing"
-              onPress={handleCenterAddPress}
-              style={[props.style, styles.centerButtonContainer]}
-            >
-              <View
-                style={[
-                  styles.centerAddButton,
-                  {
-                    backgroundColor: colors.primary,
-                    borderColor: isDark ? '#141721' : '#FFFFFF',
-                  },
-                ]}
+          tabBarButton: (props) => {
+            const { ref, onPress, style, to, href, ...rest } = props as any;
+            return (
+              <Pressable
+                {...rest}
+                accessibilityRole="button"
+                accessibilityLabel="Add vehicle listing"
+                onPress={handleCenterAddPress}
+                style={[style, styles.centerButtonContainer]}
               >
-                <Ionicons name="add" size={30} color="#FFFFFF" />
-              </View>
-            </Pressable>
-          ),
+                <View
+                  style={[
+                    styles.centerAddButton,
+                    {
+                      backgroundColor: colors.primary,
+                      borderColor: isDark ? '#141721' : '#FFFFFF',
+                    },
+                  ]}
+                >
+                  <Ionicons name="add" size={30} color="#FFFFFF" />
+                </View>
+              </Pressable>
+            );
+          },
         }}
       />
 
@@ -166,7 +157,6 @@ export default function TabLayout() {
         <Tabs.Screen name="favorites" options={{ href: null }} />
         <Tabs.Screen name="track" options={{ href: null }} />
       </Tabs>
-    </>
   );
 }
 
