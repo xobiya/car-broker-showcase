@@ -15,6 +15,7 @@ export type Vehicle = {
   sellerPhone?: string; sellerRole?: string; phone?: string; videoUrl?: string;
   inspectionStatus?: 'not_inspected' | 'pending' | 'passed' | 'failed'; inspectionNotes?: string;
   inspectionDate?: string; ownershipDocumentUrl?: string; ownershipDocumentName?: string; rejectionReason?: string;
+  chassisNumber?: string;
 };
 export type SavedVehicle = { id: string; userId: string; vehicleId: string; savedAt?: string; vehicle?: Vehicle };
 export type LeadStatus = 'new' | 'contacted' | 'negotiating' | 'sold' | 'cancelled';

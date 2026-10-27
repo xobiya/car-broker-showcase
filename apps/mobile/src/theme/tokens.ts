@@ -1,22 +1,36 @@
 export const colors = {
-  ink: '#10233F',
-  muted: '#667085',
-  green: '#0789A8',
-  greenDark: '#056B86',
-  mint: '#E8F5F8',
-  paper: '#F7F9FC',
+  primary: '#FF5003',
+  primaryLight: '#FFF2EB',
+  primaryDark: '#E04200',
+  ink: '#121217',
+  muted: '#878E99',
+  green: '#10B981',
+  greenDark: '#059669',
+  mint: '#EAF8F1',
+  paper: '#FAFAFC',
   white: '#FFFFFF',
-  line: '#E2E8F0',
-  orange: '#F5B64B',
-  red: '#FF6B68',
-  success: '#42D392',
-  warning: '#F5B64B',
-  info: '#72A9FF',
-  navy: '#10233F',
+  line: '#ECEEF2',
+  card: '#FFFFFF',
+  cardBorder: '#ECEEF2',
+  orange: '#FF5003',
+  orangeLight: '#FFF2EB',
+  red: '#FF4D4F',
+  success: '#10B981',
+  warning: '#FF9800',
+  info: '#3B82F6',
+  navy: '#121217',
   navySoft: '#FFFFFF',
-  black: '#FFFFFF',
+  black: '#000000',
 } as const;
-export const radius = { small: 12, medium: 18, large: 26 } as const;
+
+export const radius = {
+  small: 12,
+  medium: 18,
+  large: 24,
+  xl: 32,
+  full: 9999,
+} as const;
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -25,3 +39,4 @@ export const spacing = {
   xl: 24,
   xxl: 32,
 } as const;
+
