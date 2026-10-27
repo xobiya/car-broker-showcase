@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { ShieldCheck, Phone, MapPin, Star, Compass, Zap, Gauge, Cpu, Users, Car, BadgeCheck, FileText, Video, ClipboardCheck, AlertTriangle, UserCircle, Calendar, Flag, X, Send, ArrowLeft, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "../i18n/useLocale";
@@ -57,6 +57,7 @@ function getBrokerAvatar(name?: string, id?: string): string {
 export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotify, onViewDetails, onViewBrokerProfile }: VehicleDetailProps) {
   const { t } = useTranslation(["vehicles", "common", "navigation", "notifications"]);
   const { formatCurrency } = useLocale();
+  const navigate = useNavigate();
   const { id: paramId } = useParams<{ id: string }>();
   const [vehicle, setVehicle] = useState<VehicleListing | null>(initialVehicle || null);
   const [loading, setLoading] = useState<boolean>(!initialVehicle);
@@ -74,7 +75,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
   const [showReportModal, setShowReportModal] = useState(false);
   const [tdName, setTdName] = useState("");
   const [tdEmail, setTdEmail] = useState("");
-  const [tdPhone, setTdPhone] = useState("+2519");
+  const [tdPhone, setTdPhone] = useState("");
   const [tdDate, setTdDate] = useState("");
   const [tdTime, setTdTime] = useState("");
   const [tdMessage, setTdMessage] = useState("");
@@ -172,17 +173,35 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
     }
   };
 
+  const handleOpenTestDrive = () => {
+    const saved = localStorage.getItem("autobroker_user");
+    const user = saved ? JSON.parse(saved) : null;
+    if (!user) {
+      onNotify("Please sign in or create an account to schedule a test drive.", "error");
+      navigate("/login");
+      return;
+    }
+    setTdName(user.name || "");
+    setTdEmail(user.email || "");
+    setTdPhone(user.phone || "");
+    setShowTestDriveModal(true);
+  };
+
   const handleSubmitTestDrive = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const saved = localStorage.getItem("autobroker_user");
       const user = saved ? JSON.parse(saved) : null;
+      let normalizedPhone = tdPhone.trim();
+      if (normalizedPhone.startsWith("09") || normalizedPhone.startsWith("07")) {
+        normalizedPhone = `+251 ${normalizedPhone.slice(1)}`;
+      }
       await testDrivesApi.create({
         vehicle_id: vehicle.id,
         user_id: user?.id || null,
         name: tdName,
         email: tdEmail,
-        phone: tdPhone,
+        phone: normalizedPhone,
         preferred_date: tdDate,
         preferred_time: tdTime,
         message: tdMessage,
@@ -191,7 +210,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
       setShowTestDriveModal(false);
       setTdName("");
       setTdEmail("");
-      setTdPhone("+2519");
+      setTdPhone("");
       setTdDate("");
       setTdTime("");
     } catch {
@@ -411,7 +430,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
             )}
 
             <button
-              onClick={() => setShowTestDriveModal(true)}
+              onClick={handleOpenTestDrive}
               className="w-full bg-slate-950 dark:bg-slate-800 hover:bg-slate-900 dark:hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-xs tracking-wider transition-colors cursor-pointer shadow-md uppercase flex items-center justify-center gap-2 active:scale-95 border border-transparent dark:border-slate-700"
             >
               {t("vehicles:detail.scheduleTestDrive")}
@@ -471,7 +490,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
             </a>
           )}
           <button
-            onClick={() => setShowTestDriveModal(true)}
+            onClick={handleOpenTestDrive}
             className="bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black text-xs px-3.5 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap"
           >
             Test Drive
@@ -514,7 +533,7 @@ export default function VehicleDetail({ vehicle: initialVehicle, onBack, onNotif
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Phone *</label>
-                  <input type="tel" required value={tdPhone} onChange={e => setTdPhone(e.target.value)} placeholder="+251 91 234 5678" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#FF4846] focus:border-[#FF4846] focus:outline-none" />
+                  <input type="tel" required value={tdPhone} onChange={e => setTdPhone(e.target.value)} placeholder="091 123 4567 or +251 91 123 4567" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:ring-1 focus:ring-[#FF4846] focus:border-[#FF4846] focus:outline-none" />
                 </div>
                 <div className="space-y-1 col-span-2 sm:col-span-1">
                   <label className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Preferred Date *</label>
