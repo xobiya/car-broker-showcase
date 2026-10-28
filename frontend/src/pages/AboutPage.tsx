@@ -230,7 +230,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
 
             <div className="pt-4">
               <button
-                onClick={() => navigate("/browse")}
+                onClick={() => navigate("/vehicles")}
                 className="bg-[#FF4846] hover:bg-[#E63D3B] text-white font-black px-7 py-3.5 rounded-xl text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-lg shadow-[#FF4846]/25 flex items-center gap-2 active:scale-95"
               >
                 <span>Get Started Now</span>
@@ -539,7 +539,7 @@ export default function AboutPage({ onNotify }: AboutPageProps) {
           </div>
           <div className="flex items-center gap-3 shrink-0 relative z-10">
             <button
-              onClick={() => navigate("/browse")}
+              onClick={() => navigate("/vehicles")}
               className="bg-[#FF4846] hover:bg-[#E63D3B] text-white font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#FF4846]/25 active:scale-95"
             >
               Browse Showroom

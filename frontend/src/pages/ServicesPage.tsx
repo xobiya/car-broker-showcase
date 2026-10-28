@@ -318,7 +318,7 @@ export default function ServicesPage({ onNotify }: ServicesPageProps) {
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
-              onClick={() => navigate("/browse")}
+              onClick={() => navigate("/vehicles")}
               className="bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black px-6 py-3 rounded-xl text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-[#FF4846]/25 active:scale-95"
             >
               Browse Showroom

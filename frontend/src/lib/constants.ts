@@ -7,10 +7,29 @@ export const DRIVE_TYPES = ["4WD", "AWD", "FWD", "RWD"];
 export const CONDITIONS = ["New", "Used", "Imported", "Damaged"];
 export const BODY_TYPES = ["SUV", "Sedan", "Hatchback", "Pickup", "Truck", "Van", "Coupe", "Convertible"];
 export const ENGINE_TYPES = ["V4", "V6", "V8", "V12", "Electric", "Hybrid"];
-export const DOOR_OPTIONS = [2, 3, 4, 5];
-export const SEAT_OPTIONS = [2, 4, 5, 6, 7, 8];
+export const DOOR_OPTIONS = [2, 3, 4, 5, 6];
+export const SEAT_OPTIONS = [2, 4, 5, 6, 7, 8, 10, 12, 14];
 export const INQUIRY_STATUSES = ["all", "new", "contacted", "negotiating", "sold", "cancelled"] as const;
 export const LISTING_STATUSES = ["all", "approved", "pending", "sold"] as const;
+export const YEARS = Array.from({ length: 47 }, (_, i) => 2026 - i);
+export const ENGINE_SIZES = [
+  "1.0L", "1.2L", "1.3L", "1.5L", "1.6L", "1.8L", "2.0L", "2.2L", "2.4L", "2.5L", "2.7L", "2.8L Turbo", "3.0L", "3.5L", "4.0L", "4.5L", "4.7L", "5.7L", "Electric Motor / EV", "Custom / Other"
+];
+export const COLOR_DETAILS = [
+  { name: "White", hex: "#FFFFFF", border: true },
+  { name: "Black", hex: "#111827", border: false },
+  { name: "Silver", hex: "#D1D5DB", border: false },
+  { name: "Gray", hex: "#6B7280", border: false },
+  { name: "Blue", hex: "#2563EB", border: false },
+  { name: "Navy", hex: "#1E3A8A", border: false },
+  { name: "Red", hex: "#DC2626", border: false },
+  { name: "Burgundy", hex: "#831843", border: false },
+  { name: "Green", hex: "#16A34A", border: false },
+  { name: "Gold", hex: "#D97706", border: false },
+  { name: "Brown", hex: "#78350F", border: false },
+  { name: "Beige", hex: "#E5D9C5", border: true },
+  { name: "Orange", hex: "#EA580C", border: false },
+];
 export const BRAND_MODELS: Record<string, string[]> = {
   "Toyota": ["Vitz", "Yaris", "Passo", "Corolla", "Premio", "Allion", "Fielder", "Harrier", "Land Cruiser", "Land Cruiser Prado", "Rush", "Hilux", "Hiace", "Camry", "RAV4", "Fortuner", "Corolla Cross", "Starlet", "Belta", "Avanza", "Innova", "Coaster", "Dyna", "Tundra", "Highlander", "Crown", "Sienta", "Noah", "Voxy", "Alphard", "Auris", "Axio"],
   "BYD": ["Atto 3", "Seagull", "Dolphin", "Han", "Tang", "Yuan Plus", "Seal", "Song Plus"],

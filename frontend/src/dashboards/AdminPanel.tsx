@@ -3,63 +3,29 @@ import {
   Shield, Check, Users, DollarSign, Award, Star,
   Edit3, Trash2, Plus, Landmark, TrendingUp,
   Car, ClipboardList, UserCheck, Menu, X, Save,
-  Bell, LogOut, ChevronRight, Search, RefreshCw,
+  Bell, LogOut, ChevronRight, ChevronLeft, Search, RefreshCw,
   SlidersHorizontal, Upload, Image as ImageIcon, Sparkles,
   MapPin, Phone, Mail, Eye, Calendar, Gauge, AlertCircle, ArrowUpRight,
   FileText, Download, FileCheck,
-  Sun, Moon
+  Sun, Moon, Activity, Clock, Truck
 } from "lucide-react";
 import { VehicleListing, User, Broker, Lead, Sale, Report } from "../../../shared/types";
 import { vehiclesApi, brokersApi, leadsApi, salesApi, reportsApi, usersApi, settingsApi, uploadApi } from "../lib/api";
 import Logo from "../components/ui/Logo";
 import SEO from "../components/common/SEO";
 import { useStore } from "../store";
+import FleetHealthDashboard from "./admin/FleetHealthDashboard";
 
-const BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Changan", "Mercedes-Benz", "BMW", "Volkswagen", "Ford", "Mitsubishi", "Isuzu", "MG", "Geely", "Chevrolet", "Mazda", "Land Rover", "Lexus", "Jeep", "Peugeot", "Renault", "Foton", "Great Wall", "Haval", "Jetour", "Chery"];
-const COLORS = ["White", "Black", "Silver", "Gray", "Blue", "Red", "Green", "Gold", "Brown", "Beige", "Orange", "Burgundy", "Navy"];
-const LOCATIONS = ["Addis Ababa", "Adama", "Bahir Dar", "Dire Dawa", "Hawassa", "Jimma", "Mekelle", "Gondar", "Debre Zeit", "Shashemene", "Harar", "Dessie"];
+import Combobox from "../components/ui/Combobox";
+import {
+  BRANDS, LOCATIONS, COLORS, BRAND_MODELS, YEARS,
+  ENGINE_SIZES, ENGINE_TYPES, COLOR_DETAILS, CONDITIONS,
+  BODY_TYPES, FUEL_TYPES, TRANSMISSIONS, DRIVE_TYPES,
+  DOOR_OPTIONS, SEAT_OPTIONS
+} from "../lib/constants";
 
-function Combobox({ value, onChange, options, placeholder }: {
-  value: string; onChange: (v: string) => void; options: string[]; placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState(value);
-  const filtered = options.filter(o => o.toLowerCase().includes(input.toLowerCase()));
-
-  useEffect(() => { setInput(value); }, [value]);
-
-  return (
-    <div className="relative">
-      <input
-        type="text"
-        value={input}
-        onChange={e => { setInput(e.target.value); onChange(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 200)}
-        placeholder={placeholder}
-        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] focus:bg-white dark:focus:bg-slate-800 transition"
-      />
-      {open && filtered.length > 0 && (
-        <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-          {filtered.map(o => (
-            <button
-              key={o}
-              type="button"
-              onMouseDown={() => { setInput(o); onChange(o); setOpen(false); }}
-              className={`w-full text-left px-3 py-2 text-sm transition cursor-pointer ${
-                o === input 
-                  ? "bg-emerald-50 dark:bg-emerald-950/40 font-semibold text-[#FF4846]"
-                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
-              }`}
-            >
-              {o}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+const POPULAR_BRANDS = ["Toyota", "BYD", "Hyundai", "Suzuki", "Kia", "Honda", "Nissan", "Mercedes-Benz"];
+const POPULAR_LOCATIONS = ["Addis Ababa", "Hawassa", "Adama", "Bahir Dar", "Dire Dawa", "Bishoftu"];
 
 interface AdminPanelProps {
   onNotify: (msg: string, type: "success" | "error" | "info") => void;
@@ -236,6 +202,21 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+
+  // Live real-time clock for header matching inspiration
+  const [headerTime, setHeaderTime] = useState("");
+  const [headerDate, setHeaderDate] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setHeaderTime(now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }));
+      setHeaderDate(now.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   interface NotificationItem {
     id: string; type: "listing" | "broker" | "report" | "system" | "inquiry";
@@ -607,9 +588,9 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const totalCommission = sales.reduce((sum, s) => sum + s.commission, 0);
   const totalRevenue = sales.reduce((sum, s) => sum + s.salePrice, 0);
 
-  if (loading) {
+  if (loading && (!adminUser || adminUser.role !== "admin")) {
     return (
-      <div className="flex items-center justify-center py-32">
+      <div className="h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-[#0C0D12]">
         <div className="text-center space-y-3">
           <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Loading Admin Panel...</p>
@@ -666,46 +647,84 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   ];
 
   const sidebar = (
-    <aside className={`${sidebarCollapsed ? "w-20" : "w-64"} shrink-0 bg-slate-950 border-r border-slate-900 h-full flex flex-col transition-all duration-300 relative text-slate-300 shadow-2xl`}>
+    <aside className={`${sidebarCollapsed ? "w-20" : "w-64"} shrink-0 bg-white dark:bg-[#0C0D12] border-r border-slate-200 dark:border-white/[0.06] h-full flex flex-col transition-all duration-300 relative text-slate-700 dark:text-slate-300 shadow-xl z-30 overflow-x-hidden select-none`}>
+      {/* Top Brand Header */}
+      <div className={`p-3.5 sm:p-4 border-b border-slate-200/80 dark:border-white/[0.06] flex items-center min-w-0 overflow-hidden ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
+        <div className="min-w-0 overflow-hidden shrink">
+          <Logo size="sm" iconOnly={sidebarCollapsed} />
+        </div>
+        {!sidebarCollapsed && (
+          <span className="shrink-0 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-orange-500/10 text-[#F97316] border border-orange-500/20">
+            Admin
+          </span>
+        )}
+      </div>
+
       {/* Navigation */}
-      <nav className="flex-1 p-3 sm:p-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 p-2.5 sm:p-3 space-y-1 overflow-y-auto overflow-x-hidden no-scrollbar">
         {navItems.map(item => {
           const isActive = adminTab === item.key;
           return (
             <button
               key={item.key}
               onClick={() => { setAdminTab(item.key); setSidebarOpen(false); }}
-              className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-0" : "gap-3.5 px-4"} py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer group relative ${
+              className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"} py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer group relative overflow-hidden ${
                 isActive
-                  ? "bg-[#FF4846] text-white shadow-md shadow-emerald-500/20 font-black"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
+                  ? "bg-[#F97316] text-white shadow-lg shadow-orange-500/25 font-black"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]"
               }`}
-              title={sidebarCollapsed ? item.label : undefined}
+              title={item.label}
             >
               {/* Active left border indicator */}
               {isActive && (
                 <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-r-md" />
               )}
-              <item.icon size={16} className={`transition-transform duration-200 group-hover:scale-110 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`} />
+              <item.icon size={16} className={`transition-transform duration-200 group-hover:scale-110 shrink-0 ${isActive ? "text-white" : "text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white"}`} />
               {!sidebarCollapsed && (
-                <span className="flex-1 text-left">{item.label}</span>
+                <span className="flex-1 text-left truncate">{item.label}</span>
               )}
               {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
-                  isActive ? "bg-white/20 text-white" : "bg-[#FF4846] text-white"
+                <span className={`shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
+                  isActive ? "bg-white/20 text-white" : "bg-[#F97316] text-white"
                 }`}>{item.badge}</span>
-              )}
-              {/* Tooltip for collapsed view */}
-              {sidebarCollapsed && (
-                <div className="absolute left-full ml-4 px-3 py-2 bg-slate-950 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg border border-slate-800 pointer-events-none z-50">
-                  {item.label} {item.badge ? `(${item.badge})` : ""}
-                </div>
               )}
             </button>
           );
         })}
       </nav>
 
+      {/* Bottom Utilities */}
+      <div className="p-2.5 sm:p-3 border-t border-slate-200/80 dark:border-white/[0.06] space-y-1 overflow-hidden">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"} py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer overflow-hidden`}
+          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {theme === "dark" ? <Sun size={16} className="text-amber-400 shrink-0" /> : <Moon size={16} className="text-slate-600 shrink-0" />}
+          {!sidebarCollapsed && <span className="truncate">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className={`w-full hidden lg:flex items-center ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"} py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition cursor-pointer overflow-hidden`}
+          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <ChevronLeft size={16} className={`shrink-0 transition-transform duration-300 ${sidebarCollapsed ? "rotate-180" : ""}`} />
+          {!sidebarCollapsed && <span className="truncate">Collapse Menu</span>}
+        </button>
+
+        <button
+          type="button"
+          onClick={onLogout}
+          className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"} py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer overflow-hidden`}
+          title="Sign Out"
+        >
+          <LogOut size={16} className="shrink-0" />
+          {!sidebarCollapsed && <span className="truncate">Sign Out</span>}
+        </button>
+      </div>
     </aside>
   );
 
@@ -732,18 +751,22 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   }
 
   return (
-    <div className="flex font-sans text-slate-800 dark:text-slate-100 h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19] relative transition-colors">
-      <SEO title="Admin Control Center — Arif Car Sell" noIndex={true} />
+    <div className="flex font-sans text-slate-800 dark:text-slate-100 h-screen w-screen overflow-hidden bg-[#F8FAFC] dark:bg-[#0C0D12] relative transition-colors">
+      <SEO title="Admin Command Center — Arif Car Sell" noIndex={true} />
+
+      {/* Warm Ambient Background Aura Glows matching Dribbble inspiration */}
+      <div className="fixed top-0 right-0 w-[550px] h-[350px] bg-gradient-to-b from-orange-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none z-0" />
+      <div className="fixed bottom-0 left-1/4 w-[400px] h-[300px] bg-orange-600/5 blur-3xl pointer-events-none z-0" />
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:block h-full shrink-0">
+      <div className="hidden lg:block h-full shrink-0 overflow-x-hidden">
         {sidebar}
       </div>
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <div className="absolute left-0 top-0 h-full">
             {sidebar}
           </div>
@@ -751,125 +774,98 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       )}
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden">
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
 
-        {/* ── Unified Top Header Bar ─────────────────────────────────────────── */}
-        <div className="shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-0 flex items-center justify-between h-14 sm:h-16 shadow-xs transition-colors z-20">
-          {/* Left: Mobile toggle + Breadcrumb + Page Title */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* ── Unified Top Header Bar (Inspired by Fleet Health Dribbble shot) ─────────────────────────── */}
+        <div className="shrink-0 bg-white/95 dark:bg-[#111319]/95 backdrop-blur-md border-b border-slate-200 dark:border-white/[0.08] px-3 sm:px-6 py-0 flex items-center justify-between h-14 sm:h-16 shadow-xs transition-colors z-20">
+          {/* Left: Mobile toggle + Brand Icon + Title + Live Status Badge */}
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
             {/* Mobile sidebar toggle */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer shrink-0 active:scale-95"
+              className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] rounded-xl transition cursor-pointer shrink-0 active:scale-95"
               aria-label="Toggle navigation menu"
             >
               {sidebarOpen ? <X size={19} /> : <Menu size={19} />}
             </button>
 
-            {/* Admin brand and desktop sidebar collapse */}
-            <div className="hidden lg:flex items-center gap-3 shrink-0">
-              <Logo size="sm" />
-              <span className="hidden xl:inline text-[9px] font-black uppercase text-[#FF4846] tracking-widest">Admin Panel</span>
-              <button
-                type="button"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                title={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
-                aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
-              >
-                {sidebarCollapsed ? <Menu size={16} /> : <X size={16} />}
-              </button>
+            {/* Platform Brand Icon */}
+            <div className="shrink-0 flex items-center">
+              <Logo size="sm" iconOnly={true} />
             </div>
 
-            {/* Breadcrumb */}
-            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0">
-              <Shield size={11} className="text-[#FF4846]" />
-              <span>Admin</span>
-              <ChevronRight size={10} />
-              <span className="text-slate-600 dark:text-slate-300">
-                {adminTab === "overview" && "Overview"}
-                {adminTab === "notifications" && "Notifications"}
-                {adminTab === "listings" && "Listings"}
-                {adminTab === "brokers" && "Brokers"}
-                {adminTab === "buyers" && "Buyers"}
-                {adminTab === "commissions" && "Commissions"}
-                {adminTab === "reports" && "Reports"}
-                {adminTab === "users" && "Members"}
-                {adminTab === "settings" && "Hero & Settings"}
-              </span>
-            </div>
-
-            <div className="hidden sm:block w-px h-5 bg-slate-200 dark:bg-slate-800" />
-
-            {/* Page title */}
+            {/* Title / Tab Name */}
             <div className="min-w-0">
-              <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight truncate">
-                {adminTab === "overview" && "Dashboard Overview"}
+              <h1 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate leading-tight">
+                {adminTab === "overview" && "Marketplace Overview"}
                 {adminTab === "notifications" && "Notification Center"}
                 {adminTab === "listings" && "Vehicle Listings"}
-                {adminTab === "brokers" && "Broker Management"}
+                {adminTab === "brokers" && "Broker Network"}
                 {adminTab === "buyers" && "Buyer Inquiries"}
-                {adminTab === "commissions" && "Commission & Revenue"}
-                {adminTab === "reports" && "Trust & Safety Reports"}
-                {adminTab === "users" && "Member Management"}
-                {adminTab === "settings" && "Hero Banner & Settings"}
-              </h2>
-              <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest hidden sm:block">
-                {adminTab === "overview" && "Analytics and recent activity"}
-                {adminTab === "notifications" && "System alerts, updates, and activity notifications"}
-                {adminTab === "listings" && "Approve, edit, and manage all vehicles"}
-                {adminTab === "brokers" && "Verify and monitor broker performance"}
-                {adminTab === "buyers" && "Track buyer inquiries and lead status"}
-                {adminTab === "commissions" && "Revenue reports and commission tracking"}
-                {adminTab === "reports" && "Review and moderate user reports"}
-                {adminTab === "users" && "All registered platform members"}
-                {adminTab === "settings" && "Homepage hero background image and appearance"}
+                {adminTab === "commissions" && "Commissions & Revenue"}
+                {adminTab === "reports" && "Safety & Moderation"}
+                {adminTab === "users" && "Platform Members"}
+                {adminTab === "settings" && "Hero & Platform Settings"}
+              </h1>
+              <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
+                {adminTab === "overview" && "Real-time listings, broker activity & sales performance"}
+                {adminTab === "listings" && "Approve, inspect and moderate vehicle listings"}
+                {adminTab === "brokers" && "Verified automotive broker partners"}
+                {adminTab === "buyers" && "Buyer leads, test drives and inquiries"}
+                {adminTab === "commissions" && "Revenue overview and commission payout"}
+                {adminTab === "reports" && "Review user flags and dispute reports"}
+                {adminTab === "users" && "Platform buyers, sellers and brokers"}
+                {adminTab === "settings" && "Hero banner background and branding"}
+                {adminTab === "notifications" && "System alerts and urgent notifications"}
               </p>
             </div>
           </div>
 
-          {/* Right: Refresh + Quick Action + Notification Bell + Profile */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Quick Add button for Listings */}
-            {adminTab === "listings" && (
-              <>
-                <button
-                  onClick={handleOpenCreate}
-                  className="hidden sm:flex items-center gap-1.5 bg-[#FF4846] hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer shadow-sm active:scale-95"
-                >
-                  <Plus size={13} /> Add Listing
-                </button>
-                <button
-                  onClick={handleOpenCreate}
-                  className="sm:hidden p-2 rounded-xl bg-[#FF4846] text-white active:scale-95 transition shadow-xs"
-                  title="Add Listing"
-                >
-                  <Plus size={16} />
-                </button>
-              </>
-            )}
+          {/* Right: Live Clock/Date + Add Vehicle + Refresh + Theme + Bell + Profile */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* Real-time Clock & Date Chip */}
+            <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#161822] border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Clock size={13} className="text-[#F97316]" />
+              <span className="font-mono text-[11px] font-bold text-slate-900 dark:text-white">
+                {headerTime || "05:22 AM"}
+              </span>
+              <span className="text-slate-300 dark:text-slate-600">|</span>
+              <Calendar size={13} className="text-slate-400" />
+              <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                {headerDate || "May 4"}
+              </span>
+            </div>
+
+            {/* Quick Add Vehicle button */}
+            <button
+              onClick={handleOpenCreate}
+              className="hidden sm:flex items-center gap-1.5 bg-[#F97316] hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer shadow-md shadow-orange-500/20 active:scale-95"
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              <span>Add Vehicle</span>
+            </button>
 
             {/* Refresh */}
             <button
               onClick={fetchData}
-              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition cursor-pointer text-slate-400 hover:text-slate-800 dark:hover:text-white"
               title="Refresh data"
             >
               <RefreshCw size={15} />
             </button>
 
-            {/* Header Theme Toggle */}
+            {/* Theme Toggle (Light / Dark Mode) */}
             <button
               type="button"
               onClick={toggleTheme}
-              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-[#161822] hover:bg-slate-200 dark:hover:bg-[#1F2230] border border-slate-200 dark:border-white/[0.08] transition cursor-pointer text-slate-700 dark:text-slate-300 flex items-center justify-center active:scale-95 shadow-xs"
               title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
               aria-label="Toggle theme mode"
             >
               {theme === "dark" ? (
-                <Sun size={17} className="text-amber-400 hover:rotate-45 transition-transform" />
+                <Sun size={16} className="text-amber-400 hover:rotate-45 transition-transform" />
               ) : (
-                <Moon size={17} className="text-slate-600 dark:text-slate-300 hover:-rotate-12 transition-transform" />
+                <Moon size={16} className="text-slate-700 hover:-rotate-12 transition-transform" />
               )}
             </button>
 
@@ -877,9 +873,9 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             <div className="relative">
               <button
                 onClick={() => { setShowNotifDropdown(!showNotifDropdown); setShowProfileDropdown(false); }}
-                className="relative p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition cursor-pointer text-slate-500 dark:text-slate-400"
               >
-                <Bell size={17} className="text-slate-500" />
+                <Bell size={16} />
                 {notifications.some(n => n.unread) && (
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
                 )}
@@ -887,31 +883,31 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               {showNotifDropdown && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowNotifDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-40 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-850/50">
-                      <p className="text-xs font-black uppercase text-slate-700">Notifications</p>
-                      <span className="text-[9px] font-black bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full uppercase">
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#161822] border border-slate-200 dark:border-white/[0.08] rounded-2xl shadow-2xl z-40 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
+                      <p className="text-xs font-black uppercase text-slate-700 dark:text-slate-300">Notifications</p>
+                      <span className="text-[9px] font-black bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 px-2 py-0.5 rounded-full uppercase">
                         {notifications.filter(n => n.unread).length} New
                       </span>
                     </div>
-                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-50">
+                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-50 dark:divide-white/[0.04]">
                       {notifications.map(n => (
-                        <div key={n.id} className={`px-4 py-3 hover:bg-slate-50 transition cursor-pointer ${n.unread ? "bg-blue-50/40" : ""}`}>
+                        <div key={n.id} className={`px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition cursor-pointer ${n.unread ? "bg-blue-50/40 dark:bg-blue-950/20" : ""}`}>
                           <div className="flex items-start gap-2.5">
-                            <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-blue-600" : "bg-slate-200"}`} />
+                            <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-orange-500" : "bg-slate-300 dark:bg-slate-700"}`} />
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-slate-700 font-bold leading-snug">{n.title}</p>
-                              <p className="text-[10px] text-slate-500 mt-0.5">{n.description}</p>
+                              <p className="text-xs text-slate-800 dark:text-slate-200 font-bold leading-snug">{n.title}</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{n.description}</p>
                               <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{n.time}</p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="border-t border-slate-100 dark:border-slate-800 p-3 text-center bg-slate-50 dark:bg-slate-850">
+                    <div className="border-t border-slate-100 dark:border-white/[0.06] p-2.5 text-center bg-slate-50 dark:bg-white/[0.02]">
                       <button
                         onClick={() => { setShowNotifDropdown(false); setAdminTab("notifications"); }}
-                        className="text-xs font-bold text-blue-900 hover:text-blue-700 transition cursor-pointer"
+                        className="text-xs font-bold text-[#F97316] hover:underline transition cursor-pointer"
                       >
                         View All Notifications →
                       </button>
@@ -922,42 +918,54 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             </div>
 
             {/* Divider */}
-            <div className="w-px h-6 bg-slate-200" />
+            <div className="hidden sm:block w-px h-6 bg-slate-200 dark:bg-white/[0.08]" />
 
-            {/* Profile Avatar */}
+            {/* Admin Profile Pill matching Inspiration */}
             <div className="relative">
               <button
                 onClick={() => { setShowProfileDropdown(!showProfileDropdown); setShowNotifDropdown(false); }}
-                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 transition cursor-pointer group"
+                className="flex items-center gap-2 pl-1 sm:pr-2.5 py-1 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition cursor-pointer group"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-700 to-indigo-600 text-white flex items-center justify-center shadow-sm font-black text-xs">
-                  {adminUser?.name?.charAt(0).toUpperCase() || "A"}
-                </div>
+                {adminUser?.avatar ? (
+                  <img
+                    src={adminUser.avatar}
+                    alt={adminUser.name || "Admin"}
+                    className="w-8 h-8 rounded-lg object-cover ring-1 ring-orange-500/30"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F97316] to-amber-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                    {(adminUser?.name || "A").charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div className="hidden md:block text-left">
-                  <p className="text-xs font-bold text-slate-800 leading-none">{adminUser?.name || "Admin"}</p>
-                  <p className="text-[9px] font-black uppercase text-orange-500 tracking-wider">Administrator</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white leading-none">
+                    {adminUser?.name || "Administrator"}
+                  </p>
+                  <p className="text-[9px] font-bold text-[#F97316] mt-0.5 leading-none">
+                    {adminUser?.role === "admin" ? "Super Admin" : "Admin"}
+                  </p>
                 </div>
               </button>
               {showProfileDropdown && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowProfileDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-40 py-2 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 mb-1 bg-slate-50 dark:bg-slate-800/50">
-                      <p className="text-xs font-bold text-slate-800 truncate">{adminUser?.name || "Admin"}</p>
-                      <p className="text-[9px] font-black uppercase tracking-wider text-orange-500 mt-0.5">{adminUser?.email || "admin@platform"}</p>
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#161822] border border-slate-200 dark:border-white/[0.08] rounded-2xl shadow-2xl z-40 py-2 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-white/[0.06] mb-1 bg-slate-50 dark:bg-white/[0.02]">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{adminUser?.name || "Administrator"}</p>
+                      <p className="text-[10px] font-bold text-orange-500 mt-0.5">{adminUser?.email || "admin@arifcarsell.com"}</p>
                     </div>
                     <button
                       onClick={() => { setShowProfileDropdown(false); onNavigate?.("profile"); }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer flex items-center gap-2"
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition cursor-pointer flex items-center gap-2"
                     >
-                      <UserCheck size={12} className="text-slate-400" /> My Profile
+                      <UserCheck size={14} className="text-slate-400" /> My Admin Profile
                     </button>
-                    <div className="border-t border-slate-100 mt-1">
+                    <div className="border-t border-slate-100 dark:border-white/[0.06] mt-1">
                       <button
                         onClick={onLogout}
-                        className="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition cursor-pointer flex items-center gap-2"
+                        className="w-full text-left px-4 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition cursor-pointer flex items-center gap-2"
                       >
-                        <LogOut size={12} /> Sign Out
+                        <LogOut size={14} /> Sign Out
                       </button>
                     </div>
                   </div>
@@ -970,8 +978,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
         {/* ── Scrollable page content ────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-8 pb-28 lg:pb-8">
 
-        {/* Stat Cards Row (visible on overview and listings) */}
-        {(adminTab === "overview" || adminTab === "listings") && (
+        {/* Stat Cards Row (visible on listings) */}
+        {adminTab === "listings" && (
           <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3 mb-6">
             <StatCard label="Total Cars" value={totalCars} icon={Car} accent="text-slate-700" />
             <StatCard label="Active" value={activeCars} icon={Check} accent="text-emerald-600" />
@@ -1092,80 +1100,26 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       )}
 
       {adminTab === "overview" && (
-        <div className="space-y-6">
-          <RevenueChart sales={sales} />
-
-          {/* Recent Activity */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Pending Approvals */}
-            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center gap-2">
-                  <ClipboardList size={14} className="text-amber-500" />
-                  Pending Approvals ({pendingCars})
-                </h4>
-              </div>
-              {vehicles.filter(v => v.status === "pending").length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 font-bold">No pending listings.</div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {vehicles.filter(v => v.status === "pending").slice(0, 5).map(v => (
-                    <div key={v.id} className="flex items-center gap-3 px-5 py-3">
-                      <img src={v.imageUrl} alt="" className="w-12 h-9 object-cover rounded-lg bg-slate-100 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-800 truncate">{v.brand} {v.model} ({v.year})</p>
-                        <p className="text-[10px] text-slate-400 font-bold">{v.location} · {v.price.toLocaleString()} ETB</p>
-                      </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleApprove(v.id)}
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg cursor-pointer shrink-0 transition"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleRejectListing(v.id)}
-                          className="bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg cursor-pointer shrink-0 transition"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Broker Performance */}
-            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <div className="px-5 py-4 border-b border-slate-100">
-                <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center gap-2">
-                  <UserCheck size={14} className="text-indigo-500" />
-                  Broker Performance
-                </h4>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {brokers.map((b, i) => (
-                  <div key={b.id || i} className="flex items-center gap-3 px-5 py-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                      {(b.name || "BR").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800">{b.name || "Broker"}</p>
-                      <p className="text-[10px] text-slate-400 font-bold">{b.listings ?? 0} listings · {b.sales ?? 0} sold</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs font-black text-orange-500">{(b.commission ?? 0).toLocaleString()} ETB</p>
-                      {b.verified
-                        ? <span className="text-[9px] font-black text-emerald-600 uppercase">✓ Verified</span>
-                        : <span className="text-[9px] font-black text-slate-400 uppercase">Unverified</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <FleetHealthDashboard
+          vehicles={vehicles}
+          brokers={brokers}
+          leads={leads}
+          reports={reports}
+          sales={sales}
+          users={users}
+          adminUser={adminUser}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          onNavigateTab={(tab) => setAdminTab(tab as any)}
+          onOpenCreate={handleOpenCreate}
+          onOpenEdit={handleOpenEdit}
+          onApproveListing={handleApprove}
+          onRejectListing={handleRejectListing}
+          onInspectDoc={(vehId, docUrl, docType) => setInspectingDoc({ vehicleId: vehId, docUrl, docType })}
+          onNotify={onNotify}
+          hideHeader={true}
+          isLoading={loading}
+        />
       )}
 
       {/* ── LISTINGS TAB ─────────────────────────────────────────────────────── */}
@@ -1220,7 +1174,20 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
             {/* Mobile App Cards View (md:hidden) */}
             <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60 p-3 space-y-3">
-              {(() => {
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-3 animate-pulse">
+                    <div className="flex gap-3 items-start">
+                      <div className="w-24 h-20 rounded-xl bg-slate-200 dark:bg-white/[0.08] shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="w-32 h-4 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                        <div className="w-24 h-3 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                        <div className="w-16 h-3 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (() => {
                 const paginatedVehicles = filteredVehiclesList.slice((listingPage - 1) * ITEMS_PER_PAGE, listingPage * ITEMS_PER_PAGE);
                 if (paginatedVehicles.length === 0) {
                   return <div className="p-8 text-center text-xs text-slate-400 font-bold">No listings found.</div>;
@@ -1360,7 +1327,26 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
-                  {(() => {
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-16 h-12 rounded-lg bg-slate-200 dark:bg-white/[0.08] shrink-0" />
+                            <div className="space-y-1.5 flex-1">
+                              <div className="w-36 h-4 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                              <div className="w-24 h-3 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4"><div className="w-12 h-4 bg-slate-200 dark:bg-white/[0.08] rounded" /></td>
+                        <td className="p-4"><div className="w-20 h-4 bg-slate-200 dark:bg-white/[0.08] rounded" /></td>
+                        <td className="p-4"><div className="w-24 h-4 bg-slate-200 dark:bg-white/[0.08] rounded" /></td>
+                        <td className="p-4"><div className="w-16 h-6 bg-slate-200 dark:bg-white/[0.08] rounded-full" /></td>
+                        <td className="p-4 text-right"><div className="w-14 h-8 bg-slate-200 dark:bg-white/[0.08] rounded-xl ml-auto" /></td>
+                      </tr>
+                    ))
+                  ) : (() => {
                     const paginatedVehicles = filteredVehiclesList.slice((listingPage - 1) * ITEMS_PER_PAGE, listingPage * ITEMS_PER_PAGE);
                     return paginatedVehicles.map(v => (
                     <tr key={v.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
@@ -2435,125 +2421,296 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
       {/* ── FORM MODAL ───────────────────────────────────────────────────────── */}
       {showFormModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-100 overflow-hidden h-[94vh] sm:h-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn">
+          <div className="bg-white dark:bg-[#0F172A] rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-3xl border border-slate-200 dark:border-slate-800 overflow-hidden h-[94vh] sm:h-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col">
             {/* Mobile Sheet Handle */}
-            <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 shrink-0">
-              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+            <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-slate-50 dark:bg-slate-900/60 shrink-0">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
             </div>
 
-            <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-slate-50 shrink-0">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Landmark size={16} className="text-[#FF4846]" />
-                {editingVehicle ? "Edit Listing" : "Add New Listing"}
-              </h3>
+            <div className="flex justify-between items-center px-4 sm:px-6 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#FF4846]/10 text-[#FF4846] flex items-center justify-center">
+                  <Car size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    {editingVehicle ? "Edit Vehicle Listing" : "Add New Vehicle Listing"}
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-medium">Platform Admin Fleet Management</p>
+                </div>
+              </div>
               <button 
                 type="button" 
                 onClick={() => setShowFormModal(false)} 
-                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer transition"
               >
-                <X size={18} />
+                <X size={17} />
               </button>
             </div>
             <form onSubmit={handleSaveListing} className="flex flex-col flex-1 overflow-hidden">
               <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
               {/* ── Basic Info ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Basic Information</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Brand *</label>
-                    <Combobox value={brand} onChange={setBrand} options={BRANDS} placeholder="Select or type brand..." />
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF4846] mb-3 flex items-center gap-1.5">
+                  <Sparkles size={12} />
+                  <span>Basic Information</span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="space-y-1 sm:col-span-1">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Brand / Make *</label>
+                    <Combobox
+                      value={brand}
+                      onChange={(val) => {
+                        setBrand(val);
+                        const available = BRAND_MODELS[val] || [];
+                        if (!available.includes(model)) setModel("");
+                      }}
+                      options={BRANDS}
+                      placeholder="Select brand..."
+                    />
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {POPULAR_BRANDS.slice(0, 5).map(b => (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => {
+                            setBrand(b);
+                            const available = BRAND_MODELS[b] || [];
+                            if (!available.includes(model)) setModel("");
+                          }}
+                          className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold cursor-pointer transition ${
+                            brand === b
+                              ? "bg-[#FF4846] text-white"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                          }`}
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Model *</label>
-                    <Combobox value={model} onChange={setModel} options={["Yaris", "Vitz", "Passo", "Corolla", "Premio", "Allion", "Fielder", "Harrier", "Land Cruiser", "Prado", "Rush", "Hilux", "Hiace", "Camry", "RAV4", "Atto 3", "Seagull", "Dolphin", "Han", "Tucson", "Elantra", "Santa Fe", "Accent", "Grand i10", "Creta", "Swift", "Dzire", "Alto", "Ertiga", "Vitara", "Jimny", "Sportage", "Sorento", "Picanto", "Rio", "Cerato", "Fit", "Civic", "CR-V", "Vezel", "Grace", "Freed", "Note", "X-Trail", "Patrol", "Sunny", "Juke", "C-Class", "E-Class", "Golf", "Passat", "Polo", "Tiguan", "Ranger", "L200", "D-Max"]} placeholder="Select or type model..." />
+
+                  <div className="space-y-1 sm:col-span-1">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Model *</label>
+                    <Combobox
+                      value={model}
+                      onChange={setModel}
+                      options={BRAND_MODELS[brand] || []}
+                      placeholder={brand ? `Select ${brand} model...` : "Select brand first..."}
+                    />
+                    {(BRAND_MODELS[brand] || []).length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {(BRAND_MODELS[brand] || []).slice(0, 4).map(m => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setModel(m)}
+                            className={`text-[9px] px-1.5 py-0.5 rounded-md font-semibold cursor-pointer transition ${
+                              model === m
+                                ? "bg-[#FF4846] text-white"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Year</label>
-                    <input type="number" value={year} onChange={e => setYear(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Condition</label>
-                    <select value={condition} onChange={e => setCondition(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {["New", "Used", "Imported", "Damaged"].map(o => <option key={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Manufacture Year *</label>
+                    <select
+                      value={year}
+                      onChange={e => {
+                        const yr = +e.target.value;
+                        setYear(yr);
+                        if (regYear < yr) setRegYear(yr);
+                      }}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-semibold"
+                    >
+                      {YEARS.map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Body Type</label>
-                    <select value={bodyType} onChange={e => setBodyType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {["SUV", "Sedan", "Hatchback", "Pickup", "Truck", "Van", "Coupe", "Convertible"].map(o => <option key={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Condition</label>
+                    <select
+                      value={condition}
+                      onChange={e => setCondition(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {CONDITIONS.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Chassis Number</label>
-                    <input type="text" value={chassisNumber} onChange={e => setChassisNumber(e.target.value)} placeholder="VIN / Chassis #" className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Body Type</label>
+                    <select
+                      value={bodyType}
+                      onChange={e => setBodyType(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {BODY_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Chassis / VIN Number</label>
+                    <input
+                      type="text"
+                      value={chassisNumber}
+                      onChange={e => setChassisNumber(e.target.value.toUpperCase())}
+                      placeholder="VIN / Chassis #"
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-mono"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* ── Specs ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Specifications</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF4846] mb-3 flex items-center gap-1.5">
+                  <Gauge size={12} />
+                  <span>Specifications & Location</span>
+                </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Mileage (km)</label>
-                    <input type="number" value={mileage} onChange={e => setMileage(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Mileage (km)</label>
+                    <input
+                      type="number"
+                      value={mileage}
+                      onChange={e => setMileage(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold"
+                    />
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Fuel Type</label>
-                    <select value={fuelType} onChange={e => setFuelType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {["Benzine", "Diesel", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Fuel Type</label>
+                    <select
+                      value={fuelType}
+                      onChange={e => setFuelType(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {FUEL_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Transmission</label>
-                    <select value={transmission} onChange={e => setTransmission(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {["Automatic", "Manual"].map(o => <option key={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Transmission</label>
+                    <select
+                      value={transmission}
+                      onChange={e => setTransmission(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {TRANSMISSIONS.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Drive Type</label>
-                    <select value={driveType} onChange={e => setDriveType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {["4WD", "AWD", "FWD", "RWD"].map(o => <option key={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Drive Type</label>
+                    <select
+                      value={driveType}
+                      onChange={e => setDriveType(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {DRIVE_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Color</label>
-                    <Combobox value={color} onChange={setColor} options={COLORS} placeholder="Select or type color..." />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Exterior Color</label>
+                    <div className="relative">
+                      <select
+                        value={color}
+                        onChange={e => setColor(e.target.value)}
+                        className="w-full text-sm pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                      >
+                        <option value="">Select Color...</option>
+                        {COLOR_DETAILS.map(c => (
+                          <option key={c.name} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                      <span
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 pointer-events-none"
+                        style={{ backgroundColor: COLOR_DETAILS.find(c => c.name === color)?.hex || "#FFFFFF" }}
+                      />
+                    </div>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Doors</label>
-                    <select value={doors} onChange={e => setDoors(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {[2, 3, 4, 5].map(o => <option key={o} value={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Doors</label>
+                    <select
+                      value={doors}
+                      onChange={e => setDoors(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {DOOR_OPTIONS.map(o => <option key={o} value={o}>{o} Doors</option>)}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Seats</label>
-                    <select value={seats} onChange={e => setSeats(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {[2, 4, 5, 6, 7, 8].map(o => <option key={o} value={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Seats</label>
+                    <select
+                      value={seats}
+                      onChange={e => setSeats(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {SEAT_OPTIONS.map(o => <option key={o} value={o}>{o} Seats</option>)}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Engine</label>
-                    <input type="text" value={engineSize} onChange={e => setEngineSize(e.target.value)} placeholder="e.g. 3.5L" className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Engine Type</label>
-                    <select value={engineType} onChange={e => setEngineType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {["V4", "V6", "V8", "V12", "Electric", "Hybrid"].map(o => <option key={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Engine Size</label>
+                    <select
+                      value={engineSize}
+                      onChange={e => setEngineSize(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      <option value="">Select Engine...</option>
+                      {ENGINE_SIZES.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Horsepower (HP)</label>
-                    <input type="number" value={horsepower} onChange={e => setHorsepower(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Engine Type</label>
+                    <select
+                      value={engineType}
+                      onChange={e => setEngineType(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-medium"
+                    >
+                      {ENGINE_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Reg. Year</label>
-                    <input type="number" value={regYear} onChange={e => setRegYear(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Horsepower (HP)</label>
+                    <input
+                      type="number"
+                      value={horsepower}
+                      onChange={e => setHorsepower(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold"
+                    />
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Location *</label>
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Registration Year</label>
+                    <select
+                      value={regYear}
+                      onChange={e => setRegYear(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-semibold"
+                    >
+                      {YEARS.map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Location *</label>
                     <Combobox value={location} onChange={setLocation} options={LOCATIONS} placeholder="Select or type location..." />
                   </div>
                 </div>
@@ -2561,44 +2718,70 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
               {/* ── Pricing & Commission ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Pricing & Commission</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF4846] mb-3 flex items-center gap-1.5">
+                  <DollarSign size={12} />
+                  <span>Pricing & Commission</span>
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Price (ETB) *</label>
-                    <input type="number" required value={price} onChange={e => setPrice(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Price (ETB) *</label>
+                    <input
+                      type="number"
+                      required
+                      value={price}
+                      onChange={e => setPrice(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-black"
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">MSRP (ETB)</label>
-                    <input type="number" value={originalPrice} onChange={e => setOriginalPrice(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">MSRP / Original Price</label>
+                    <input
+                      type="number"
+                      value={originalPrice}
+                      onChange={e => setOriginalPrice(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846]"
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Commission Type</label>
-                    <select value={commissionType} onChange={e => setCommissionType(e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      {["percentage", "fixed"].map(o => <option key={o}>{o}</option>)}
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Commission Type</label>
+                    <select
+                      value={commissionType}
+                      onChange={e => setCommissionType(e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer"
+                    >
+                      {["percentage", "fixed"].map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{commissionType === "percentage" ? "Rate (%)" : "Amount (ETB)"}</label>
-                    <input type="number" value={commissionRate} onChange={e => setCommissionRate(+e.target.value)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{commissionType === "percentage" ? "Rate (%)" : "Amount (ETB)"}</label>
+                    <input
+                      type="number"
+                      value={commissionRate}
+                      onChange={e => setCommissionRate(+e.target.value)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846]"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* ── Images ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Photos</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF4846] mb-3 flex items-center gap-1.5">
+                  <ImageIcon size={12} />
+                  <span>Photos & Media</span>
+                </p>
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-3">
                     {uploadedImages.map((img, i) => (
-                      <div key={i} className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border border-slate-200 group">
+                      <div key={i} className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 group shadow-xs">
                         <img src={img} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold cursor-pointer">×</button>
-                        {i === 0 && <span className="absolute bottom-1 left-1 bg-blue-900/80 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Main</span>}
+                        <button type="button" onClick={() => setUploadedImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold cursor-pointer">×</button>
+                        {i === 0 && <span className="absolute bottom-1 left-1 bg-[#FF4846] text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">Main</span>}
                       </div>
                     ))}
-                    <label className="w-20 h-20 md:w-24 md:h-24 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 bg-slate-50 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors">
-                      <Plus size={20} className="text-slate-400" />
-                      <span className="text-[8px] font-bold text-slate-400 uppercase">Add</span>
+                    <label className="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-[#FF4846] bg-slate-50 dark:bg-slate-800/40 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors group">
+                      <Plus size={20} className="text-slate-400 group-hover:text-[#FF4846] transition" />
+                      <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-[#FF4846] uppercase">Add Photo</span>
                       <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
                         const files = e.target.files;
                         if (!files) return;
@@ -2612,29 +2795,36 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     </label>
                   </div>
                   <div className="flex items-center gap-3">
-                    <p className="text-[11px] text-slate-400">Upload images or enter a URL:</p>
-                    <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className="flex-1 text-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400" />
+                    <p className="text-[11px] text-slate-400 whitespace-nowrap">Image URL:</p>
+                    <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className="flex-1 text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846]" />
                   </div>
                 </div>
               </div>
 
               {/* ── Status & Flags ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Status & Flags</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF4846] mb-3 flex items-center gap-1.5">
+                  <Shield size={12} />
+                  <span>Status & Visibility</span>
+                </p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Listing Status</label>
-                    <select value={status} onChange={e => setStatus(e.target.value as any)} className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400">
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Listing Status</label>
+                    <select
+                      value={status}
+                      onChange={e => setStatus(e.target.value as any)}
+                      className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] cursor-pointer font-bold"
+                    >
+                      <option value="pending">Pending Verification</option>
+                      <option value="approved">Approved & Active</option>
                       <option value="sold">Sold</option>
                     </select>
                   </div>
                   <div className="space-y-1 flex items-end pb-1">
-                    <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
-                      <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="rounded border-slate-300 text-orange-500" />
-                      <Star size={13} className="text-orange-400" />
-                      Featured Listing
+                    <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 w-full">
+                      <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="rounded border-slate-300 text-[#FF4846] focus:ring-[#FF4846]" />
+                      <Star size={14} className="text-amber-400 fill-amber-400" />
+                      <span>Featured On Homepage</span>
                     </label>
                   </div>
                 </div>
@@ -2642,27 +2832,42 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
 
               {/* ── Description & Notes ── */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">Description & Notes</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#FF4846] mb-3 flex items-center gap-1.5">
+                  <FileText size={12} />
+                  <span>Description & Internal Notes</span>
+                </p>
                 <div className="space-y-3">
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Vehicle history, condition, imported features, tax status..." className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-blue-400 resize-none" />
-                  <textarea value={adminNotes} onChange={e => setAdminNotes(e.target.value)} rows={2} placeholder="Internal admin notes..." className="w-full text-sm px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 focus:outline-none focus:border-amber-400 resize-none" />
+                  <textarea
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    rows={3}
+                    placeholder="Vehicle history, condition, imported features, customs tax status..."
+                    className="w-full text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] resize-none"
+                  />
+                  <textarea
+                    value={adminNotes}
+                    onChange={e => setAdminNotes(e.target.value)}
+                    rows={2}
+                    placeholder="Internal admin notes (inspection flags, broker agreements, verification remarks)..."
+                    className="w-full text-sm p-3 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 text-slate-900 dark:text-amber-200 focus:outline-none focus:border-amber-400 resize-none"
+                  />
                 </div>
               </div>
 
               </div>
 
               {/* Sticky Safe-Area Action Bar */}
-              <div className="p-3.5 sm:p-4 bg-white/95 backdrop-blur-sm border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+              <div className="p-3.5 sm:p-4 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-sm border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0">
                 <button 
                   type="button" 
                   onClick={() => setShowFormModal(false)} 
-                  className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+                  className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="flex items-center gap-1.5 text-xs sm:text-sm bg-blue-900 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl shadow-md active:scale-95 transition cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs sm:text-sm bg-[#FF4846] hover:bg-[#E63D3B] text-white font-black px-6 py-2.5 rounded-xl shadow-md shadow-[#FF4846]/20 active:scale-95 transition cursor-pointer"
                 >
                   <Save size={15} /> {editingVehicle ? "Save Changes" : "Create Listing"}
                 </button>
@@ -2970,7 +3175,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
       {/* ── NATIVE MOBILE APP BOTTOM NAVIGATION BAR ─────────────────────────── */}
       <nav 
         aria-label="Mobile Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 shadow-[0_-8px_25px_rgba(0,0,0,0.08)]"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#111319]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/[0.08] px-2 py-1.5 shadow-[0_-8px_25px_rgba(0,0,0,0.12)]"
       >
         <div className="grid grid-cols-5 items-center max-w-lg mx-auto">
           {/* 1. Overview */}
@@ -2979,35 +3184,35 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             onClick={() => { setAdminTab("overview"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer ${
               adminTab === "overview" && !mobileMoreOpen
-                ? "text-[#FF4846] font-bold"
+                ? "text-[#F97316] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
-            <div className={`p-1 rounded-lg transition ${adminTab === "overview" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+            <div className={`p-1 rounded-lg transition ${adminTab === "overview" && !mobileMoreOpen ? "bg-orange-500/10 dark:bg-orange-500/20" : ""}`}>
               <Landmark size={20} />
             </div>
             <span className="text-[10px] tracking-tight mt-0.5">Overview</span>
           </button>
 
-          {/* 2. Listings */}
+          {/* 2. Fleet / Listings */}
           <button
             type="button"
             onClick={() => { setAdminTab("listings"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               adminTab === "listings" && !mobileMoreOpen
-                ? "text-[#FF4846] font-bold"
+                ? "text-[#F97316] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
-            <div className={`p-1 rounded-lg transition relative ${adminTab === "listings" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+            <div className={`p-1 rounded-lg transition relative ${adminTab === "listings" && !mobileMoreOpen ? "bg-orange-500/10 dark:bg-orange-500/20" : ""}`}>
               <Car size={20} />
               {vehicles.filter(v => v.status === "pending").length > 0 && (
-                <span className="absolute -top-1 -right-1.5 bg-amber-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                <span className="absolute -top-1 -right-1.5 bg-[#F97316] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-[#111319]">
                   {vehicles.filter(v => v.status === "pending").length}
                 </span>
               )}
             </div>
-            <span className="text-[10px] tracking-tight mt-0.5">Listings</span>
+            <span className="text-[10px] tracking-tight mt-0.5">Fleet</span>
           </button>
 
           {/* 3. Center Action Floating Button: + Add Car */}
@@ -3016,7 +3221,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
               type="button"
               onClick={handleOpenCreate}
               aria-label="Add New Car Listing"
-              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#FF4846] to-emerald-400 text-white shadow-lg shadow-[#FF4846]/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-slate-950"
+              className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#EA580C] to-[#F97316] text-white shadow-lg shadow-orange-500/35 flex items-center justify-center active:scale-95 transition-transform cursor-pointer border-2 border-white dark:border-[#111319]"
             >
               <Plus size={24} strokeWidth={2.5} />
             </button>
@@ -3028,14 +3233,14 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             onClick={() => { setAdminTab("brokers"); setMobileMoreOpen(false); }}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               adminTab === "brokers" && !mobileMoreOpen
-                ? "text-[#FF4846] font-bold"
+                ? "text-[#F97316] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
-            <div className={`p-1 rounded-lg transition relative ${adminTab === "brokers" && !mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+            <div className={`p-1 rounded-lg transition relative ${adminTab === "brokers" && !mobileMoreOpen ? "bg-orange-500/10 dark:bg-orange-500/20" : ""}`}>
               <UserCheck size={20} />
               {brokers.filter(b => !b.verified).length > 0 && (
-                <span className="absolute -top-1 -right-1.5 bg-blue-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                <span className="absolute -top-1 -right-1.5 bg-blue-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-[#111319]">
                   {brokers.filter(b => !b.verified).length}
                 </span>
               )}
@@ -3049,14 +3254,14 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
             onClick={() => setMobileMoreOpen(true)}
             className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition cursor-pointer relative ${
               mobileMoreOpen || ["buyers", "commissions", "reports", "users", "settings", "notifications"].includes(adminTab)
-                ? "text-[#FF4846] font-bold"
+                ? "text-[#F97316] font-bold"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
-            <div className={`p-1 rounded-lg transition relative ${mobileMoreOpen ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}`}>
+            <div className={`p-1 rounded-lg transition relative ${mobileMoreOpen ? "bg-orange-500/10 dark:bg-orange-500/20" : ""}`}>
               <SlidersHorizontal size={20} />
               {(reports.filter(r => r.status === "pending").length > 0 || unreadCount > 0) && (
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white dark:border-slate-950" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white dark:border-[#111319]" />
               )}
             </div>
             <span className="text-[10px] tracking-tight mt-0.5">More</span>
@@ -3071,7 +3276,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           onClick={() => setMobileMoreOpen(false)}
         >
           <div 
-            className="w-full bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
+            className="w-full bg-white dark:bg-[#161822] rounded-t-3xl border-t border-slate-200 dark:border-white/[0.08] shadow-2xl p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
             {/* Sheet Handle */}

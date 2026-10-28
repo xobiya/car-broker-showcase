@@ -74,6 +74,14 @@ export const testDriveSchema = z.object({
   message: z.string().optional(),
 });
 
+export const testDriveStatusSchema = z.object({
+  status: z.enum(["pending", "confirmed", "completed", "cancelled"]),
+});
+
+export const leadStatusSchema = z.object({
+  status: z.enum(["new", "contacted", "negotiating", "sold", "cancelled"]),
+});
+
 export const reportSchema = z.object({
   reporter_name: z.string().min(1, "Name is required"),
   target_type: z.enum(["listing", "broker", "user"]),
