@@ -47,7 +47,7 @@ const roles = [
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { signIn, register } = useSession();
+  const { signIn, register, signInWithGoogle } = useSession();
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const params = useLocalSearchParams<{ returnTo?: string; tab?: string }>();
@@ -62,6 +62,12 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Google Auth Modal & State
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [googleEmailInput, setGoogleEmailInput] = useState('');
+  const [googleNameInput, setGoogleNameInput] = useState('');
+  const [googleBusy, setGoogleBusy] = useState(false);
 
   // Scroll reference to ensure active input stays above keyboard
   const scrollViewRef = useRef<ScrollView>(null);
@@ -162,16 +168,7 @@ export default function LoginScreen() {
         await signIn(email.trim(), password);
       }
 
-      const returnTo = params.returnTo;
-      const safeRoute =
-        returnTo &&
-        (returnTo.startsWith('/vehicles/') ||
-          returnTo.startsWith('/(tabs)/') ||
-          returnTo.startsWith('/listing-form') ||
-          returnTo.startsWith('/brokers/'))
-          ? (returnTo as Href)
-          : '/(tabs)';
-      router.replace(safeRoute);
+      navigateAfterAuth();
     } catch (e) {
       setError(
         e instanceof Error
@@ -180,6 +177,52 @@ export default function LoginScreen() {
       );
     } finally {
       setBusy(false);
+    }
+  };
+
+  const navigateAfterAuth = () => {
+    const returnTo = params.returnTo;
+    const safeRoute =
+      returnTo &&
+      (returnTo.startsWith('/vehicles/') ||
+        returnTo.startsWith('/(tabs)/') ||
+        returnTo.startsWith('/listing-form') ||
+        returnTo.startsWith('/brokers/'))
+        ? (returnTo as Href)
+        : '/(tabs)';
+    router.replace(safeRoute);
+  };
+
+  const handleOpenGoogleModal = () => {
+    setError('');
+    setGoogleEmailInput(email.trim());
+    setGoogleNameInput(name.trim());
+    setShowGoogleModal(true);
+  };
+
+  const handleContinueWithGoogle = async (targetEmail?: string, targetName?: string) => {
+    const chosenEmail = (targetEmail ?? googleEmailInput).trim();
+    const chosenName = (targetName ?? googleNameInput).trim();
+    if (!/^\S+@\S+\.\S+$/.test(chosenEmail)) {
+      Alert.alert('Google Account', 'Please enter a valid Google account email.');
+      return;
+    }
+
+    setGoogleBusy(true);
+    setError('');
+    try {
+      await signInWithGoogle({
+        email: chosenEmail,
+        name: chosenName || chosenEmail.split('@')[0],
+        role,
+      });
+      setShowGoogleModal(false);
+      navigateAfterAuth();
+    } catch (err: any) {
+      setError(err?.message || 'Could not authenticate with Google.');
+      setShowGoogleModal(false);
+    } finally {
+      setGoogleBusy(false);
     }
   };
 
@@ -640,6 +683,61 @@ export default function LoginScreen() {
             )}
           </Pressable>
 
+          {/* OR Divider */}
+          <View style={styles.authDividerRow}>
+            <View
+              style={[
+                styles.authDividerLine,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(255, 255, 255, 0.12)'
+                    : '#E5E7EB',
+                },
+              ]}
+            />
+            <Text
+              style={[
+                styles.authDividerText,
+                { color: isDark ? '#9CA3AF' : '#6B7280' },
+              ]}
+            >
+              OR
+            </Text>
+            <View
+              style={[
+                styles.authDividerLine,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(255, 255, 255, 0.12)'
+                    : '#E5E7EB',
+                },
+              ]}
+            />
+          </View>
+
+          {/* Continue with Google Button (Firebase Google Auth) */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={creating ? 'Sign up with Google' : 'Continue with Google'}
+            disabled={busy || googleBusy}
+            onPress={handleOpenGoogleModal}
+            style={({ pressed }) => [
+              styles.googleAuthButton,
+              {
+                backgroundColor: isDark ? '#1C212E' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : '#E5E7EB',
+                opacity: busy || googleBusy ? 0.7 : pressed ? 0.92 : 1,
+              },
+            ]}
+          >
+            <View style={styles.googleIconBadge}>
+              <Ionicons name="logo-google" size={17} color="#EA4335" />
+            </View>
+            <Text style={[styles.googleAuthButtonText, { color: colors.ink }]}>
+              {creating ? 'Sign up with Google' : 'Continue with Google'}
+            </Text>
+          </Pressable>
+
           {/* Switch Mode: "Already have an account? LOG IN" / "Don't Have An Account? Sign Up" */}
           <Pressable
             accessibilityRole="button"
@@ -887,6 +985,156 @@ export default function LoginScreen() {
               >
                 <Text style={styles.modalSaveBtnText}>
                   {testingConnection ? 'Testing…' : 'Test & Save'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* Firebase Google Auth Modal */}
+      <Modal
+        visible={showGoogleModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowGoogleModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalCard,
+              {
+                backgroundColor: isDark ? '#141822' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+              },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={styles.googleIconCircle}>
+                  <Ionicons name="logo-google" size={18} color="#EA4335" />
+                </View>
+                <View>
+                  <Text style={[styles.modalTitle, { color: colors.ink }]}>
+                    {creating ? 'Sign Up with Google' : 'Sign In with Google'}
+                  </Text>
+                  <Text style={{ fontSize: 10, color: colors.primary, fontWeight: '700' }}>
+                    FIREBASE AUTHENTICATION
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                onPress={() => setShowGoogleModal(false)}
+                hitSlop={8}
+                style={styles.modalCloseBtn}
+              >
+                <Ionicons name="close" size={20} color={colors.muted} />
+              </Pressable>
+            </View>
+
+            <Text style={[styles.modalSubtitle, { color: colors.muted }]}>
+              {creating
+                ? `Create your ${role.toUpperCase()} account in 1 click using Google Firebase auth.`
+                : `Sign in to your Arif Car Sell account linked with Google.`}
+            </Text>
+
+            {creating && (
+              <View style={styles.modalInputWrap}>
+                <Text style={[styles.inputLabel, { color: colors.ink, marginBottom: 6 }]}>
+                  YOUR NAME
+                </Text>
+                <TextInput
+                  value={googleNameInput}
+                  onChangeText={setGoogleNameInput}
+                  placeholder="e.g. Feleke Eshetu"
+                  placeholderTextColor="#9CA3AF"
+                  style={[
+                    styles.modalTextInput,
+                    {
+                      color: colors.ink,
+                      backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB',
+                    },
+                  ]}
+                />
+              </View>
+            )}
+
+            <View style={styles.modalInputWrap}>
+              <Text style={[styles.inputLabel, { color: colors.ink, marginBottom: 6 }]}>
+                GOOGLE ACCOUNT EMAIL
+              </Text>
+              <TextInput
+                value={googleEmailInput}
+                onChangeText={setGoogleEmailInput}
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                placeholder="you@gmail.com"
+                placeholderTextColor="#9CA3AF"
+                style={[
+                  styles.modalTextInput,
+                  {
+                    color: colors.ink,
+                    backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB',
+                  },
+                ]}
+              />
+            </View>
+
+            {/* Quick 1-Tap Google Accounts */}
+            <Text style={[styles.modalPresetsTitle, { color: colors.muted }]}>
+              ONE-TAP DEMO ACCOUNTS:
+            </Text>
+            <View style={styles.presetsRow}>
+              <Pressable
+                onPress={() => void handleContinueWithGoogle('buyer.google@arifauto.et', 'Google Buyer')}
+                style={[styles.presetChip, { borderColor: colors.primary }]}
+              >
+                <Text style={[styles.presetChipText, { color: colors.primary }]}>
+                  Buyer Demo (buyer.google@arifauto.et)
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void handleContinueWithGoogle('seller.google@arifauto.et', 'Google Seller')}
+                style={[styles.presetChip, { borderColor: '#059669' }]}
+              >
+                <Text style={[styles.presetChipText, { color: '#059669' }]}>
+                  Seller Demo (seller.google@arifauto.et)
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void handleContinueWithGoogle('broker.google@arifauto.et', 'Google Broker')}
+                style={[styles.presetChip, { borderColor: '#2563EB' }]}
+              >
+                <Text style={[styles.presetChipText, { color: '#2563EB' }]}>
+                  Broker Demo (broker.google@arifauto.et)
+                </Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.modalButtonsRow}>
+              <Pressable
+                onPress={() => setShowGoogleModal(false)}
+                style={[
+                  styles.modalCancelBtn,
+                  { borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB' },
+                ]}
+              >
+                <Text style={[styles.modalCancelBtnText, { color: colors.muted }]}>
+                  Cancel
+                </Text>
+              </Pressable>
+              <Pressable
+                disabled={googleBusy}
+                onPress={() => void handleContinueWithGoogle()}
+                style={[
+                  styles.modalSaveBtn,
+                  { backgroundColor: colors.primary, opacity: googleBusy ? 0.7 : 1 },
+                ]}
+              >
+                <Text style={styles.modalSaveBtnText}>
+                  {googleBusy ? 'Signing in…' : 'Continue'}
                 </Text>
               </Pressable>
             </View>
@@ -1367,6 +1615,56 @@ const styles = StyleSheet.create({
   modalSaveBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
+    fontWeight: '700',
+  },
+
+  /* Auth Divider & Google Button */
+  authDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 14,
+    gap: 12,
+  },
+  authDividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  authDividerText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  googleAuthButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: radius.full,
+    borderWidth: 1.2,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  googleIconBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(234, 67, 53, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleAuthButtonText: {
+    fontSize: 13.5,
     fontWeight: '700',
   },
 });

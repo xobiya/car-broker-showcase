@@ -3,7 +3,7 @@
     "name": "Arif Car Sell",
     "slug": "arif-car-sell",
     "scheme": "arifcarsell",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "icon": "./assets/logo.png",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -40,6 +40,7 @@
     },
     "android": {
       "package": "com.arifcarsell.mobile",
+      "versionCode": 2,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",

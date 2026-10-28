@@ -8,6 +8,13 @@ type SessionContextValue = {
   ready: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
+  signInWithGoogle: (payload: {
+    email: string;
+    name?: string;
+    role?: 'buyer' | 'seller' | 'broker';
+    photoURL?: string;
+    uid?: string;
+  }) => Promise<void>;
   updateProfile: (input: { name: string; phone?: string; bio?: string }) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<string>;
   signOut: () => Promise<void>;
@@ -71,6 +78,11 @@ export function SessionProvider({ children }: React.PropsWithChildren) {
         const regUser = await authService.register(input);
         await secureSession.setUserProfile(regUser);
         setUser(regUser);
+      },
+      signInWithGoogle: async (payload) => {
+        const googleUser = await authService.loginWithFirebaseGoogle(payload);
+        await secureSession.setUserProfile(googleUser);
+        setUser(googleUser);
       },
       updateProfile: async (input) => {
         if (!user) throw new Error('Sign in to edit your profile.');

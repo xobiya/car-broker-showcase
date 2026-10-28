@@ -32,6 +32,20 @@ export const authService = {
     await persistSession(result);
     return result.user;
   },
+  async loginWithFirebaseGoogle(payload: {
+    email: string;
+    name?: string;
+    role?: 'buyer' | 'seller' | 'broker';
+    photoURL?: string;
+    uid?: string;
+  }) {
+    const result = await request<AuthResponse>('/api/auth/firebase-google', {
+      method: 'POST',
+      json: payload,
+    });
+    await persistSession(result);
+    return result.user;
+  },
   getCurrentUser: () => request<{ user: User }>('/api/auth/me'),
   async updateProfile(
     id: string,

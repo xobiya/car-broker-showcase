@@ -385,6 +385,45 @@ app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
   }
 });
 
+app.post("/api/auth/firebase-google", async (req, res) => {
+  try {
+    const { email, name, role = "buyer", photoURL } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Google account email is required." });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = await db.getUserByEmail(normalizedEmail);
+
+    if (!user) {
+      // Create new user account automatically for Google sign-up
+      const randomSecret = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      const password_hash = await hashPassword(randomSecret);
+      user = await db.addUser({
+        name: name || normalizedEmail.split("@")[0],
+        email: normalizedEmail,
+        password_hash,
+        phone: "",
+        role: role === "seller" || role === "broker" ? role : "buyer",
+        avatar: photoURL || "",
+        token_version: 0,
+      });
+    }
+
+    const { accessToken, refreshToken } = setAuthCookies(res, user);
+    const { password_hash: _, ...userWithoutPassword } = user;
+
+    res.json({
+      user: db.mapUser(userWithoutPassword as any),
+      token: accessToken,
+      accessToken,
+      ...(isNativeClient(req) ? { refreshToken } : {}),
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post("/api/auth/refresh", async (req, res) => {
   try {
     const refreshToken =
