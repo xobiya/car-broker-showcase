@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import {
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -19,6 +20,7 @@ import { useTheme } from '../src/theme/ThemeContext';
 import { useLanguage } from '../src/i18n/LanguageContext';
 import { AppLogo } from '../src/components/common/AppLogo';
 import { QuickHeaderSwitcher } from '../src/components/common/PreferencesSwitcher';
+import { getApiBaseUrl, setApiBaseUrl } from '../src/services/api-client';
 import { radius } from '../src/theme/tokens';
 
 const roles = [
@@ -61,6 +63,15 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
+  // Scroll reference to ensure active input stays above keyboard
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Server URL Configuration Modal state
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [serverUrlInput, setServerUrlInput] = useState(getApiBaseUrl());
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
+
   useEffect(() => {
     if (params.tab === 'signup') setCreating(true);
     else if (params.tab === 'signin') setCreating(false);
@@ -83,6 +94,41 @@ export default function LoginScreen() {
     } else {
       setEmail('broker@arifauto.et');
       setPassword('password123');
+    }
+  };
+
+  const handleSaveServerUrl = async (urlToSave?: string) => {
+    const target = (urlToSave ?? serverUrlInput).trim();
+    if (!target.startsWith('http://') && !target.startsWith('https://')) {
+      setTestResult('URL must start with http:// or https://');
+      return;
+    }
+    setTestingConnection(true);
+    setTestResult('Testing connection to server…');
+    try {
+      const clean = target.replace(/\/$/, '');
+      const resp = await fetch(`${clean}/api/vehicles`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      await setApiBaseUrl(clean);
+      setServerUrlInput(clean);
+      if (resp.ok) {
+        setTestResult('Connected successfully! Saved.');
+        setError('');
+        setTimeout(() => {
+          setShowServerModal(false);
+          setTestResult(null);
+        }, 1000);
+      } else {
+        setTestResult(`Server responded with HTTP ${resp.status}. Saved.`);
+      }
+    } catch (err) {
+      const clean = target.replace(/\/$/, '');
+      await setApiBaseUrl(clean);
+      setServerUrlInput(clean);
+      setTestResult(`Saved (${clean}), but could not connect: ${(err as Error).message}`);
+    } finally {
+      setTestingConnection(false);
     }
   };
 
@@ -182,7 +228,7 @@ export default function LoginScreen() {
       </View>
 
       {/* ---------------------------------------------------- */}
-      {/* TOP NAVIGATION HEADER (Close & Preferences)          */}
+      {/* TOP NAVIGATION HEADER (Close, Server Settings & Prefs)*/}
       {/* ---------------------------------------------------- */}
       <View
         style={[
@@ -207,16 +253,38 @@ export default function LoginScreen() {
 
         <AppLogo size="sm" />
 
-        <QuickHeaderSwitcher />
+        <View style={styles.topNavRight}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Configure server URL"
+            onPress={() => {
+              setServerUrlInput(getApiBaseUrl());
+              setTestResult(null);
+              setShowServerModal(true);
+            }}
+            style={[
+              styles.navCircleBtn,
+              {
+                backgroundColor: isDark ? 'rgba(26, 31, 44, 0.85)' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : colors.line,
+              },
+            ]}
+          >
+            <Ionicons name="server-outline" size={17} color={colors.primary} />
+          </Pressable>
+          <QuickHeaderSwitcher />
+        </View>
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Math.max(insets.bottom + 48, 60) },
+          { paddingBottom: Math.max(insets.bottom + 260, 300) },
         ]}
       >
         {/* ---------------------------------------------------- */}
@@ -246,8 +314,30 @@ export default function LoginScreen() {
           {/* Error Banner */}
           {error ? (
             <View style={styles.errorBanner}>
-              <Ionicons name="alert-circle" size={17} color="#DC2626" />
-              <Text style={styles.errorText}>{error}</Text>
+              <View style={styles.errorBannerRow}>
+                <Ionicons name="alert-circle" size={18} color="#DC2626" style={styles.errorIcon} />
+                <View style={styles.errorContent}>
+                  <Text style={styles.errorText}>{error}</Text>
+                  {(error.toLowerCase().includes('fetch') ||
+                    error.toLowerCase().includes('network') ||
+                    error.toLowerCase().includes('cleartext') ||
+                    error.toLowerCase().includes('10.0.2.2')) && (
+                    <Pressable
+                      onPress={() => {
+                        setServerUrlInput(getApiBaseUrl());
+                        setTestResult(null);
+                        setShowServerModal(true);
+                      }}
+                      style={styles.errorActionBtn}
+                    >
+                      <Ionicons name="settings-outline" size={13} color="#FFFFFF" />
+                      <Text style={styles.errorActionBtnText}>
+                        Configure Server URL ({getApiBaseUrl()})
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
             </View>
           ) : null}
 
@@ -347,6 +437,11 @@ export default function LoginScreen() {
                     placeholder="e.g. Abebe Bikila"
                     placeholderTextColor="#9CA3AF"
                     style={[styles.pillTextInput, { color: colors.ink }]}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollTo({ y: 80, animated: true });
+                      }, 100);
+                    }}
                   />
                 </View>
               </View>
@@ -374,6 +469,11 @@ export default function LoginScreen() {
                     placeholder="+251 91 123 4567"
                     placeholderTextColor="#9CA3AF"
                     style={[styles.pillTextInput, { color: colors.ink }]}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollTo({ y: 160, animated: true });
+                      }, 100);
+                    }}
                   />
                 </View>
               </View>
@@ -405,6 +505,11 @@ export default function LoginScreen() {
                 placeholder={creating ? 'you@example.com' : 'Email or username'}
                 placeholderTextColor="#9CA3AF"
                 style={[styles.pillTextInput, { color: colors.ink }]}
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollTo({ y: creating ? 250 : 100, animated: true });
+                  }, 100);
+                }}
               />
             </View>
           </View>
@@ -436,6 +541,11 @@ export default function LoginScreen() {
                 }
                 placeholderTextColor="#9CA3AF"
                 style={[styles.pillTextInput, { color: colors.ink }]}
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollTo({ y: creating ? 360 : 180, animated: true });
+                  }, 100);
+                }}
               />
               <Pressable
                 accessibilityRole="button"
@@ -644,6 +754,145 @@ export default function LoginScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      {/* Server URL Configuration Modal */}
+      <Modal
+        visible={showServerModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowServerModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalCard,
+              {
+                backgroundColor: isDark ? '#141822' : '#FFFFFF',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+              },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="server" size={20} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.ink }]}>
+                  Server URL Settings
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setShowServerModal(false)}
+                hitSlop={8}
+                style={styles.modalCloseBtn}
+              >
+                <Ionicons name="close" size={20} color={colors.muted} />
+              </Pressable>
+            </View>
+
+            <Text style={[styles.modalSubtitle, { color: colors.muted }]}>
+              Enter your backend API address. For physical phones on Wi-Fi, use your computer's LAN IP. If using 4G mobile data, use an ngrok or public URL.
+            </Text>
+
+            <View style={styles.modalInputWrap}>
+              <Text style={[styles.inputLabel, { color: colors.ink, marginBottom: 6 }]}>
+                API BASE URL
+              </Text>
+              <TextInput
+                value={serverUrlInput}
+                onChangeText={setServerUrlInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="http://172.26.166.46:3000"
+                placeholderTextColor="#9CA3AF"
+                style={[
+                  styles.modalTextInput,
+                  {
+                    color: colors.ink,
+                    backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB',
+                  },
+                ]}
+              />
+            </View>
+
+            {/* Quick Presets */}
+            <Text style={[styles.modalPresetsTitle, { color: colors.muted }]}>
+              QUICK PRESETS:
+            </Text>
+            <View style={styles.presetsRow}>
+              <Pressable
+                onPress={() => handleSaveServerUrl('http://172.26.166.46:3000')}
+                style={[styles.presetChip, { borderColor: colors.primary }]}
+              >
+                <Text style={[styles.presetChipText, { color: colors.primary }]}>
+                  Computer Wi-Fi (172.26.166.46)
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleSaveServerUrl('http://10.0.2.2:3000')}
+                style={[styles.presetChip, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB' }]}
+              >
+                <Text style={[styles.presetChipText, { color: colors.muted }]}>
+                  Android Emulator (10.0.2.2)
+                </Text>
+              </Pressable>
+            </View>
+
+            {testResult && (
+              <View
+                style={[
+                  styles.testResultBox,
+                  {
+                    backgroundColor: testResult.includes('success')
+                      ? 'rgba(16, 185, 129, 0.12)'
+                      : 'rgba(239, 68, 68, 0.12)',
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={testResult.includes('success') ? 'checkmark-circle' : 'information-circle'}
+                  size={16}
+                  color={testResult.includes('success') ? '#10B981' : '#EF4444'}
+                />
+                <Text
+                  style={[
+                    styles.testResultText,
+                    {
+                      color: testResult.includes('success') ? '#10B981' : '#EF4444',
+                    },
+                  ]}
+                >
+                  {testResult}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.modalButtonsRow}>
+              <Pressable
+                onPress={() => setShowServerModal(false)}
+                style={[
+                  styles.modalCancelBtn,
+                  { borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB' },
+                ]}
+              >
+                <Text style={[styles.modalCancelBtnText, { color: colors.ink }]}>
+                  Cancel
+                </Text>
+              </Pressable>
+              <Pressable
+                disabled={testingConnection}
+                onPress={() => handleSaveServerUrl()}
+                style={[
+                  styles.modalSaveBtn,
+                  { backgroundColor: colors.primary, opacity: testingConnection ? 0.7 : 1 },
+                ]}
+              >
+                <Text style={styles.modalSaveBtnText}>
+                  {testingConnection ? 'Testing…' : 'Test & Save'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -975,5 +1224,149 @@ const styles = StyleSheet.create({
   guestLinkButtonText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+
+  /* Top Nav Right */
+  topNavRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  /* Error Action Button */
+  errorBannerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  errorIcon: {
+    marginTop: 2,
+  },
+  errorContent: {
+    flex: 1,
+  },
+  errorActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#DC2626',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 8,
+    gap: 6,
+  },
+  errorActionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+
+  /* Server Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 16,
+  },
+  modalInputWrap: {
+    marginBottom: 12,
+  },
+  modalTextInput: {
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    fontSize: 13,
+  },
+  modalPresetsTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    marginBottom: 6,
+  },
+  presetsRow: {
+    flexDirection: 'column',
+    gap: 6,
+    marginBottom: 14,
+  },
+  presetChip: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+  },
+  presetChipText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+  },
+  testResultBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 14,
+  },
+  testResultText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    flex: 1,
+  },
+  modalButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  modalCancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  modalCancelBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  modalSaveBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  modalSaveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

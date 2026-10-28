@@ -1,8 +1,11 @@
 import { secureSession } from './secure-session';
 import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
-function getApiBaseUrl(): string {
+const CUSTOM_API_URL_KEY = 'arif_custom_api_url';
+
+function getDefaultApiBaseUrl(): string {
   const configured = (process.env.EXPO_PUBLIC_API_BASE_URL ?? '').replace(/\/$/, '');
 
   if (Platform.OS === 'web') {
@@ -17,12 +20,46 @@ function getApiBaseUrl(): string {
     return `http://${devIp}:3000`;
   }
 
-  // Android emulator fallback
-  if (Platform.OS === 'android' && (!configured || configured.includes('localhost') || configured.includes('127.0.0.1'))) {
-    return 'http://10.0.2.2:3000';
+  // If configured is an explicit non-localhost URL (e.g. LAN IP or https://...), use it
+  if (configured && !configured.includes('localhost') && !configured.includes('127.0.0.1')) {
+    return configured;
   }
 
-  return configured || 'http://localhost:3000';
+  // Fallback to developer PC Wi-Fi LAN IP (reachable on physical phones on same Wi-Fi)
+  return 'http://172.26.166.46:3000';
+}
+
+let activeApiBaseUrl: string = getDefaultApiBaseUrl();
+
+// Attempt to load any user-configured server URL asynchronously
+(async () => {
+  try {
+    const saved = Platform.OS === 'web'
+      ? (typeof localStorage !== 'undefined' ? localStorage.getItem(CUSTOM_API_URL_KEY) : null)
+      : await SecureStore.getItemAsync(CUSTOM_API_URL_KEY);
+    if (saved && saved.startsWith('http')) {
+      activeApiBaseUrl = saved.replace(/\/$/, '');
+    }
+  } catch {
+    // Ignore storage errors on boot
+  }
+})();
+
+export function getApiBaseUrl(): string {
+  return activeApiBaseUrl;
+}
+
+export async function setApiBaseUrl(newUrl: string): Promise<string> {
+  const clean = newUrl.trim().replace(/\/$/, '');
+  activeApiBaseUrl = clean;
+  try {
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') localStorage.setItem(CUSTOM_API_URL_KEY, clean);
+    } else {
+      await SecureStore.setItemAsync(CUSTOM_API_URL_KEY, clean);
+    }
+  } catch {}
+  return clean;
 }
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -40,7 +77,7 @@ async function refreshAccessToken() {
     refreshInFlight = (async () => {
       try {
         const refreshToken = await secureSession.getRefreshToken();
-        const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+        const response = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -78,14 +115,15 @@ function buildUrl(pathname: string, params?: RequestOptions['params']) {
       query.set(key, String(value));
   });
   const suffix = query.toString();
-  return `${API_BASE_URL}${pathname}${suffix ? `?${suffix}` : ''}`;
+  return `${getApiBaseUrl()}${pathname}${suffix ? `?${suffix}` : ''}`;
 }
 
 export async function request<T>(
   pathname: string,
   { json, headers, params, retryAuth = true, ...options }: RequestOptions = {},
 ): Promise<T> {
-  if (!API_BASE_URL) {
+  const baseUrl = getApiBaseUrl();
+  if (!baseUrl) {
     throw new Error(
       'Set EXPO_PUBLIC_API_BASE_URL in apps/mobile/.env before connecting.',
     );
