@@ -16,6 +16,12 @@
     "allowJs": true,
     "jsx": "react-jsx",
     "paths": {
+      "@autobroker/shared": [
+        "./packages/shared/index.ts"
+      ],
+      "@autobroker/shared/*": [
+        "./packages/shared/*"
+      ],
       "@/*": [
         "./*"
       ]

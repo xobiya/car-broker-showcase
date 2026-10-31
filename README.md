@@ -93,63 +93,44 @@ The platform comes fully equipped with a **MongoDB / Mongoose** persistence laye
 
 ```
 arif-car-sell/
-├── backend/
-│   ├── app.ts                  # Express application setup, routes & security middleware
-│   ├── auth.ts                 # JWT generation, token verification & RBAC middleware
-│   ├── server.ts               # Server entry point & Vite dev/production middleware
-│   ├── db/
-│   │   ├── index.ts            # Mongoose initialization & database access layer
-│   │   ├── models.ts           # Mongoose schemas (User, Vehicle, Lead, Sale, etc.)
-│   │   ├── seed.ts             # Pre-seeded catalog (18 realistic Ethiopian listings & users)
-│   │   └── types.ts            # Internal database interface definitions
-│   ├── middleware/
-│   │   └── validate.ts         # Zod request validation middleware
-│   ├── services/
-│   │   ├── cache.ts            # In-memory node-cache service
-│   │   ├── cloudinary.ts       # Cloudinary upload service with local disk fallback
-│   │   └── notifications.ts   # Nodemailer email notification handlers
-│   └── validators/
-│       └── index.ts            # Zod validation schemas for all entities
-├── frontend/
-│   ├── index.html              # HTML entry with Arif Car Sell branding
-│   ├── vite.config.ts          # Vite build configuration with Tailwind CSS v4 plugin
-│   └── src/
-│       ├── App.tsx             # Root router, navigation bar & global notifications
-│       ├── main.tsx            # React application bootstrapper
-│       ├── index.css           # Global Tailwind CSS directives & custom design tokens
-│       ├── dashboards/
-│       │   ├── AdminPanel.tsx          # Full admin oversight & analytics console
-│       │   ├── AdminProfilePage.tsx    # Administrator profile settings
-│       │   ├── BrokerDashboard.tsx     # Broker inventory, leads & commission tracker
-│       │   ├── BrokerProfilePage.tsx   # Public/private broker portfolio page
-│       │   └── BuyerProfilePage.tsx    # Buyer inquiries, test drives & saved vehicles
-│       ├── pages/
-│       │   ├── HomePage.tsx            # High-conversion landing page & featured cars
-│       │   ├── Showroom.tsx            # Vehicle catalog browser with live filters
-│       │   ├── VehicleDetail.tsx       # Detailed vehicle view & lead form
-│       │   ├── VehicleComparison.tsx   # Side-by-side spec comparison matrix
-│       │   ├── LoginPage.tsx           # Email/password authentication page
-│       │   ├── RegisterPage.tsx        # Multi-role account registration (Customer, Seller, Broker)
-│       │   ├── AboutPage.tsx           # Company background & mission
-│       │   ├── ServicesPage.tsx        # Brokerage & inspection service details
-│       │   ├── ContactPage.tsx         # Customer contact & inquiry form
-│       │   ├── HelpPage.tsx            # Platform FAQ & user support
-│       │   ├── TermsPage.tsx           # Terms of service
-│       │   └── PrivacyPage.tsx         # Privacy policy
-│       ├── components/
-│       │   └── ui/
-│       │       ├── AuthModal.tsx       # Quick login/registration modal
-│       │       ├── CommissionCalculator.tsx # Dynamic broker earnings calculator
-│       │       ├── Logo.tsx            # Official Arif Car Sell SVG logo
-│       │       └── ReportModal.tsx     # Listing/broker incident report dialog
-│       ├── hooks/                      # Custom hooks (useAuth, etc.)
-│       ├── lib/                        # Axios/fetch API client helpers
-│       └── store/                      # Zustand global state (theme, favorites, cart)
-├── shared/
-│   └── types.ts                # Shared TypeScript contracts between client & server
-├── .env.example                # Environment variable configuration template
-├── package.json                # Project dependencies & build scripts
-└── tsconfig.json               # TypeScript compiler configuration
+├── apps/
+│   ├── api/                    # Express backend & serverless API functions
+│   │   ├── app.ts              # Express application setup, routes & security middleware
+│   │   ├── auth.ts             # JWT generation, token verification & RBAC middleware
+│   │   ├── server.ts           # Server entry point & Vite dev/production middleware
+│   │   ├── index.ts            # Vercel serverless entry point
+│   │   ├── db/                 # Mongoose initialization, models, seeding & types
+│   │   ├── middleware/         # Zod request validation middleware
+│   │   ├── services/           # Cache, Cloudinary & email notifications
+│   │   ├── validators/         # Zod schemas for all entities
+│   │   └── package.json        # Backend package configuration
+│   ├── web/                    # React 19 web application (Vite)
+│   │   ├── index.html          # HTML entry with Arif Car Sell branding
+│   │   ├── vite.config.ts      # Vite build configuration with Tailwind CSS v4 plugin
+│   │   ├── package.json        # Web app dependencies & scripts
+│   │   └── src/
+│   │       ├── App.tsx         # Root router, navigation bar & global notifications
+│   │       ├── main.tsx        # React application bootstrapper
+│   │       ├── index.css       # Global Tailwind CSS directives & custom design tokens
+│   │       ├── dashboards/     # Admin, Broker, and Buyer dashboards
+│   │       ├── pages/          # Showroom, vehicle details, comparison, auth, etc.
+│   │       ├── components/ui/  # Reusable UI widgets & modals
+│   │       ├── hooks/          # Custom hooks (useAuth, etc.)
+│   │       ├── lib/            # API client helpers & SEO utilities
+│   │       └── store/          # Zustand global state (theme, favorites, cart)
+│   └── mobile/                 # React Native / Expo mobile application
+│       ├── app/                # Expo Router screens & tab navigation
+│       ├── src/                # Mobile components, services, and hooks
+│       └── package.json        # Mobile app dependencies & Expo configuration
+├── packages/
+│   └── shared/                 # Shared TypeScript contracts (@autobroker/shared)
+│       ├── types.ts            # Data models, DTOs & status types
+│       ├── index.ts            # Barrel export
+│       └── package.json        # Workspace package declaration
+├── vercel.json                 # Vercel deployment configuration
+├── render.yaml                 # Render deployment configuration
+├── package.json                # Root workspace configuration & scripts
+└── tsconfig.json               # Root TypeScript compiler configuration
 ```
 
 ---

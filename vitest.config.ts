@@ -6,13 +6,14 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      '@autobroker/shared': path.resolve(__dirname, './packages/shared/index.ts'),
       '@': path.resolve(__dirname, '.'),
     },
   },
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./frontend/src/__tests__/setup.ts'],
+    setupFiles: ['./apps/web/src/__tests__/setup.ts'],
     include: ['**/*.{test,spec}.{ts,tsx}'],
   },
 });
