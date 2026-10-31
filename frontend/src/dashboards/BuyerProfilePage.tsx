@@ -205,7 +205,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
               <span>List a Car to Sell</span>
             </button>
             <button
-              onClick={() => navigate("/browse")}
+              onClick={() => navigate("/vehicles")}
               className="flex items-center justify-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer whitespace-nowrap"
             >
               <Search size={14} />
@@ -518,7 +518,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
             {/* Quick Link to Public Marketplace */}
             <button
               type="button"
-              onClick={() => { setMobileMoreOpen(false); navigate("/browse"); }}
+              onClick={() => { setMobileMoreOpen(false); navigate("/vehicles"); }}
               className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-900 dark:text-white text-xs font-bold transition cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
@@ -763,7 +763,7 @@ function DashboardSection({
         </div>
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickAction icon={Plus} label="List a Vehicle for Sale" desc="Create a new marketplace listing" onClick={onAddListing} highlight />
-          <QuickAction icon={Search} label="Browse Vehicles" desc="Explore certified cars available for purchase" onClick={() => { window.location.href = "/browse"; }} />
+          <QuickAction icon={Search} label="Browse Vehicles" desc="Explore certified cars available for purchase" onClick={() => { window.location.href = "/vehicles"; }} />
           <QuickAction icon={Car} label="Manage My Listings" desc="View, edit, or update your car listings" onClick={() => onNavigate("listings")} />
           <QuickAction icon={MessageCircle} label="Check Inquiries" desc="View prospective buyer messages & leads" onClick={() => onNavigate("inquiries")} />
           <QuickAction icon={Heart} label="View Saved Favorites" desc="See cars you bookmarked" onClick={() => onNavigate("saved")} />
@@ -832,7 +832,7 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
           <h3 className="text-sm font-black text-slate-800 dark:text-white">Saved Vehicles</h3>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Vehicles you have bookmarked to compare and view</p>
         </div>
-        <a href="/browse" className="text-xs font-bold text-[#FF4846] hover:underline flex items-center gap-1">
+        <a href="/vehicles" className="text-xs font-bold text-[#FF4846] hover:underline flex items-center gap-1">
           <span>Find more</span>
           <ArrowRight size={12} />
         </a>
@@ -845,7 +845,7 @@ function SavedSection({ vehicles, onViewDetails, onRemove }: {
             </div>
             <p className="text-sm font-bold text-slate-800 dark:text-white">No saved vehicles yet</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">Browse our marketplace and tap the heart icon on any vehicle to save it to your wishlist.</p>
-            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
+            <a href="/vehicles" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
               <Search size={13} />
               <span>Explore Marketplace</span>
             </a>
@@ -910,7 +910,7 @@ function TestDriveSection({ drives, onCancel }: {
             </div>
             <p className="text-sm font-bold text-slate-800 dark:text-white">No test drives scheduled</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">When browsing vehicles, click "Book Test Drive" to schedule an in-person vehicle inspection.</p>
-            <a href="/browse" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
+            <a href="/vehicles" className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-white bg-[#FF4846] hover:bg-emerald-600 px-4 py-2.5 rounded-xl transition shadow-sm">
               <Car size={13} />
               <span>Browse Cars for Test Drive</span>
             </a>

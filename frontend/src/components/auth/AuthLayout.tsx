@@ -272,7 +272,7 @@ export default function AuthLayout({
                         >
                           <Icon size={15} className={isCurrent ? "text-[#FF4B2B]" : ""} />
                           <span className="text-[9px] font-bold leading-tight truncate w-full text-center">
-                            {acc.roleKey === "admin" ? "Admin" : acc.roleKey === "broker" ? "Broker" : acc.roleKey === "seller" ? "Seller" : "Buyer"}
+                            {acc.label}
                           </span>
                         </button>
                       );

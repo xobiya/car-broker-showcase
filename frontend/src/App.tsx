@@ -158,7 +158,7 @@ export default function App() {
   }, [navigate, setSelectedBrokerId]);
 
   const handleBrowseWithFilters = useCallback((filters?: Record<string, unknown>) => {
-    navigate("/browse", { state: { filters } });
+    navigate("/vehicles", { state: { filters } });
   }, [navigate]);
 
   const handleLogout = useCallback(() => {
@@ -212,7 +212,7 @@ export default function App() {
               <Car size={13} className="text-[#FF4846]" />
               <span>More than <strong className="text-[#FF4846] font-black">500+</strong> verified inspected cars in Addis Ababa</span>
               <button
-                onClick={() => navigate("/browse")}
+                onClick={() => navigate("/vehicles")}
                 className="bg-[#FF4846] hover:bg-[#E63D3B] text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[10px] ml-1 transition cursor-pointer flex items-center gap-1 shadow-xs active:scale-95"
               >
                 <span>Access Now</span>
@@ -261,9 +261,9 @@ export default function App() {
               )}
               {userRole !== "admin" && !isAccountRoute && (
                 <button
-                  onClick={() => navigate("/browse")}
+                  onClick={() => navigate("/vehicles")}
                   className={`text-[13px] font-bold tracking-tight cursor-pointer hover:text-[#FF4846] transition-colors ${
-                    location.pathname === "/browse" ? "text-[#FF4846]" : "text-slate-700 dark:text-slate-300"
+                    (location.pathname === "/vehicles" || location.pathname === "/browse") ? "text-[#FF4846]" : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   {t("navigation:menu.vehicles")}
@@ -406,7 +406,7 @@ export default function App() {
               )}
 
               {/* Header Language Switcher */}
-              <LanguageSwitcher variant="header" className="!hidden shrink-0 sm:!inline-block" />
+              <LanguageSwitcher variant="header" className="!inline-block shrink-0" />
 
               {/* Mobile Theme Toggle Icon Button */}
               <button
@@ -464,7 +464,7 @@ export default function App() {
                       </p>
                       {[
                         { label: t("navigation:menu.home"), path: "/", icon: Home },
-                        { label: t("navigation:menu.vehicles"), path: "/browse", icon: LayoutGrid },
+                        { label: t("navigation:menu.vehicles"), path: "/vehicles", icon: LayoutGrid },
                         { label: t("navigation:menu.compare"), path: "/compare", icon: GitCompare },
                         { label: t("navigation:menu.services"), path: "/services", icon: Sparkles },
                         { label: t("navigation:menu.about"), path: "/about", icon: Info },
@@ -547,7 +547,8 @@ export default function App() {
                 <Route path="/signup" element={<RegisterPage />} />
                 <Route path="/services" element={<UserRoute><ServicesPage onNotify={addToast} /></UserRoute>} />
                 <Route path="/service" element={<Navigate to="/services" replace />} />
-                <Route path="/browse" element={<UserRoute><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></UserRoute>} />
+                <Route path="/vehicles" element={<UserRoute><Showroom onNotify={addToast} onInquireCar={handleViewDetails} /></UserRoute>} />
+                <Route path="/browse" element={<Navigate to="/vehicles" replace />} />
                 <Route path="/vehicles/:id" element={<UserRoute><VehicleDetail vehicle={selectedVehicle} onBack={() => navigate(-1)} onNotify={addToast} onViewDetails={handleViewDetails} onViewBrokerProfile={handleViewBrokerProfile} /></UserRoute>} />
                 <Route path="/broker-dashboard" element={<ProtectedRoute allowedRoles={["broker"]}><BrokerDashboard onNotify={addToast} onLogout={handleLogout} /></ProtectedRoute>} />
                 <Route path="/seller-dashboard" element={<Navigate to="/profile?section=listings" replace />} />
@@ -593,7 +594,7 @@ export default function App() {
               <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-400">Marketplace</h4>
               <ul className="space-y-3">
                 <li><button onClick={() => user ? navigate("/profile?section=listings&action=new") : navigate("/login")} className="text-xs font-bold text-slate-400 hover:text-[#FF4846] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Sell Your Car</button></li>
-                <li><button onClick={() => navigate("/browse")} className="text-xs font-bold text-slate-400 hover:text-[#FF4846] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Showroom</button></li>
+                <li><button onClick={() => navigate("/vehicles")} className="text-xs font-bold text-slate-400 hover:text-[#FF4846] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Showroom</button></li>
                 <li><button onClick={() => navigate("/compare")} className="text-xs font-bold text-slate-400 hover:text-[#FF4846] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Compare Vehicles</button></li>
                 <li><button onClick={() => navigate("/help")} className="text-xs font-bold text-slate-400 hover:text-[#FF4846] transition-colors flex items-center gap-2 cursor-pointer"><span className="w-1 h-1 rounded-full bg-slate-600" /> Help & Support</button></li>
               </ul>
@@ -628,9 +629,9 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => { navigate("/browse"); setMobileMenuOpen(false); window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }}
+            onClick={() => { navigate("/vehicles"); setMobileMenuOpen(false); window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }}
             className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 text-[9px] font-semibold transition ${
-              location.pathname === "/browse" && !mobileMenuOpen ? "bg-[#FF4846]/10 text-[#FF4846]" : "text-slate-500 dark:text-slate-400"
+              (location.pathname === "/vehicles" || location.pathname === "/browse") && !mobileMenuOpen ? "bg-[#FF4846]/10 text-[#FF4846]" : "text-slate-500 dark:text-slate-400"
             }`}
           >
             <LayoutGrid size={19} strokeWidth={2.2} /><span>{t("navigation:menu.vehicles", "Vehicles")}</span>

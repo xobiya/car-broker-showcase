@@ -383,3 +383,9 @@ This project is open-source software licensed under the [MIT License](LICENSE).
 <div align="center">
   <sub>Built with ❤️ for the Ethiopian automotive marketplace by the Arif Car Sell Team.</sub>
 </div>
+
+
+## Android and iOS mobile app
+
+The Expo React Native app lives in [apps/mobile](apps/mobile/README.md). Follow its README for setup, emulator and phone configuration, run commands, and the manual smoke-test checklist.
+

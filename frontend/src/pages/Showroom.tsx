@@ -338,10 +338,10 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         title={seoTitle}
         description={t("metadata:descriptions.showroom", "Browse certified inventory of Toyota, Hyundai, Suzuki, BYD electric vehicles and luxury SUVs for sale in Ethiopia with full inspection scorecards.")}
         keywords={t("metadata:keywords.showroom", "Ethiopia car showroom, buy Toyota Land Cruiser Ethiopia, BYD Song Plus Addis Ababa, Suzuki Swift Ethiopia, Hyundai Tucson Addis Ababa")}
-        canonical="/showroom"
+        canonical="/vehicles"
         breadcrumbs={[
           { name: "Home", url: "/" },
-          { name: "Showroom", url: "/showroom" }
+          { name: "Vehicles", url: "/vehicles" }
         ]}
       />
       {/* Mobile filter drawer */}
