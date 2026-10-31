@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { authService } from './auth-service';
 import { secureSession } from '../../services/secure-session';
+import { firebaseAuth } from '../../services/firebase';
 import type { RegisterInput, User } from '../../types/models';
 
 type SessionContextValue = {
@@ -14,9 +21,18 @@ type SessionContextValue = {
     role?: 'buyer' | 'seller' | 'broker';
     photoURL?: string;
     uid?: string;
+    idToken?: string;
   }) => Promise<void>;
-  updateProfile: (input: { name: string; phone?: string; bio?: string }) => Promise<void>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<string>;
+  sendPasswordReset: (email: string) => Promise<string>;
+  updateProfile: (input: {
+    name: string;
+    phone?: string;
+    bio?: string;
+  }) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<string>;
   signOut: () => Promise<void>;
 };
 
@@ -80,9 +96,20 @@ export function SessionProvider({ children }: React.PropsWithChildren) {
         setUser(regUser);
       },
       signInWithGoogle: async (payload) => {
-        const googleUser = await authService.loginWithFirebaseGoogle(payload);
+        const verified = await firebaseAuth.verifyGoogleAccount(payload);
+        const googleUser = await authService.loginWithFirebaseGoogle({
+          email: verified.email,
+          name: verified.name,
+          photoURL: verified.photoURL,
+          uid: verified.uid,
+          idToken: verified.idToken,
+          role: payload.role,
+        });
         await secureSession.setUserProfile(googleUser);
         setUser(googleUser);
+      },
+      sendPasswordReset: async (email: string) => {
+        return authService.sendPasswordReset(email);
       },
       updateProfile: async (input) => {
         if (!user) throw new Error('Sign in to edit your profile.');
@@ -90,7 +117,8 @@ export function SessionProvider({ children }: React.PropsWithChildren) {
         await secureSession.setUserProfile(updated);
         setUser(updated);
       },
-      changePassword: (current, next) => authService.changePassword(current, next),
+      changePassword: (current, next) =>
+        authService.changePassword(current, next),
       signOut: async () => {
         try {
           await authService.logout();
@@ -103,11 +131,14 @@ export function SessionProvider({ children }: React.PropsWithChildren) {
     [user, ready],
   );
 
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  );
 }
 
 export function useSession() {
   const context = useContext(SessionContext);
-  if (!context) throw new Error('useSession must be used inside SessionProvider.');
+  if (!context)
+    throw new Error('useSession must be used inside SessionProvider.');
   return context;
 }

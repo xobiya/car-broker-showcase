@@ -47,7 +47,8 @@ const roles = [
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { signIn, register, signInWithGoogle } = useSession();
+  const { signIn, register, signInWithGoogle, sendPasswordReset } =
+    useSession();
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const params = useLocalSearchParams<{ returnTo?: string; tab?: string }>();
@@ -132,7 +133,9 @@ export default function LoginScreen() {
       const clean = target.replace(/\/$/, '');
       await setApiBaseUrl(clean);
       setServerUrlInput(clean);
-      setTestResult(`Saved (${clean}), but could not connect: ${(err as Error).message}`);
+      setTestResult(
+        `Saved (${clean}), but could not connect: ${(err as Error).message}`,
+      );
     } finally {
       setTestingConnection(false);
     }
@@ -193,6 +196,39 @@ export default function LoginScreen() {
     router.replace(safeRoute);
   };
 
+  const handleForgotPassword = () => {
+    const targetEmail = email.trim();
+    if (!targetEmail || !/^\S+@\S+\.\S+$/.test(targetEmail)) {
+      Alert.alert(
+        'Reset Password',
+        'Please enter your registered email address in the Email field above first.',
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Reset Password',
+      `Send a password recovery email to ${targetEmail}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Send Link',
+          onPress: async () => {
+            try {
+              const msg = await sendPasswordReset(targetEmail);
+              Alert.alert('Recovery Email', msg);
+            } catch (err: any) {
+              Alert.alert(
+                'Recovery Error',
+                err?.message || 'Could not send recovery email.',
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleOpenGoogleModal = () => {
     setError('');
     setGoogleEmailInput(email.trim());
@@ -200,11 +236,17 @@ export default function LoginScreen() {
     setShowGoogleModal(true);
   };
 
-  const handleContinueWithGoogle = async (targetEmail?: string, targetName?: string) => {
+  const handleContinueWithGoogle = async (
+    targetEmail?: string,
+    targetName?: string,
+  ) => {
     const chosenEmail = (targetEmail ?? googleEmailInput).trim();
     const chosenName = (targetName ?? googleNameInput).trim();
     if (!/^\S+@\S+\.\S+$/.test(chosenEmail)) {
-      Alert.alert('Google Account', 'Please enter a valid Google account email.');
+      Alert.alert(
+        'Google Account',
+        'Please enter a valid Google account email.',
+      );
       return;
     }
 
@@ -228,7 +270,10 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.screen, { backgroundColor: isDark ? '#0C0E14' : '#F8F9FB' }]}
+      style={[
+        styles.screen,
+        { backgroundColor: isDark ? '#0C0E14' : '#F8F9FB' },
+      ]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* ---------------------------------------------------- */}
@@ -245,10 +290,7 @@ export default function LoginScreen() {
         />
         {/* Layer 2: Main vibrant brand curve */}
         <View
-          style={[
-            styles.topWaveLayer2,
-            { backgroundColor: colors.primary },
-          ]}
+          style={[styles.topWaveLayer2, { backgroundColor: colors.primary }]}
         />
       </View>
 
@@ -263,10 +305,7 @@ export default function LoginScreen() {
         />
         {/* Layer 2: Main primary curve */}
         <View
-          style={[
-            styles.bottomWaveLayer2,
-            { backgroundColor: colors.primary },
-          ]}
+          style={[styles.bottomWaveLayer2, { backgroundColor: colors.primary }]}
         />
       </View>
 
@@ -274,10 +313,7 @@ export default function LoginScreen() {
       {/* TOP NAVIGATION HEADER (Close, Server Settings & Prefs)*/}
       {/* ---------------------------------------------------- */}
       <View
-        style={[
-          styles.topNav,
-          { paddingTop: Math.max(insets.top + 6, 42) },
-        ]}
+        style={[styles.topNav, { paddingTop: Math.max(insets.top + 6, 42) }]}
       >
         <Pressable
           accessibilityRole="button"
@@ -338,7 +374,9 @@ export default function LoginScreen() {
             styles.authCard,
             {
               backgroundColor: isDark ? '#141822' : '#FFFFFF',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+              borderColor: isDark
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'rgba(0, 0, 0, 0.06)',
             },
           ]}
         >
@@ -358,7 +396,12 @@ export default function LoginScreen() {
           {error ? (
             <View style={styles.errorBanner}>
               <View style={styles.errorBannerRow}>
-                <Ionicons name="alert-circle" size={18} color="#DC2626" style={styles.errorIcon} />
+                <Ionicons
+                  name="alert-circle"
+                  size={18}
+                  color="#DC2626"
+                  style={styles.errorIcon}
+                />
                 <View style={styles.errorContent}>
                   <Text style={styles.errorText}>{error}</Text>
                   {(error.toLowerCase().includes('fetch') ||
@@ -373,7 +416,11 @@ export default function LoginScreen() {
                       }}
                       style={styles.errorActionBtn}
                     >
-                      <Ionicons name="settings-outline" size={13} color="#FFFFFF" />
+                      <Ionicons
+                        name="settings-outline"
+                        size={13}
+                        color="#FFFFFF"
+                      />
                       <Text style={styles.errorActionBtnText}>
                         Configure Server URL ({getApiBaseUrl()})
                       </Text>
@@ -412,13 +459,13 @@ export default function LoginScreen() {
                                 ? '#2C1B14'
                                 : '#FFF3EB'
                               : isDark
-                              ? '#1C212E'
-                              : '#F4F5F7',
+                                ? '#1C212E'
+                                : '#F4F5F7',
                             borderColor: isSelected
                               ? colors.primary
                               : isDark
-                              ? 'rgba(255, 255, 255, 0.06)'
-                              : '#E5E7EB',
+                                ? 'rgba(255, 255, 255, 0.06)'
+                                : '#E5E7EB',
                           },
                         ]}
                       >
@@ -445,7 +492,11 @@ export default function LoginScreen() {
                               { backgroundColor: colors.primary },
                             ]}
                           >
-                            <Ionicons name="checkmark" size={10} color="#FFFFFF" />
+                            <Ionicons
+                              name="checkmark"
+                              size={10}
+                              color="#FFFFFF"
+                            />
                           </View>
                         )}
                       </Pressable>
@@ -467,11 +518,17 @@ export default function LoginScreen() {
                     styles.pillInputWrap,
                     {
                       backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+                      borderColor: isDark
+                        ? 'rgba(255, 255, 255, 0.08)'
+                        : '#E5E7EB',
                     },
                   ]}
                 >
-                  <Ionicons name="person-outline" size={17} color={colors.muted} />
+                  <Ionicons
+                    name="person-outline"
+                    size={17}
+                    color={colors.muted}
+                  />
                   <TextInput
                     value={name}
                     onChangeText={setName}
@@ -482,7 +539,10 @@ export default function LoginScreen() {
                     style={[styles.pillTextInput, { color: colors.ink }]}
                     onFocus={() => {
                       setTimeout(() => {
-                        scrollViewRef.current?.scrollTo({ y: 80, animated: true });
+                        scrollViewRef.current?.scrollTo({
+                          y: 80,
+                          animated: true,
+                        });
                       }, 100);
                     }}
                   />
@@ -499,11 +559,17 @@ export default function LoginScreen() {
                     styles.pillInputWrap,
                     {
                       backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+                      borderColor: isDark
+                        ? 'rgba(255, 255, 255, 0.08)'
+                        : '#E5E7EB',
                     },
                   ]}
                 >
-                  <Ionicons name="call-outline" size={17} color={colors.muted} />
+                  <Ionicons
+                    name="call-outline"
+                    size={17}
+                    color={colors.muted}
+                  />
                   <TextInput
                     value={phone}
                     onChangeText={setPhone}
@@ -514,7 +580,10 @@ export default function LoginScreen() {
                     style={[styles.pillTextInput, { color: colors.ink }]}
                     onFocus={() => {
                       setTimeout(() => {
-                        scrollViewRef.current?.scrollTo({ y: 160, animated: true });
+                        scrollViewRef.current?.scrollTo({
+                          y: 160,
+                          animated: true,
+                        });
                       }, 100);
                     }}
                   />
@@ -550,7 +619,10 @@ export default function LoginScreen() {
                 style={[styles.pillTextInput, { color: colors.ink }]}
                 onFocus={() => {
                   setTimeout(() => {
-                    scrollViewRef.current?.scrollTo({ y: creating ? 250 : 100, animated: true });
+                    scrollViewRef.current?.scrollTo({
+                      y: creating ? 250 : 100,
+                      animated: true,
+                    });
                   }, 100);
                 }}
               />
@@ -571,7 +643,11 @@ export default function LoginScreen() {
                 },
               ]}
             >
-              <Ionicons name="lock-closed-outline" size={17} color={colors.muted} />
+              <Ionicons
+                name="lock-closed-outline"
+                size={17}
+                color={colors.muted}
+              />
               <TextInput
                 value={password}
                 onChangeText={setPassword}
@@ -586,13 +662,18 @@ export default function LoginScreen() {
                 style={[styles.pillTextInput, { color: colors.ink }]}
                 onFocus={() => {
                   setTimeout(() => {
-                    scrollViewRef.current?.scrollTo({ y: creating ? 360 : 180, animated: true });
+                    scrollViewRef.current?.scrollTo({
+                      y: creating ? 360 : 180,
+                      animated: true,
+                    });
                   }, 100);
                 }}
               />
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                accessibilityLabel={
+                  showPassword ? 'Hide password' : 'Show password'
+                }
                 onPress={() => setShowPassword((v) => !v)}
                 hitSlop={8}
                 style={styles.eyeBtn}
@@ -621,13 +702,13 @@ export default function LoginScreen() {
                     backgroundColor: rememberMe
                       ? colors.primary
                       : isDark
-                      ? '#1C212E'
-                      : '#FFFFFF',
+                        ? '#1C212E'
+                        : '#FFFFFF',
                     borderColor: rememberMe
                       ? colors.primary
                       : isDark
-                      ? 'rgba(255, 255, 255, 0.2)'
-                      : '#CBD5E1',
+                        ? 'rgba(255, 255, 255, 0.2)'
+                        : '#CBD5E1',
                   },
                 ]}
               >
@@ -646,14 +727,7 @@ export default function LoginScreen() {
             </Pressable>
 
             {!creating && (
-              <Pressable
-                onPress={() =>
-                  Alert.alert(
-                    'Password Reset',
-                    'A password recovery link has been sent to your registered email address.',
-                  )
-                }
-              >
+              <Pressable onPress={handleForgotPassword}>
                 <Text style={[styles.forgotText, { color: colors.primary }]}>
                   Forgot?
                 </Text>
@@ -718,7 +792,9 @@ export default function LoginScreen() {
           {/* Continue with Google Button (Firebase Google Auth) */}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={creating ? 'Sign up with Google' : 'Continue with Google'}
+            accessibilityLabel={
+              creating ? 'Sign up with Google' : 'Continue with Google'
+            }
             disabled={busy || googleBusy}
             onPress={handleOpenGoogleModal}
             style={({ pressed }) => [
@@ -753,10 +829,7 @@ export default function LoginScreen() {
                 ? 'Already have an account? '
                 : "Don't Have An Account? "}
               <Text
-                style={[
-                  styles.switchHighlightText,
-                  { color: colors.primary },
-                ]}
+                style={[styles.switchHighlightText, { color: colors.primary }]}
               >
                 {creating ? 'LOG IN' : 'Sign Up'}
               </Text>
@@ -779,11 +852,18 @@ export default function LoginScreen() {
                     styles.demoChip,
                     {
                       backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                      borderColor: role === 'buyer' && email === 'buyer@arifauto.et' ? colors.primary : colors.line,
+                      borderColor:
+                        role === 'buyer' && email === 'buyer@arifauto.et'
+                          ? colors.primary
+                          : colors.line,
                     },
                   ]}
                 >
-                  <Ionicons name="cart-outline" size={13} color={colors.primary} />
+                  <Ionicons
+                    name="cart-outline"
+                    size={13}
+                    color={colors.primary}
+                  />
                   <Text style={[styles.demoChipText, { color: colors.ink }]}>
                     Buyer
                   </Text>
@@ -796,11 +876,18 @@ export default function LoginScreen() {
                     styles.demoChip,
                     {
                       backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                      borderColor: role === 'seller' && email === 'seller@arifauto.et' ? colors.primary : colors.line,
+                      borderColor:
+                        role === 'seller' && email === 'seller@arifauto.et'
+                          ? colors.primary
+                          : colors.line,
                     },
                   ]}
                 >
-                  <Ionicons name="car-sport-outline" size={13} color="#059669" />
+                  <Ionicons
+                    name="car-sport-outline"
+                    size={13}
+                    color="#059669"
+                  />
                   <Text style={[styles.demoChipText, { color: colors.ink }]}>
                     Seller
                   </Text>
@@ -813,11 +900,18 @@ export default function LoginScreen() {
                     styles.demoChip,
                     {
                       backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                      borderColor: role === 'broker' && email === 'broker@arifauto.et' ? colors.primary : colors.line,
+                      borderColor:
+                        role === 'broker' && email === 'broker@arifauto.et'
+                          ? colors.primary
+                          : colors.line,
                     },
                   ]}
                 >
-                  <Ionicons name="briefcase-outline" size={13} color="#2563EB" />
+                  <Ionicons
+                    name="briefcase-outline"
+                    size={13}
+                    color="#2563EB"
+                  />
                   <Text style={[styles.demoChipText, { color: colors.ink }]}>
                     Broker
                   </Text>
@@ -865,12 +959,16 @@ export default function LoginScreen() {
               styles.modalCard,
               {
                 backgroundColor: isDark ? '#141822' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+                borderColor: isDark
+                  ? 'rgba(255, 255, 255, 0.1)'
+                  : 'rgba(0, 0, 0, 0.08)',
               },
             ]}
           >
             <View style={styles.modalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
                 <Ionicons name="server" size={20} color={colors.primary} />
                 <Text style={[styles.modalTitle, { color: colors.ink }]}>
                   Server URL Settings
@@ -886,11 +984,18 @@ export default function LoginScreen() {
             </View>
 
             <Text style={[styles.modalSubtitle, { color: colors.muted }]}>
-              Enter your backend API address. For physical phones on Wi-Fi, use your computer's LAN IP. If using 4G mobile data, use an ngrok or public URL.
+              Enter your backend API address. For physical phones on Wi-Fi, use
+              your computer's LAN IP. If using 4G mobile data, use an ngrok or
+              public URL.
             </Text>
 
             <View style={styles.modalInputWrap}>
-              <Text style={[styles.inputLabel, { color: colors.ink, marginBottom: 6 }]}>
+              <Text
+                style={[
+                  styles.inputLabel,
+                  { color: colors.ink, marginBottom: 6 },
+                ]}
+              >
                 API BASE URL
               </Text>
               <TextInput
@@ -905,7 +1010,9 @@ export default function LoginScreen() {
                   {
                     color: colors.ink,
                     backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                    borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB',
+                    borderColor: isDark
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : '#E5E7EB',
                   },
                 ]}
               />
@@ -920,13 +1027,18 @@ export default function LoginScreen() {
                 onPress={() => handleSaveServerUrl('http://172.26.166.46:3000')}
                 style={[styles.presetChip, { borderColor: colors.primary }]}
               >
-                <Text style={[styles.presetChipText, { color: colors.primary }]}>
+                <Text
+                  style={[styles.presetChipText, { color: colors.primary }]}
+                >
                   Computer Wi-Fi (172.26.166.46)
                 </Text>
               </Pressable>
               <Pressable
                 onPress={() => handleSaveServerUrl('http://10.0.2.2:3000')}
-                style={[styles.presetChip, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB' }]}
+                style={[
+                  styles.presetChip,
+                  { borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB' },
+                ]}
               >
                 <Text style={[styles.presetChipText, { color: colors.muted }]}>
                   Android Emulator (10.0.2.2)
@@ -946,7 +1058,11 @@ export default function LoginScreen() {
                 ]}
               >
                 <Ionicons
-                  name={testResult.includes('success') ? 'checkmark-circle' : 'information-circle'}
+                  name={
+                    testResult.includes('success')
+                      ? 'checkmark-circle'
+                      : 'information-circle'
+                  }
                   size={16}
                   color={testResult.includes('success') ? '#10B981' : '#EF4444'}
                 />
@@ -954,7 +1070,9 @@ export default function LoginScreen() {
                   style={[
                     styles.testResultText,
                     {
-                      color: testResult.includes('success') ? '#10B981' : '#EF4444',
+                      color: testResult.includes('success')
+                        ? '#10B981'
+                        : '#EF4444',
                     },
                   ]}
                 >
@@ -971,7 +1089,9 @@ export default function LoginScreen() {
                   { borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB' },
                 ]}
               >
-                <Text style={[styles.modalCancelBtnText, { color: colors.ink }]}>
+                <Text
+                  style={[styles.modalCancelBtnText, { color: colors.ink }]}
+                >
                   Cancel
                 </Text>
               </Pressable>
@@ -980,7 +1100,10 @@ export default function LoginScreen() {
                 onPress={() => handleSaveServerUrl()}
                 style={[
                   styles.modalSaveBtn,
-                  { backgroundColor: colors.primary, opacity: testingConnection ? 0.7 : 1 },
+                  {
+                    backgroundColor: colors.primary,
+                    opacity: testingConnection ? 0.7 : 1,
+                  },
                 ]}
               >
                 <Text style={styles.modalSaveBtnText}>
@@ -1004,12 +1127,16 @@ export default function LoginScreen() {
               styles.modalCard,
               {
                 backgroundColor: isDark ? '#141822' : '#FFFFFF',
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+                borderColor: isDark
+                  ? 'rgba(255, 255, 255, 0.1)'
+                  : 'rgba(0, 0, 0, 0.08)',
               },
             ]}
           >
             <View style={styles.modalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
                 <View style={styles.googleIconCircle}>
                   <Ionicons name="logo-google" size={18} color="#EA4335" />
                 </View>
@@ -1017,7 +1144,13 @@ export default function LoginScreen() {
                   <Text style={[styles.modalTitle, { color: colors.ink }]}>
                     {creating ? 'Sign Up with Google' : 'Sign In with Google'}
                   </Text>
-                  <Text style={{ fontSize: 10, color: colors.primary, fontWeight: '700' }}>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: colors.primary,
+                      fontWeight: '700',
+                    }}
+                  >
                     FIREBASE AUTHENTICATION
                   </Text>
                 </View>
@@ -1039,7 +1172,12 @@ export default function LoginScreen() {
 
             {creating && (
               <View style={styles.modalInputWrap}>
-                <Text style={[styles.inputLabel, { color: colors.ink, marginBottom: 6 }]}>
+                <Text
+                  style={[
+                    styles.inputLabel,
+                    { color: colors.ink, marginBottom: 6 },
+                  ]}
+                >
                   YOUR NAME
                 </Text>
                 <TextInput
@@ -1052,7 +1190,9 @@ export default function LoginScreen() {
                     {
                       color: colors.ink,
                       backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                      borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB',
+                      borderColor: isDark
+                        ? 'rgba(255, 255, 255, 0.1)'
+                        : '#E5E7EB',
                     },
                   ]}
                 />
@@ -1060,7 +1200,12 @@ export default function LoginScreen() {
             )}
 
             <View style={styles.modalInputWrap}>
-              <Text style={[styles.inputLabel, { color: colors.ink, marginBottom: 6 }]}>
+              <Text
+                style={[
+                  styles.inputLabel,
+                  { color: colors.ink, marginBottom: 6 },
+                ]}
+              >
                 GOOGLE ACCOUNT EMAIL
               </Text>
               <TextInput
@@ -1076,7 +1221,9 @@ export default function LoginScreen() {
                   {
                     color: colors.ink,
                     backgroundColor: isDark ? '#1C212E' : '#F3F4F6',
-                    borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB',
+                    borderColor: isDark
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : '#E5E7EB',
                   },
                 ]}
               />
@@ -1088,15 +1235,27 @@ export default function LoginScreen() {
             </Text>
             <View style={styles.presetsRow}>
               <Pressable
-                onPress={() => void handleContinueWithGoogle('buyer.google@arifauto.et', 'Google Buyer')}
+                onPress={() =>
+                  void handleContinueWithGoogle(
+                    'buyer.google@arifauto.et',
+                    'Google Buyer',
+                  )
+                }
                 style={[styles.presetChip, { borderColor: colors.primary }]}
               >
-                <Text style={[styles.presetChipText, { color: colors.primary }]}>
+                <Text
+                  style={[styles.presetChipText, { color: colors.primary }]}
+                >
                   Buyer Demo (buyer.google@arifauto.et)
                 </Text>
               </Pressable>
               <Pressable
-                onPress={() => void handleContinueWithGoogle('seller.google@arifauto.et', 'Google Seller')}
+                onPress={() =>
+                  void handleContinueWithGoogle(
+                    'seller.google@arifauto.et',
+                    'Google Seller',
+                  )
+                }
                 style={[styles.presetChip, { borderColor: '#059669' }]}
               >
                 <Text style={[styles.presetChipText, { color: '#059669' }]}>
@@ -1104,7 +1263,12 @@ export default function LoginScreen() {
                 </Text>
               </Pressable>
               <Pressable
-                onPress={() => void handleContinueWithGoogle('broker.google@arifauto.et', 'Google Broker')}
+                onPress={() =>
+                  void handleContinueWithGoogle(
+                    'broker.google@arifauto.et',
+                    'Google Broker',
+                  )
+                }
                 style={[styles.presetChip, { borderColor: '#2563EB' }]}
               >
                 <Text style={[styles.presetChipText, { color: '#2563EB' }]}>
@@ -1118,10 +1282,14 @@ export default function LoginScreen() {
                 onPress={() => setShowGoogleModal(false)}
                 style={[
                   styles.modalCancelBtn,
-                  { borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB' },
+                  {
+                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB',
+                  },
                 ]}
               >
-                <Text style={[styles.modalCancelBtnText, { color: colors.muted }]}>
+                <Text
+                  style={[styles.modalCancelBtnText, { color: colors.muted }]}
+                >
                   Cancel
                 </Text>
               </Pressable>
@@ -1130,7 +1298,10 @@ export default function LoginScreen() {
                 onPress={() => void handleContinueWithGoogle()}
                 style={[
                   styles.modalSaveBtn,
-                  { backgroundColor: colors.primary, opacity: googleBusy ? 0.7 : 1 },
+                  {
+                    backgroundColor: colors.primary,
+                    opacity: googleBusy ? 0.7 : 1,
+                  },
                 ]}
               >
                 <Text style={styles.modalSaveBtnText}>

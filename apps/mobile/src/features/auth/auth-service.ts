@@ -1,12 +1,15 @@
 import { request } from '../../services/api-client';
 import { secureSession } from '../../services/secure-session';
+import { firebaseAuth } from '../../services/firebase';
 import type { RegisterInput, User } from '../../types/models';
+
 type AuthResponse = {
   user: User;
   token?: string;
   accessToken?: string;
   refreshToken?: string;
 };
+
 async function persistSession(
   result: Pick<AuthResponse, 'token' | 'accessToken' | 'refreshToken'>,
 ) {
@@ -15,6 +18,7 @@ async function persistSession(
   if (result.refreshToken)
     await secureSession.setRefreshToken(result.refreshToken);
 }
+
 export const authService = {
   async login(email: string, password: string) {
     const result = await request<AuthResponse>('/api/auth/login', {
@@ -24,6 +28,7 @@ export const authService = {
     await persistSession(result);
     return result.user;
   },
+
   async register(input: RegisterInput) {
     const result = await request<AuthResponse>('/api/auth/register', {
       method: 'POST',
@@ -32,12 +37,14 @@ export const authService = {
     await persistSession(result);
     return result.user;
   },
+
   async loginWithFirebaseGoogle(payload: {
     email: string;
     name?: string;
     role?: 'buyer' | 'seller' | 'broker';
     photoURL?: string;
     uid?: string;
+    idToken?: string;
   }) {
     const result = await request<AuthResponse>('/api/auth/firebase-google', {
       method: 'POST',
@@ -46,7 +53,30 @@ export const authService = {
     await persistSession(result);
     return result.user;
   },
+
+  async sendPasswordReset(email: string): Promise<string> {
+    try {
+      const fbResult = await firebaseAuth.sendPasswordResetEmail(email);
+      return fbResult.message;
+    } catch (fbErr: any) {
+      // If Firebase fails or is not configured, fall back to backend forgot-password
+      try {
+        const result = await request<{ message: string }>(
+          '/api/auth/forgot-password',
+          {
+            method: 'POST',
+            json: { email: email.trim() },
+          },
+        );
+        return result.message;
+      } catch {
+        throw fbErr;
+      }
+    }
+  },
+
   getCurrentUser: () => request<{ user: User }>('/api/auth/me'),
+
   async updateProfile(
     id: string,
     input: { name: string; phone?: string; bio?: string },
@@ -56,6 +86,7 @@ export const authService = {
       json: input,
     });
   },
+
   async changePassword(currentPassword: string, newPassword: string) {
     const result = await request<{
       message: string;
@@ -69,6 +100,7 @@ export const authService = {
     await persistSession(result);
     return result.message;
   },
+
   logout: async () => {
     const refreshToken = await secureSession.getRefreshToken();
     try {
