@@ -10,6 +10,7 @@ export interface User {
   verificationStatus?: "unverified" | "pending" | "verified";
   idDocument?: string;
   bio?: string;
+  location?: string;
   avatar?: string;
   joinDate?: string;
 }

@@ -6,7 +6,8 @@ import {
 import Combobox from "./Combobox";
 import {
   BRANDS, LOCATIONS, FUEL_TYPES, TRANSMISSIONS, DRIVE_TYPES,
-  CONDITIONS, BODY_TYPES, BRAND_MODELS, DOOR_OPTIONS, SEAT_OPTIONS
+  CONDITIONS, BODY_TYPES, BRAND_MODELS, DOOR_OPTIONS, SEAT_OPTIONS,
+  YEARS, ENGINE_SIZES, ENGINE_TYPES, COLOR_DETAILS
 } from "../../lib/constants";
 import { vehiclesApi } from "../../lib/api";
 import type { VehicleListing } from "@autobroker/shared";
@@ -57,6 +58,7 @@ export default function VehicleFormModal({
     driveType: editing?.driveType || "FWD",
     condition: editing?.condition || "Used",
     bodyType: editing?.bodyType || "Sedan",
+    color: editing?.color || "White",
     doors: editing?.doors || 4,
     seats: editing?.seats || 5,
     engineSize: editing?.engineSize || "1.8L",
@@ -239,6 +241,7 @@ export default function VehicleFormModal({
         ownership_document_name: ownershipDocName || "Vehicle Ownership Document (Libre)",
         condition: form.condition,
         body_type: form.bodyType,
+        color: form.color,
         doors: form.doors,
         seats: form.seats,
         engine_size: form.engineSize,
@@ -429,7 +432,7 @@ export default function VehicleFormModal({
                     }}
                     options={BRANDS}
                     placeholder="Search or choose brand..."
-                    className="py-2.5 sm:py-2 text-base sm:text-sm"
+                    className="py-2.5 sm:py-2 text-base sm:text-sm font-semibold"
                   />
                 </div>
                 <div>
@@ -441,82 +444,169 @@ export default function VehicleFormModal({
                     onChange={(v) => handleChange("model", v)}
                     options={currentModels}
                     placeholder={form.brand ? `Select ${form.brand} Model...` : "Choose brand first..."}
-                    className="py-2.5 sm:py-2 text-base sm:text-sm"
+                    className="py-2.5 sm:py-2 text-base sm:text-sm font-semibold"
                   />
+                  {currentModels.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      <span className="text-[10px] text-slate-400 font-medium mr-1 py-0.5">Top:</span>
+                      {currentModels.slice(0, 4).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => handleChange("model", m)}
+                          className={`text-[10px] px-2 py-0.5 rounded-md font-semibold transition cursor-pointer ${
+                            form.model === m
+                              ? "bg-[#FF4846] text-white"
+                              : "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Year & Registration Year */}
+              {/* Year & Registration Year Dropdowns */}
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
                     Manufacture Year *
                   </label>
-                  <input
-                    type="number"
-                    min={1990}
-                    max={new Date().getFullYear() + 1}
+                  <select
                     value={form.year}
-                    onChange={(e) => handleChange("year", parseInt(e.target.value) || 2020)}
-                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold"
-                  />
+                    onChange={(e) => {
+                      const yr = parseInt(e.target.value);
+                      handleChange("year", yr);
+                      if (form.regYear < yr) handleChange("regYear", yr);
+                    }}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {YEARS.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
                     Registration Year
                   </label>
-                  <input
-                    type="number"
-                    min={1990}
-                    max={new Date().getFullYear() + 1}
+                  <select
                     value={form.regYear}
-                    onChange={(e) => handleChange("regYear", parseInt(e.target.value) || 2021)}
-                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold"
+                    onChange={(e) => handleChange("regYear", parseInt(e.target.value))}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {YEARS.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Condition & Body Type Dropdowns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
+                    Vehicle Condition *
+                  </label>
+                  <select
+                    value={form.condition}
+                    onChange={(e) => handleChange("condition", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {CONDITIONS.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <div className="grid grid-cols-4 gap-1.5 mt-2">
+                    {CONDITIONS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => handleChange("condition", c)}
+                        className={`p-1.5 rounded-lg border text-center transition cursor-pointer text-[11px] font-bold ${
+                          form.condition === c
+                            ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846]"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300"
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
+                    Body Type *
+                  </label>
+                  <select
+                    value={form.bodyType}
+                    onChange={(e) => handleChange("bodyType", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {BODY_TYPES.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                  <div className="grid grid-cols-4 gap-1.5 mt-2">
+                    {BODY_TYPES.slice(0, 4).map((b) => (
+                      <button
+                        key={b}
+                        type="button"
+                        onClick={() => handleChange("bodyType", b)}
+                        className={`p-1.5 rounded-lg border text-center transition cursor-pointer text-[11px] font-bold ${
+                          form.bodyType === b
+                            ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846]"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300"
+                        }`}
+                      >
+                        {b}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Exterior Color Dropdown with visual swatches */}
+              <div>
+                <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
+                  Exterior Color *
+                </label>
+                <div className="relative">
+                  <select
+                    value={form.color}
+                    onChange={(e) => handleChange("color", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 pl-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {COLOR_DETAILS.map((c) => (
+                      <option key={c.name} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                  <span
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 pointer-events-none shadow-xs"
+                    style={{ backgroundColor: COLOR_DETAILS.find((c) => c.name === form.color)?.hex || "#FFFFFF" }}
                   />
                 </div>
-              </div>
-
-              {/* Condition Selector */}
-              <div>
-                <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2 block">
-                  Vehicle Condition
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {CONDITIONS.map((c) => (
+                <div className="flex flex-wrap gap-2 mt-2 items-center">
+                  <span className="text-[10px] text-slate-400 font-medium">Quick pick:</span>
+                  {COLOR_DETAILS.slice(0, 8).map((c) => (
                     <button
-                      key={c}
+                      key={c.name}
                       type="button"
-                      onClick={() => handleChange("condition", c)}
-                      className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
-                        form.condition === c
-                          ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846] font-black"
-                          : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 font-semibold"
+                      title={c.name}
+                      onClick={() => handleChange("color", c.name)}
+                      className={`w-6 h-6 rounded-full border-2 transition cursor-pointer flex items-center justify-center ${
+                        form.color === c.name
+                          ? "border-[#FF4846] scale-110 shadow-sm"
+                          : "border-slate-200 dark:border-slate-700 hover:scale-105"
                       }`}
+                      style={{ backgroundColor: c.hex }}
                     >
-                      <span className="text-xs">{c}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Body Type Selector */}
-              <div>
-                <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2 block">
-                  Body Type
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {BODY_TYPES.map((b) => (
-                    <button
-                      key={b}
-                      type="button"
-                      onClick={() => handleChange("bodyType", b)}
-                      className={`p-2 rounded-xl border text-center transition cursor-pointer text-xs ${
-                        form.bodyType === b
-                          ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846] font-black"
-                          : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 font-semibold"
-                      }`}
-                    >
-                      {b}
+                      {form.color === c.name && (
+                        <Check size={11} className={c.hex === "#FFFFFF" || c.hex === "#E5D9C5" ? "text-slate-900" : "text-white"} strokeWidth={3} />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -550,17 +640,26 @@ export default function VehicleFormModal({
 
                 <div>
                   <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
-                    Fuel Type
+                    Fuel Type *
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <select
+                    value={form.fuelType}
+                    onChange={(e) => handleChange("fuelType", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {FUEL_TYPES.map(f => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                  <div className="grid grid-cols-4 gap-1.5 mt-2">
                     {FUEL_TYPES.map(f => (
                       <button
                         key={f}
                         type="button"
                         onClick={() => handleChange("fuelType", f)}
-                        className={`p-2 rounded-xl border text-center transition cursor-pointer text-xs ${
+                        className={`p-1.5 rounded-lg border text-center transition cursor-pointer text-[11px] font-bold ${
                           form.fuelType === f
-                            ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846] font-black"
+                            ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846]"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300"
                         }`}
                       >
@@ -571,19 +670,28 @@ export default function VehicleFormModal({
                 </div>
               </div>
 
-              {/* Transmission & Drive Type */}
+              {/* Transmission & Drive Type Dropdowns */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
-                    Transmission
+                    Transmission *
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={form.transmission}
+                    onChange={(e) => handleChange("transmission", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {TRANSMISSIONS.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
                     {TRANSMISSIONS.map(t => (
                       <button
                         key={t}
                         type="button"
                         onClick={() => handleChange("transmission", t)}
-                        className={`p-2.5 rounded-xl border text-center transition cursor-pointer text-xs font-bold ${
+                        className={`p-2 rounded-lg border text-center transition cursor-pointer text-xs font-bold ${
                           form.transmission === t
                             ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846]"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300"
@@ -597,15 +705,24 @@ export default function VehicleFormModal({
 
                 <div>
                   <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
-                    Drive Type
+                    Drive Type *
                   </label>
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <select
+                    value={form.driveType}
+                    onChange={(e) => handleChange("driveType", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {DRIVE_TYPES.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <div className="grid grid-cols-4 gap-1.5 mt-2">
                     {DRIVE_TYPES.map(d => (
                       <button
                         key={d}
                         type="button"
                         onClick={() => handleChange("driveType", d)}
-                        className={`p-2.5 rounded-xl border text-center transition cursor-pointer text-xs font-bold ${
+                        className={`p-2 rounded-lg border text-center transition cursor-pointer text-xs font-bold ${
                           form.driveType === d
                             ? "border-[#FF4846] bg-[#FF4846]/10 text-[#FF4846]"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300"
@@ -618,7 +735,71 @@ export default function VehicleFormModal({
                 </div>
               </div>
 
-              {/* Location with Quick Chips */}
+              {/* Engine Size & Engine Type Dropdowns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
+                    Engine Displacement / Size
+                  </label>
+                  <select
+                    value={form.engineSize}
+                    onChange={(e) => handleChange("engineSize", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {ENGINE_SIZES.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
+                    Engine Type / Cylinders
+                  </label>
+                  <select
+                    value={form.engineType}
+                    onChange={(e) => handleChange("engineType", e.target.value)}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-semibold cursor-pointer"
+                  >
+                    {ENGINE_TYPES.map(et => (
+                      <option key={et} value={et}>{et}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Doors & Seats Dropdowns */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
+                    Doors
+                  </label>
+                  <select
+                    value={form.doors}
+                    onChange={(e) => handleChange("doors", parseInt(e.target.value))}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold cursor-pointer"
+                  >
+                    {DOOR_OPTIONS.map((d) => (
+                      <option key={d} value={d}>{d} Doors</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
+                    Seats
+                  </label>
+                  <select
+                    value={form.seats}
+                    onChange={(e) => handleChange("seats", parseInt(e.target.value))}
+                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-semibold cursor-pointer"
+                  >
+                    {SEAT_OPTIONS.map((s) => (
+                      <option key={s} value={s}>{s} Seats</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Location with Searchable Combobox & Quick Chips */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
@@ -634,7 +815,7 @@ export default function VehicleFormModal({
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
                         form.location === loc
                           ? "bg-[#FF4846] text-white shadow-xs"
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                       }`}
                     >
                       <MapPin size={11} /> {loc}
@@ -646,39 +827,23 @@ export default function VehicleFormModal({
                   onChange={(v) => handleChange("location", v)}
                   options={LOCATIONS}
                   placeholder="Select or enter city..."
-                  className="py-2.5 sm:py-2 text-base sm:text-sm"
+                  className="py-2.5 sm:py-2 text-base sm:text-sm font-semibold"
                 />
               </div>
 
-              {/* Chassis Number & Capacity */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                <div className="sm:col-span-1">
-                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block">
-                    Seats
-                  </label>
-                  <select
-                    value={form.seats}
-                    onChange={(e) => handleChange("seats", parseInt(e.target.value))}
-                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                  >
-                    {SEAT_OPTIONS.map((s) => (
-                      <option key={s} value={s}>{s} Seats</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block flex items-center justify-between">
-                    <span>Chassis / VIN Number (Optional)</span>
-                    <span className="text-[10px] text-slate-400 normal-case font-normal">Matches Libre</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={form.chassisNumber}
-                    onChange={(e) => handleChange("chassisNumber", e.target.value.toUpperCase())}
-                    placeholder="e.g. JT123456789ABC"
-                    className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
-                  />
-                </div>
+              {/* Chassis Number */}
+              <div>
+                <label className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1.5 block flex items-center justify-between">
+                  <span>Chassis / VIN Number (Optional)</span>
+                  <span className="text-[10px] text-slate-400 normal-case font-normal">Matches Libre Booklet</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.chassisNumber}
+                  onChange={(e) => handleChange("chassisNumber", e.target.value.toUpperCase())}
+                  placeholder="e.g. JT123456789ABC"
+                  className="w-full text-base sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
+                />
               </div>
             </div>
           )}
@@ -957,9 +1122,9 @@ export default function VehicleFormModal({
                     </strong>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Location</span>
+                    <span className="text-slate-400 text-[11px] block">Location & Specs</span>
                     <span className="font-semibold text-slate-700 dark:text-slate-300">
-                      {form.location}
+                      {form.location} · {form.condition} · {form.fuelType} · {form.color}
                     </span>
                   </div>
                   <div>
