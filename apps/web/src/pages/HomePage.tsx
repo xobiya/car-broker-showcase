@@ -294,7 +294,7 @@ export default function HomePage({
   const { formatCurrency, locale, setLocale, locales, localeMetadata } = useLocale();
   const [vehicles, setVehicles] = useState<VehicleListing[]>([]);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
-  const [dbBrands, setDbBrands] = useState<{ name: string; count: number; models: string[] }[]>([]);
+  const [dbBrands, setDbBrands] = useState<{ name: string; count: string; tagline: string }[]>([]);
   const [publicStats, setPublicStats] = useState<{ totalVehicles: number; totalBrokers: number; totalSales: number; totalUsers: number; clearanceRate: number } | null>(null);
   const [brands, setBrands] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
@@ -420,8 +420,8 @@ export default function HomePage({
     if (dbBrands.length > 0) {
       return dbBrands.map((b) => ({
         name: b.name,
-        count: `${b.count} ${b.count === 1 ? "Car" : "Cars"}`,
-        tagline: (Array.isArray(b.models) ? b.models.slice(0, 3).join(", ") : "") || DEFAULT_BRAND_TAGS[b.name] || "Available in Ethiopia",
+        count: b.count,
+        tagline: b.tagline || DEFAULT_BRAND_TAGS[b.name] || "Available in Ethiopia",
         svg: BRAND_LOGOS[b.name] || (
           <div className="font-black text-xs tracking-wider border-2 border-current px-2 py-0.5 rounded-md uppercase">
             {(b.name || "").slice(0, 4)}

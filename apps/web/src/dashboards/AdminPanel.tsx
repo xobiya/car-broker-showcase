@@ -381,7 +381,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
   const [transmission, setTransmission] = useState("Automatic");
   const [location, setLocation] = useState("Addis Ababa");
   const [isFeatured, setIsFeatured] = useState(false);
-  const [status, setStatus] = useState<"pending" | "approved" | "sold">("pending");
+  const [status, setStatus] = useState<VehicleListing["status"]>("pending");
   const [condition, setCondition] = useState("Used");
   const [bodyType, setBodyType] = useState("SUV");
   const [driveType, setDriveType] = useState("4WD");
@@ -1115,7 +1115,16 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           onOpenEdit={handleOpenEdit}
           onApproveListing={handleApprove}
           onRejectListing={handleRejectListing}
-          onInspectDoc={(vehId, docUrl, docType) => setInspectingDoc({ vehicleId: vehId, docUrl, docType })}
+          onInspectDoc={(vehId, docUrl, docType) =>
+            setInspectingDoc({
+              vehicleId: vehId,
+              vehicleTitle: "Vehicle Document",
+              docUrl,
+              docName: docType || "Ownership Document",
+              price: 0,
+              status: "pending",
+            })
+          }
           onNotify={onNotify}
           hideHeader={true}
           isLoading={loading}
@@ -1960,7 +1969,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
                       r.status === "resolved" ? "bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-400"
                       : r.status === "dismissed" ? "bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400"
-                      : r.status === "reviewed" ? "bg-blue-50 text-blue-800 border border-blue-100 dark:bg-blue-950/50 dark:text-blue-400"
+                      : r.status === "investigating" ? "bg-blue-50 text-blue-800 border border-blue-100 dark:bg-blue-950/50 dark:text-blue-400"
                       : "bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/50 dark:text-amber-400"
                     }`}>
                       {r.status}
@@ -1979,8 +1988,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                     <button
                       onClick={async () => {
                         try {
-                          await reportsApi.updateStatus(r.id, "reviewed");
-                          onNotify("Report marked as reviewed", "info");
+                          await reportsApi.updateStatus(r.id, "investigating");
+                          onNotify("Report marked as investigating", "info");
                           fetchData();
                         } catch (err: any) {
                           onNotify(err?.message || "Failed to update report", "error");
@@ -1988,10 +1997,10 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                       }}
                       className="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 rounded-xl text-xs transition active:scale-95 shadow-xs"
                     >
-                      Mark Reviewed
+                      Mark Investigating
                     </button>
                   )}
-                  {r.status === "reviewed" && (
+                  {r.status === "investigating" && (
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
@@ -2057,7 +2066,7 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                       <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
                         r.status === "resolved" ? "bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400"
                         : r.status === "dismissed" ? "bg-slate-100 text-slate-400 border border-slate-200 dark:bg-slate-800 dark:text-slate-400"
-                        : r.status === "reviewed" ? "bg-blue-50 text-blue-800 border border-blue-100 dark:bg-blue-950/40 dark:text-blue-400"
+                        : r.status === "investigating" ? "bg-blue-50 text-blue-800 border border-blue-100 dark:bg-blue-950/40 dark:text-blue-400"
                         : "bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/40 dark:text-amber-400"
                       }`}>
                         {r.status}
@@ -2069,17 +2078,17 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                           <button
                             onClick={async () => {
                               try {
-                                await reportsApi.updateStatus(r.id, "reviewed");
-                                onNotify("Report marked as reviewed", "info");
+                                await reportsApi.updateStatus(r.id, "investigating");
+                                onNotify("Report marked as investigating", "info");
                                 fetchData();
                               } catch (err: any) {
                                 onNotify(err?.message || "Failed to update report", "error");
                               }
                             }}
                             className="bg-blue-900 hover:bg-blue-800 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer"
-                          >Mark Reviewed</button>
+                          >Mark Investigating</button>
                         )}
-                        {r.status === "reviewed" && (
+                        {r.status === "investigating" && (
                           <>
                             <button
                               onClick={async () => {
