@@ -1387,8 +1387,11 @@ app.post(
   validate(leadSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { vehicle_id, buyer_name, buyer_email, buyer_phone, message } =
-        req.body;
+      const vehicle_id = req.body.vehicle_id;
+      const buyer_name = req.body.buyer_name || req.body.customer_name || req.body.name;
+      const buyer_email = req.body.buyer_email || req.body.customer_email || req.body.email || "";
+      const buyer_phone = req.body.buyer_phone || req.body.customer_phone || req.body.phone;
+      const message = req.body.message || "";
       const buyer_id = req.user ? req.user.id : null;
 
       const vehicle = await db.getVehicleById(vehicle_id);
@@ -2179,13 +2182,12 @@ app.get(
   authenticateToken,
   async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.query.userId as string;
-      if (!userId)
-        return res
-          .status(400)
-          .json({ error: "userId query param is required." });
+      const targetUserId =
+        req.user!.role === "admin" && req.query.userId
+          ? (req.query.userId as string)
+          : req.user!.id;
 
-      if (req.user!.role !== "admin" && userId !== req.user!.id) {
+      if (req.user!.role !== "admin" && req.query.userId && req.query.userId !== req.user!.id) {
         return res
           .status(403)
           .json({
@@ -2193,7 +2195,7 @@ app.get(
           });
       }
 
-      const items = await db.getSavedVehicles(userId);
+      const items = await db.getSavedVehicles(targetUserId);
       const vehicleIds = items.map((s) => s.vehicleId);
       const vehicles =
         vehicleIds.length > 0
@@ -2218,21 +2220,26 @@ app.post(
   authenticateToken,
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId, vehicleId } = req.body;
-      if (!userId || !vehicleId)
+      const targetUserId =
+        req.user!.role === "admin" && req.body.userId
+          ? req.body.userId
+          : req.user!.id;
+      const vehicleId = req.body.vehicleId || req.body.vehicle_id;
+
+      if (!vehicleId)
         return res
           .status(400)
-          .json({ error: "userId and vehicleId are required." });
+          .json({ error: "vehicleId or vehicle_id is required." });
 
-      if (req.user!.role !== "admin" && userId !== req.user!.id) {
+      if (req.user!.role !== "admin" && req.body.userId && req.body.userId !== req.user!.id) {
         return res.status(403).json({ error: "Access denied." });
       }
 
-      const existing = await db.isVehicleSaved(userId, vehicleId);
+      const existing = await db.isVehicleSaved(targetUserId, vehicleId);
       if (existing)
         return res.status(409).json({ error: "Vehicle already saved." });
 
-      const item = await db.addSavedVehicle(userId, vehicleId);
+      const item = await db.addSavedVehicle(targetUserId, vehicleId);
       res.status(201).json(item);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -2241,21 +2248,31 @@ app.post(
 );
 
 app.delete(
-  "/api/saved-vehicles",
+  ["/api/saved-vehicles", "/api/saved-vehicles/:id"],
   authenticateToken,
   async (req: AuthenticatedRequest, res) => {
     try {
-      const { userId, vehicleId } = req.body;
-      if (!userId || !vehicleId)
+      const targetUserId =
+        req.user!.role === "admin" && req.body?.userId
+          ? req.body.userId
+          : req.user!.id;
+      const vehicleId =
+        req.params.id || req.body?.vehicleId || req.body?.vehicle_id;
+
+      if (!vehicleId)
         return res
           .status(400)
-          .json({ error: "userId and vehicleId are required." });
+          .json({ error: "vehicleId is required." });
 
-      if (req.user!.role !== "admin" && userId !== req.user!.id) {
+      if (
+        req.user!.role !== "admin" &&
+        req.body?.userId &&
+        req.body.userId !== req.user!.id
+      ) {
         return res.status(403).json({ error: "Access denied." });
       }
 
-      const success = await db.removeSavedVehicle(userId, vehicleId);
+      const success = await db.removeSavedVehicle(targetUserId, vehicleId);
       res.json({ success });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -2322,15 +2339,13 @@ app.post(
   validate(testDriveSchema),
   async (req: AuthenticatedRequest, res) => {
     try {
-      const {
-        vehicle_id,
-        name,
-        email,
-        phone,
-        preferred_date,
-        preferred_time,
-        message,
-      } = req.body;
+      const vehicle_id = req.body.vehicle_id;
+      const name = req.body.name || req.body.buyer_name;
+      const email = req.body.email || req.body.buyer_email || "";
+      const phone = req.body.phone || req.body.buyer_phone;
+      const preferred_date = req.body.preferred_date;
+      const preferred_time = req.body.preferred_time || req.body.preferred_time_slot || req.body.time;
+      const message = req.body.message || req.body.notes || "";
       const user_id = req.user ? req.user.id : null;
 
       const td = await db.addTestDrive({

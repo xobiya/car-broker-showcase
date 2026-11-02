@@ -50,10 +50,23 @@ export const vehicleSchema = z.object({
 
 export const leadSchema = z.object({
   vehicle_id: z.string().min(1, "Vehicle ID is required"),
-  buyer_name: z.string().min(1, "Name is required"),
-  buyer_email: z.string().email("Invalid email"),
-  buyer_phone: z.string().min(1, "Phone is required"),
+  buyer_name: z.string().optional(),
+  customer_name: z.string().optional(),
+  name: z.string().optional(),
+  buyer_email: z.string().email("Invalid email").optional().or(z.literal("")),
+  customer_email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  buyer_phone: z.string().optional(),
+  customer_phone: z.string().optional(),
+  phone: z.string().optional(),
   message: z.string().optional(),
+  preferred_contact: z.string().optional(),
+}).refine(data => !!(data.buyer_name || data.customer_name || data.name), {
+  message: "Name is required",
+  path: ["buyer_name"],
+}).refine(data => !!(data.buyer_phone || data.customer_phone || data.phone), {
+  message: "Phone is required",
+  path: ["buyer_phone"],
 });
 
 export const saleSchema = z.object({
@@ -66,12 +79,28 @@ export const saleSchema = z.object({
 
 export const testDriveSchema = z.object({
   vehicle_id: z.string().min(1, "Vehicle ID is required"),
-  name: z.string().min(1, "Name is required"),
+  name: z.string().optional(),
+  buyer_name: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().min(1, "Phone is required"),
+  buyer_email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().optional(),
+  buyer_phone: z.string().optional(),
   preferred_date: z.string().min(1, "Date is required"),
-  preferred_time: z.string().min(1, "Time is required"),
+  preferred_time: z.string().optional(),
+  preferred_time_slot: z.string().optional(),
+  time: z.string().optional(),
   message: z.string().optional(),
+  notes: z.string().optional(),
+  license_number: z.string().optional(),
+}).refine(data => !!(data.name || data.buyer_name), {
+  message: "Name is required",
+  path: ["name"],
+}).refine(data => !!(data.phone || data.buyer_phone), {
+  message: "Phone is required",
+  path: ["phone"],
+}).refine(data => !!(data.preferred_time || data.preferred_time_slot || data.time), {
+  message: "Preferred time is required",
+  path: ["preferred_time"],
 });
 
 export const testDriveStatusSchema = z.object({
