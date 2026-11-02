@@ -44,7 +44,7 @@ import {
   notifyListingApproved,
   notifyListingRejected,
 } from "./services/notifications";
-import { getCached, setCache, clearCache } from "./services/cache";
+import { getCached, setCache, clearCache, getOrSetCache, cacheMiddleware } from "./services/cache";
 
 const app = express();
 
@@ -1057,7 +1057,7 @@ app.post(
         }
       }
 
-      clearCache("vehicles");
+      clearCache("vehicle");
       res.status(201).json(newVehicle);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -1144,7 +1144,7 @@ app.put(
 
       const success = await db.updateVehicle(req.params.id, updates);
       if (success) {
-        clearCache("vehicles");
+        clearCache("vehicle");
         res.json({ message: "Vehicle updated successfully" });
       } else {
         res.status(404).json({ error: "Vehicle not found" });
@@ -1174,7 +1174,7 @@ app.delete(
 
       const success = await db.deleteVehicle(req.params.id);
       if (success) {
-        clearCache("vehicles");
+        clearCache("vehicle");
         res.json({ message: "Vehicle deleted successfully" });
       } else {
         res.status(404).json({ error: "Vehicle not found" });
@@ -1203,7 +1203,7 @@ app.put(
           target_id: req.params.id,
           details: `Approved vehicle listing by ${req.user!.role}`,
         });
-        clearCache("vehicles");
+        clearCache("vehicle");
         const vehicle = await db.getVehicleById(req.params.id);
         if (vehicle) {
           const broker = (await db.getBrokersByIds([vehicle.brokerId]))[0];
@@ -1257,7 +1257,7 @@ app.put(
           target_id: req.params.id,
           details: `Rejected listing: ${reason || "No reason specified"}`,
         });
-        clearCache("vehicles");
+        clearCache("vehicle");
         const vehicle = await db.getVehicleById(req.params.id);
         if (vehicle) {
           const broker = (await db.getBrokersByIds([vehicle.brokerId]))[0];
@@ -1314,7 +1314,7 @@ app.put(
         status: "pending",
       });
       if (success) {
-        clearCache("vehicles");
+        clearCache("vehicle");
         res.json({ message: "Vehicle submitted for approval" });
       } else {
         res.status(404).json({ error: "Vehicle not found" });
@@ -1564,7 +1564,7 @@ app.post(
       });
 
       await db.updateVehicle(vehicle_id, { status: "sold" });
-      clearCache("vehicles");
+      clearCache("vehicle");
       if (leadId) {
         const targetLead = await db.getLeadById(leadId);
         if (targetLead && targetLead.vehicleId === vehicle_id) {
@@ -2096,7 +2096,7 @@ app.post(
         inspection_notes: notes || "",
         inspection_date: inspection.inspectedAt,
       });
-      clearCache("vehicles");
+      clearCache("vehicle");
       res.status(201).json(inspection);
     } catch (error: any) {
       res.status(500).json({ error: error.message });

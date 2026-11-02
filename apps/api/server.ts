@@ -31,8 +31,20 @@ async function startServer() {
       console.log("[Server] Vite middleware attached.");
     } else {
       const distPath = path.join(webRoot, "dist");
-      app.use(express.static(distPath));
+      app.use(
+        express.static(distPath, {
+          maxAge: "1d",
+          setHeaders: (res, filePath) => {
+            if (filePath.endsWith(".html")) {
+              res.setHeader("Cache-Control", "no-cache");
+            } else {
+              res.setHeader("Cache-Control", "public, max-age=86400, immutable");
+            }
+          },
+        })
+      );
       app.get("*", (_req, res) => {
+        res.setHeader("Cache-Control", "no-cache");
         res.sendFile(path.join(distPath, "index.html"));
       });
     }

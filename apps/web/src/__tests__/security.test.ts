@@ -8,7 +8,7 @@ import {
   verifyRefreshToken
 } from "../../../api/auth";
 import { registerSchema, userUpdateSchema, vehicleUpdateSchema } from "../../../api/validators/index";
-import { getCached, setCache, clearCache } from "../../../api/services/cache";
+import { getCached, setCache, clearCache, getOrSetCache, cacheMiddleware } from "../../../api/services/cache";
 
 describe("Security & Authentication Hardening", () => {
   it("should securely hash and verify passwords using async bcrypt", async () => {
