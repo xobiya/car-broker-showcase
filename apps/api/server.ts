@@ -8,13 +8,17 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 async function startServer() {
   try {
+    console.log("[Server] Initializing database...");
     await initDB();
+    console.log("[Server] Database initialized successfully.");
 
     const webRoot = fs.existsSync(path.join(process.cwd(), "apps", "web"))
       ? path.join(process.cwd(), "apps", "web")
       : path.resolve(__dirname, "../web");
+    console.log("[Server] Resolved webRoot:", webRoot);
 
     if (process.env.NODE_ENV !== "production") {
+      console.log("[Server] Starting Vite in middleware mode...");
       const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         root: webRoot,
@@ -24,6 +28,7 @@ async function startServer() {
         appType: "spa",
       });
       app.use(vite.middlewares);
+      console.log("[Server] Vite middleware attached.");
     } else {
       const distPath = path.join(webRoot, "dist");
       app.use(express.static(distPath));
