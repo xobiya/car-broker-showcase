@@ -603,7 +603,7 @@ export default function BuyerProfilePage({ user, onNotify, onViewDetails }: Buye
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                              {td.vehicleTitle || "Vehicle Inspection"}
+                              {[td.vehicleBrand, td.vehicleModel].filter(Boolean).join(" ") || "Vehicle Inspection"}
                             </span>
                             {renderStatusBadge(td.status)}
                           </div>
