@@ -708,35 +708,88 @@ app.get(
         }
       }
 
-      if (req.query.brand && req.query.brand !== "Any Brand")
-        dbFilter.brand = req.query.brand;
-      if (req.query.model && req.query.model !== "Any Model")
-        dbFilter.model = req.query.model;
-      if (req.query.condition && req.query.condition !== "all")
-        dbFilter.condition = req.query.condition;
+      if (req.query.brand && req.query.brand !== "Any Brand" && req.query.brand !== "all") {
+        const brands = String(req.query.brand).split(",").map((b) => b.trim()).filter(Boolean);
+        if (brands.length === 1) dbFilter.brand = brands[0];
+        else if (brands.length > 1) dbFilter.brand = { $in: brands };
+      }
+
+      if (req.query.model && req.query.model !== "Any Model" && req.query.model !== "all") {
+        const models = String(req.query.model).split(",").map((m) => m.trim()).filter(Boolean);
+        if (models.length === 1) dbFilter.model = models[0];
+        else if (models.length > 1) dbFilter.model = { $in: models };
+      }
+
+      if (req.query.condition && req.query.condition !== "all") {
+        const conds = String(req.query.condition).split(",").map((c) => c.trim()).filter(Boolean);
+        if (conds.length === 1) {
+          dbFilter.condition = { $regex: new RegExp(`^${escapeRegex(conds[0])}$`, "i") };
+        } else if (conds.length > 1) {
+          dbFilter.condition = { $in: conds.map((c) => new RegExp(`^${escapeRegex(c)}$`, "i")) };
+        }
+      }
 
       const bodyType = req.query.bodyType || req.query.body_type;
-      if (bodyType && bodyType !== "Any Type") {
-        dbFilter.body_type = {
-          $regex: new RegExp(`^${escapeRegex(String(bodyType))}$`, "i"),
-        };
+      if (bodyType && bodyType !== "Any Type" && bodyType !== "all") {
+        const bts = String(bodyType).split(",").map((b) => b.trim()).filter(Boolean);
+        if (bts.length === 1) {
+          dbFilter.body_type = { $regex: new RegExp(`^${escapeRegex(bts[0])}$`, "i") };
+        } else if (bts.length > 1) {
+          dbFilter.body_type = { $in: bts.map((b) => new RegExp(`^${escapeRegex(b)}$`, "i")) };
+        }
       }
 
       const fuelType = req.query.fuelType || req.query.fuel_type;
-      if (fuelType && fuelType !== "Any Fuel") {
-        dbFilter.fuel_type = {
-          $regex: new RegExp(`^${escapeRegex(String(fuelType))}$`, "i"),
-        };
+      if (fuelType && fuelType !== "Any Fuel" && fuelType !== "all") {
+        const fts = String(fuelType).split(",").map((f) => f.trim()).filter(Boolean);
+        if (fts.length === 1) {
+          dbFilter.fuel_type = { $regex: new RegExp(`^${escapeRegex(fts[0])}$`, "i") };
+        } else if (fts.length > 1) {
+          dbFilter.fuel_type = { $in: fts.map((f) => new RegExp(`^${escapeRegex(f)}$`, "i")) };
+        }
       }
 
-      if (req.query.location && req.query.location !== "Any Location") {
-        dbFilter.location = {
-          $regex: new RegExp(escapeRegex(String(req.query.location)), "i"),
-        };
+      const transmission = req.query.transmission;
+      if (transmission && transmission !== "Any Transmission" && transmission !== "all") {
+        const trs = String(transmission).split(",").map((t) => t.trim()).filter(Boolean);
+        if (trs.length === 1) {
+          dbFilter.transmission = { $regex: new RegExp(`^${escapeRegex(trs[0])}$`, "i") };
+        } else if (trs.length > 1) {
+          dbFilter.transmission = { $in: trs.map((t) => new RegExp(`^${escapeRegex(t)}$`, "i")) };
+        }
       }
 
-      if (req.query.year) {
+      const driveType = req.query.driveType || req.query.drive_type;
+      if (driveType && driveType !== "all") {
+        const dts = String(driveType).split(",").map((d) => d.trim()).filter(Boolean);
+        if (dts.length === 1) {
+          dbFilter.drive_type = { $regex: new RegExp(`^${escapeRegex(dts[0])}$`, "i") };
+        } else if (dts.length > 1) {
+          dbFilter.drive_type = { $in: dts.map((d) => new RegExp(`^${escapeRegex(d)}$`, "i")) };
+        }
+      }
+
+      if (req.query.location && req.query.location !== "Any Location" && req.query.location !== "all") {
+        const locs = String(req.query.location).split(",").map((l) => l.trim()).filter(Boolean);
+        if (locs.length === 1) {
+          dbFilter.location = { $regex: new RegExp(escapeRegex(locs[0]), "i") };
+        } else if (locs.length > 1) {
+          dbFilter.location = { $in: locs.map((l) => new RegExp(escapeRegex(l), "i")) };
+        }
+      }
+
+      if (req.query.minYear || req.query.maxYear) {
+        dbFilter.year = dbFilter.year || {};
+        if (req.query.minYear) dbFilter.year.$gte = Number(req.query.minYear);
+        if (req.query.maxYear) dbFilter.year.$lte = Number(req.query.maxYear);
+      } else if (req.query.year) {
         dbFilter.year = parseInt(req.query.year as string);
+      }
+
+      if (req.query.minMileage || req.query.maxMileage) {
+        dbFilter.mileage = dbFilter.mileage || {};
+        if (req.query.minMileage) dbFilter.mileage.$gte = Number(req.query.minMileage);
+        if (req.query.maxMileage) dbFilter.mileage.$lte = Number(req.query.maxMileage);
       }
 
       if (req.query.minPrice || req.query.maxPrice) {
@@ -745,6 +798,11 @@ app.get(
           dbFilter.price.$gte = Number(req.query.minPrice);
         if (req.query.maxPrice)
           dbFilter.price.$lte = Number(req.query.maxPrice);
+      }
+
+      const inspectionStatus = req.query.inspectionStatus || req.query.inspection_status;
+      if (inspectionStatus && inspectionStatus !== "all") {
+        dbFilter.inspection_status = inspectionStatus;
       }
 
       if (req.query.search) {
@@ -765,7 +823,7 @@ app.get(
       const requestedLimit = parseInt(req.query.limit as string);
       const limit =
         Number.isFinite(requestedLimit) && requestedLimit > 0
-          ? Math.min(requestedLimit, 50)
+          ? Math.min(requestedLimit, 100)
           : undefined;
       if (page > 0 && limit) {
         options = { limit, skip: (page - 1) * limit };
@@ -779,8 +837,15 @@ app.get(
         if (sortParam === "price_asc") options.sort = { price: 1 };
         else if (sortParam === "price_desc") options.sort = { price: -1 };
         else if (sortParam === "year_desc") options.sort = { year: -1 };
-        else if (sortParam === "newest") options.sort = { created_at: -1 };
+        else if (sortParam === "year_asc") options.sort = { year: 1 };
+        else if (sortParam === "mileage_asc") options.sort = { mileage: 1 };
+        else if (sortParam === "mileage_desc") options.sort = { mileage: -1 };
+        else if (sortParam === "newest") options.sort = { created_at: -1, _id: -1 };
+        else if (sortParam === "relevance") options.sort = { created_at: -1 };
       }
+
+      const totalCount = await db.countVehicles(dbFilter);
+      res.setHeader("X-Total-Count", String(totalCount));
 
       const filteredVehicles = await db.getVehicles(dbFilter, options);
 
@@ -858,6 +923,44 @@ app.get(
     }
   },
 );
+
+// Intelligent Vehicle Search Autocomplete & Suggestions
+app.get("/api/vehicles/suggestions", async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim();
+    if (!q || q.length < 2) {
+      return res.json({ makes: [], models: [], locations: [], vehicles: [] });
+    }
+    const regex = new RegExp(escapeRegex(q), "i");
+    const matchedVehicles = await db.getVehicles(
+      {
+        status: "approved",
+        $or: [{ brand: regex }, { model: regex }, { location: regex }, { body_type: regex }],
+      },
+      { limit: 8, sort: { year: -1 } },
+    );
+    const makes = Array.from(new Set(matchedVehicles.map((v) => v.brand)));
+    const models = Array.from(new Set(matchedVehicles.map((v) => `${v.brand} ${v.model}`)));
+    const locations = Array.from(new Set(matchedVehicles.map((v) => v.location).filter(Boolean)));
+    res.json({
+      makes,
+      models,
+      locations,
+      vehicles: matchedVehicles.map((v) => ({
+        id: v.id,
+        brand: v.brand,
+        model: v.model,
+        year: v.year,
+        price: v.price,
+        imageUrl: v.imageUrl,
+        location: v.location,
+        bodyType: v.bodyType,
+      })),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get(
   "/api/vehicles/:id",

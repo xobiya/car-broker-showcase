@@ -218,6 +218,10 @@ export const db = {
     return toPlainArray<DBVehicle>(docs).map(mapVehicle);
   },
 
+  countVehicles: async (filter: any = {}): Promise<number> => {
+    return VehicleModel.countDocuments(filter);
+  },
+
   getVehicleById: async (id: string): Promise<VehicleListing | null> => {
     const doc = await VehicleModel.findOne({ id }).lean();
     if (!doc) return null;

@@ -139,8 +139,29 @@ export const authApi = {
     api.post<{ message: string; token?: string }>("/api/auth/change-password", { currentPassword, newPassword }),
 };
 
+export interface VehicleSuggestionsResponse {
+  makes: string[];
+  models: string[];
+  locations: string[];
+  vehicles: Array<{
+    id: string;
+    brand: string;
+    model: string;
+    year: number;
+    price: number;
+    imageUrl: string;
+    location: string;
+    bodyType?: string;
+  }>;
+}
+
 export const vehiclesApi = {
-  list: () => api.get<VehicleListing[]>("/api/vehicles"),
+  list: (params?: Record<string, string | number>) =>
+    api.get<VehicleListing[]>("/api/vehicles", {
+      params: params ? Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)])) : undefined,
+    }),
+  suggestions: (q: string) =>
+    api.get<VehicleSuggestionsResponse>("/api/vehicles/suggestions", { params: { q } }),
   get: (id: string) => api.get<VehicleListing>(`/api/vehicles/${id}`),
   create: (data: Record<string, unknown>) => api.post<VehicleListing>("/api/vehicles", data),
   update: (id: string, data: Record<string, unknown>) => api.put<{ message: string }>(`/api/vehicles/${id}`, data),
