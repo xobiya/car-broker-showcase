@@ -125,6 +125,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   });
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
 
   // Favorites & Compare
   const [carFavorites, setCarFavorites] = useState<string[]>([]);
@@ -252,6 +253,19 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
     setPage(1);
   }, []);
 
+  const handleToggleBodyType = useCallback((bodyType: string) => {
+    setFilters(prev => {
+      const exists = prev.bodyType.includes(bodyType);
+      return {
+        ...prev,
+        bodyType: exists
+          ? prev.bodyType.filter(b => b !== bodyType)
+          : [...prev.bodyType, bodyType],
+      };
+    });
+    setPage(1);
+  }, []);
+
   const handleToggleQuickFilter = useCallback((id: string) => {
     setQuickFilters(prev => {
       if (prev.includes(id)) {
@@ -333,12 +347,12 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         description="Search hundreds of verified pre-owned and new cars in Ethiopia. Filter by brand, price, year, mileage, Libre inspection, and EV status. Transparent pricing in ETB."
       />
 
-      {/* Hero Search Section */}
+      {/* Hero Search Section with Icon-only Search Button & Vehicle Model Icon Filter */}
       <SearchHeroBar
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
-        quickFilters={quickFilters}
-        onToggleQuickFilter={handleToggleQuickFilter}
+        selectedBodyTypes={filters.bodyType}
+        onToggleBodyType={handleToggleBodyType}
         onSelectBrand={handleSelectBrand}
         allVehicles={allVehicles}
       />
@@ -367,17 +381,23 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
           onOpenMobileFilters={() => setShowMobileFilters(true)}
         />
 
-        {/* Content Columns: Desktop Sidebar + Vehicle Grid/List */}
-        <div className="mt-6 flex gap-8 items-start">
+        {/* Content Columns: Desktop Fixed/Sticky Sidebar + Vehicle Grid/List */}
+        <div className="mt-6 flex gap-6 items-start">
           
-          {/* Desktop Filter Sidebar */}
-          <aside className="hidden lg:block w-72 shrink-0">
+          {/* Desktop Filter Sidebar: Fixed/Sticky and Minimizable */}
+          <aside
+            className={`hidden lg:block shrink-0 sticky top-20 self-start max-h-[calc(100vh-5.5rem)] overflow-y-auto pr-1 transition-all duration-300 ${
+              isSidebarMinimized ? "w-14" : "w-64 xl:w-72"
+            }`}
+          >
             <FilterSidebar
               filters={filters}
               onFilterChange={handleFilterChange}
               onReset={handleResetFilters}
               allVehicles={allVehicles}
               totalMatches={totalMatches}
+              isMinimized={isSidebarMinimized}
+              onToggleMinimize={() => setIsSidebarMinimized(prev => !prev)}
             />
           </aside>
 
