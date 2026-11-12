@@ -346,7 +346,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 transition-colors">
       <SEO
         title="Find & Filter Verified Cars in Ethiopia | Addis Ababa Auto Broker"
         description="Search hundreds of verified pre-owned and new cars in Ethiopia. Filter by brand, price, year, mileage, Libre inspection, and EV status. Transparent pricing in ETB."
@@ -559,7 +559,7 @@ function EmptySearchState({
   onSelectBrand: (brand: string) => void;
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xs">
+    <div className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xs">
       <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-[#FF4846] flex items-center justify-center mx-auto mb-4">
         <Car size={32} />
       </div>
@@ -671,7 +671,7 @@ function ShowroomGridCard({
   const seats = (car as any).seats || (car.bodyType === "SUV" || car.model?.toLowerCase().includes("prado") ? "7 seats" : "5 seats");
 
   return (
-    <div className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden relative">
+    <div className="group bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden relative">
       
       {/* Vehicle Media Header */}
       <div className="relative aspect-16/10 bg-slate-100 dark:bg-slate-800 overflow-hidden">
@@ -865,7 +865,7 @@ function ShowroomListCard({
   const seats = (car as any).seats || (car.bodyType === "SUV" || car.model?.toLowerCase().includes("prado") ? "7 seats" : "5 seats");
 
   return (
-    <div className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl transition flex flex-col md:flex-row overflow-hidden">
+    <div className="group bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl transition flex flex-col md:flex-row overflow-hidden">
       
       {/* Image Part */}
       <div className="relative md:w-72 h-48 md:h-auto bg-slate-100 dark:bg-slate-800 shrink-0 overflow-hidden">

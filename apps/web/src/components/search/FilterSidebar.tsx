@@ -121,7 +121,7 @@ export default function FilterSidebar({
   // ── MINIMIZED VIEW (COMPACT SLIM RAIL) ──
   if (isMinimized) {
     return (
-      <aside className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-2 flex flex-col items-center gap-3">
+      <aside className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-2 flex flex-col items-center gap-3">
         {onToggleMinimize && (
           <button
             type="button"
@@ -159,7 +159,7 @@ export default function FilterSidebar({
 
   // ── EXPANDED MINIMALIST VIEW ──
   return (
-    <aside className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3.5">
+    <aside className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-4 space-y-3.5">
       
       {/* Header with Minimize Toggle & Reset */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">

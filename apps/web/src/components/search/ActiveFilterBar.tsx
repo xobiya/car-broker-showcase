@@ -95,7 +95,7 @@ export default function ActiveFilterBar({
   return (
     <div className="space-y-3">
       {/* Top Results Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 sm:px-4 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-3 sm:px-4 shadow-sm">
         
         {/* Left: Results Count Indicator */}
         <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function ActiveFilterBar({
 
       {/* Active Filter Chips Strip */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-1.5 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+        <div className="flex flex-wrap items-center gap-1.5 p-3 bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Active:</span>
 
           {/* Search Query Chip */}
