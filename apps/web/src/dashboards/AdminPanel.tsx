@@ -992,8 +992,8 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">Commission Earned</span>
                 <DollarSign size={14} className="opacity-60" />
               </div>
-              <span className="text-lg font-black">{(totalCommission || 485000).toLocaleString()} ETB</span>
-              <span className="text-[9px] font-bold uppercase opacity-70">Total Revenue: {(totalRevenue || 48500000).toLocaleString()} ETB</span>
+              <span className="text-lg font-black">{(totalCommission ?? 0).toLocaleString()} ETB</span>
+              <span className="text-[9px] font-bold uppercase opacity-70">Total Revenue: {(totalRevenue ?? 0).toLocaleString()} ETB</span>
             </div>
           </div>
         )}
@@ -1877,15 +1877,15 @@ export default function AdminPanel({ onNotify, onLogout, onNavigate }: AdminPane
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Sales</p>
-              <p className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-1">{sales.length || 22}</p>
+              <p className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-1">{sales.length}</p>
             </div>
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Revenue</p>
-              <p className="text-xl sm:text-2xl font-black text-blue-900 dark:text-blue-400 mt-1">{(totalRevenue || 48500000).toLocaleString()} ETB</p>
+              <p className="text-xl sm:text-2xl font-black text-blue-900 dark:text-blue-400 mt-1">{(totalRevenue ?? 0).toLocaleString()} ETB</p>
             </div>
             <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-4 sm:p-5 shadow-xs">
               <p className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">Total Commission</p>
-              <p className="text-xl sm:text-2xl font-black text-[#FF4846] mt-1">{(totalCommission || 485000).toLocaleString()} ETB</p>
+              <p className="text-xl sm:text-2xl font-black text-[#FF4846] mt-1">{(totalCommission ?? 0).toLocaleString()} ETB</p>
             </div>
           </div>
 

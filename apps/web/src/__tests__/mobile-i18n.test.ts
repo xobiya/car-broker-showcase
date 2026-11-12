@@ -44,3 +44,4 @@ describe("Mobile Application i18n & Localization", () => {
     expect(formatPrice(1500000, "om")).toBe("ETB 1,500,000");
   });
 });
+

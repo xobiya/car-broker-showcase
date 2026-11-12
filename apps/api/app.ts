@@ -388,15 +388,15 @@ app.post("/api/auth/login", validate(loginSchema), async (req, res) => {
 app.post("/api/auth/firebase-google", async (req, res) => {
   try {
     const { email, name, role = "buyer", photoURL, idToken } = req.body;
-    let verifiedEmail = email;
-    let verifiedName = name;
-    let verifiedPhoto = photoURL;
+    // Strict server-side token verification with Google OAuth / Firebase
+    let verifiedEmail: string | null = null;
+    let verifiedName: string | null = name || null;
+    let verifiedPhoto: string | null = photoURL || null;
 
-    // Optional server-side token verification with Google OAuth / Firebase
-    if (idToken && typeof idToken === "string") {
+    if (idToken && typeof idToken === "string" && idToken.trim()) {
       try {
         const tokenRes = await fetch(
-          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken.trim())}`
         );
         if (tokenRes.ok) {
           const tokenData = (await tokenRes.json()) as any;
@@ -405,14 +405,29 @@ app.post("/api/auth/firebase-google", async (req, res) => {
             verifiedName = tokenData.name || verifiedName;
             verifiedPhoto = tokenData.picture || verifiedPhoto;
           }
+        } else {
+          return res.status(401).json({ error: "Invalid or expired Google authentication token." });
         }
       } catch (tokenErr) {
-        console.warn("[Firebase Auth] Server token verification note:", tokenErr);
+        console.error("[Firebase Auth] Server token verification failure:", tokenErr);
+        return res.status(502).json({ error: "Failed to verify authentication token with Google service." });
       }
+    } else {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(401).json({ error: "A valid Google ID token is required for authentication." });
+      }
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ error: "Google account email is required." });
+      }
+      const existing = await db.getUserByEmail(email.toLowerCase().trim());
+      if (existing && (existing.role === "admin" || existing.role === "broker")) {
+        return res.status(403).json({ error: "Privileged accounts require cryptographic Google ID token verification." });
+      }
+      verifiedEmail = email;
     }
 
     if (!verifiedEmail) {
-      return res.status(400).json({ error: "Google account email is required." });
+      return res.status(400).json({ error: "Google account email could not be verified." });
     }
 
     const normalizedEmail = verifiedEmail.toLowerCase().trim();
@@ -1001,7 +1016,13 @@ app.post(
         year: parseInt(req.body.year),
         mileage: parseInt(req.body.mileage) || 0,
         price: parseFloat(req.body.price),
-        original_price: parseFloat(req.body.original_price || req.body.price),
+        original_price: parseFloat(
+          req.body.original_price !== undefined &&
+          req.body.original_price !== null &&
+          !isNaN(Number(req.body.original_price))
+            ? req.body.original_price
+            : req.body.price
+        ),
         image_url:
           finalImageUrl ||
           "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80",
@@ -1610,10 +1631,17 @@ app.get(
 app.post("/api/commissions/calculate", authenticateToken, async (req, res) => {
   try {
     const { sale_price, commission_rate, commission_type } = req.body;
-    if (!sale_price || !commission_rate) {
+    if (
+      sale_price === undefined ||
+      sale_price === null ||
+      commission_rate === undefined ||
+      commission_rate === null ||
+      isNaN(Number(sale_price)) ||
+      isNaN(Number(commission_rate))
+    ) {
       return res
         .status(400)
-        .json({ error: "sale_price and commission_rate are required." });
+        .json({ error: "sale_price and commission_rate are required numeric values." });
     }
     const result = db.calculateCommission(
       parseFloat(sale_price),
@@ -1730,6 +1758,9 @@ app.put(
 
       const success = await db.updateBroker(req.params.id, { verified: true });
       if (success) {
+        if (broker.userId) {
+          await db.updateUser(broker.userId, { verified: true, verification_status: "verified" });
+        }
         res.json({ message: "Broker approved and verified successfully." });
       } else {
         res.status(500).json({ error: "Failed to approve broker." });
@@ -1752,6 +1783,9 @@ app.put(
 
       const success = await db.updateBroker(req.params.id, { verified: false });
       if (success) {
+        if (broker.userId) {
+          await db.updateUser(broker.userId, { verified: false, verification_status: "unverified" });
+        }
         res.json({ message: "Broker verification revoked." });
       } else {
         res.status(500).json({ error: "Failed to update broker status." });
@@ -1819,10 +1853,18 @@ app.put(
       // Only administrative accounts can alter role or verification status
       if (req.user!.role === "admin") {
         if (req.body.role !== undefined) allowedUpdates.role = req.body.role;
-        if (req.body.verified !== undefined)
+        if (req.body.verified !== undefined) {
           allowedUpdates.verified = req.body.verified;
-        if (req.body.verification_status !== undefined)
+          if (req.body.verification_status === undefined) {
+            allowedUpdates.verification_status = req.body.verified ? "verified" : "unverified";
+          }
+        }
+        if (req.body.verification_status !== undefined) {
           allowedUpdates.verification_status = req.body.verification_status;
+          if (req.body.verified === undefined) {
+            allowedUpdates.verified = req.body.verification_status === "verified";
+          }
+        }
       }
 
       const success = await db.updateUser(req.params.id, allowedUpdates);

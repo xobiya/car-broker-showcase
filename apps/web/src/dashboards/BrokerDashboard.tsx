@@ -253,15 +253,25 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
 
   const handleRecordSale = async () => {
     if (!saleModal) return;
+    const effectiveBrokerId = brokerInfo?.id || (currentUserId ? `brk-${currentUserId}` : undefined);
+    if (!effectiveBrokerId) {
+      onNotify("Broker account profile is loading. Please try again.", "error");
+      return;
+    }
+    const targetVehicle = vehicles.find((v) => v.id === saleModal.vehicleId);
+    const commRate = targetVehicle?.commissionRate ?? 1.0;
+    const commType = targetVehicle?.commissionType ?? "percentage";
+    const commission = commType === "fixed" ? commRate : Math.round(salePrice * (commRate / 100));
+
     try {
-      const commission = Math.round(salePrice * 0.01);
       await salesApi.create({
         vehicle_id: saleModal.vehicleId,
-        broker_id: brokerInfo?.id || "brk-1",
+        broker_id: effectiveBrokerId,
         buyer_id: saleModal.buyerId,
         sale_price: salePrice,
         commission,
-        buyer_name: saleModal.buyerName
+        buyer_name: saleModal.buyerName,
+        leadId: saleModal.id,
       });
       await leadsApi.updateStatus(saleModal.id, "sold");
       onNotify("Sale recorded! Vehicle marked as SOLD.", "success");
@@ -1671,9 +1681,17 @@ export default function BrokerDashboard({ onNotify, onLogout }: BrokerDashboardP
                 className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4846] font-mono font-bold" 
               />
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              Commission (1%): <strong className="text-emerald-600 dark:text-emerald-400 font-bold">ETB {fmt(Math.round(salePrice * 0.01))}</strong>
-            </div>
+            {(() => {
+              const targetV = vehicles.find((v) => v.id === saleModal.vehicleId);
+              const r = targetV?.commissionRate ?? 1.0;
+              const isFixed = targetV?.commissionType === "fixed";
+              const c = isFixed ? r : Math.round(salePrice * (r / 100));
+              return (
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  Commission ({isFixed ? "Fixed" : `${r}%`}): <strong className="text-emerald-600 dark:text-emerald-400 font-bold">ETB {fmt(c)}</strong>
+                </div>
+              );
+            })()}
             <div className="flex gap-2.5 justify-end pt-2">
               <button 
                 type="button"

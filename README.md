@@ -15,7 +15,7 @@
 [![Express](https://img.shields.io/badge/Express-4.21-000000?logo=express)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%209-47A248?logo=mongodb)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?logo=tailwindcss)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/Tests-116%20Passing-brightgreen?logo=vitest)](https://vitest.dev/)
+[![Tests](https://img.shields.io/badge/Tests-124%20Passing-brightgreen?logo=vitest)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-MIT-amber.svg)](LICENSE)
 
 [Executive Overview](#-executive-overview) • [Monorepo Architecture](#-monorepo-architecture) • [File Structure](#-clear-file-structure) • [Run Web Application](#-running-the-web-application) • [Run Mobile Application](#-running-the-mobile-application) • [API Reference](#-api-endpoints-reference) • [Demo Accounts](#-pre-seeded-demo-accounts) • [Deployment](#-production-deployment)
@@ -75,7 +75,7 @@ The repository uses npm workspaces to coordinate multiple applications and share
 | **Shared Package** | `packages/shared` | TypeScript domain interfaces, vehicle DTOs, lead models, inspection records |
 | **Security & Auth** | Full Stack | JWT, bcryptjs, HTTP-only cookies, Helmet, rate-limiting, strict IDOR ownership enforcement |
 | **Media Management**| Backend/Client | Cloudinary API + Multer local disk upload fallback |
-| **Testing** | Workspaces | Vitest (116 passing unit, integration, and security test cases) |
+| **Testing** | Workspaces | Vitest (124 passing unit, integration, and security test cases) |
 
 ---
 
@@ -90,9 +90,9 @@ car-broker-showcase/
 │   │   ├── auth.ts                       # JWT token signing, verification & RBAC authorization middleware
 │   │   ├── index.ts                      # Vercel serverless function entry handler
 │   │   ├── db/
-│   │   │   ├── connection.ts             # MongoDB Mongoose connection manager with reconnection logic
+│   │   │   ├── index.ts                  # MongoDB Mongoose connection manager, query repository & caching
 │   │   │   ├── models.ts                 # Mongoose schemas (User, Vehicle, Lead, TestDrive, Sale, etc.)
-│   │   │   ├── seed.ts                   # Automated catalog seeder with 18 Ethiopian market vehicles
+│   │   │   ├── seed.ts                   # Automated catalog seeder with 25 Ethiopian market vehicles
 │   │   │   └── types.ts                  # Database document types
 │   │   ├── middleware/
 │   │   │   └── validate.ts               # Generic Zod request schema validation middleware

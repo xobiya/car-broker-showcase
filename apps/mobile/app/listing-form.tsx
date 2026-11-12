@@ -620,6 +620,7 @@ export default function ListingFormScreen() {
         color: fields.color.trim(),
         engine_size: fields.engineSize.trim(),
         image_url: gallery[0],
+        gallery,
         gallery_images: JSON.stringify(gallery),
         ownership_document_url: ownershipDocumentUrl,
         ownership_document_name: libre?.name || 'Ownership Certificate (Libre)',

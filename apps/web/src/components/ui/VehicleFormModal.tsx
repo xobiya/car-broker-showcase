@@ -236,6 +236,7 @@ export default function VehicleFormModal({
         location: form.location,
         description: form.description,
         image_url: primaryImage,
+        gallery: uploadedImages,
         gallery_images: uploadedImages.length > 1 ? JSON.stringify(uploadedImages) : undefined,
         ownership_document_url: ownershipDoc || undefined,
         ownership_document_name: ownershipDocName || "Vehicle Ownership Document (Libre)",
