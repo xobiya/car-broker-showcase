@@ -43,8 +43,8 @@ const categories: Array<{ label: string; icon: keyof typeof Ionicons.glyphMap }>
 
 const sorts = [
   { label: 'Newest', value: 'newest', icon: 'flash-outline' as const },
-  { label: 'Price ↑', value: 'price_asc', icon: 'trending-up-outline' as const },
-  { label: 'Price ↓', value: 'price_desc', icon: 'trending-down-outline' as const },
+  { label: 'Price: Low to High', value: 'price_asc', icon: 'trending-up-outline' as const },
+  { label: 'Price: High to Low', value: 'price_desc', icon: 'trending-down-outline' as const },
   { label: 'Year', value: 'year_desc', icon: 'calendar-outline' as const },
 ];
 
