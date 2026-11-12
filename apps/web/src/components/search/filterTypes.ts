@@ -47,12 +47,15 @@ export const ETHIOPIAN_PRICE_BRACKETS = [
 ];
 
 export const BODY_TYPES = [
-  "SUV",
   "Sedan",
-  "Pickup",
+  "SUV",
   "Hatchback",
-  "Crossover",
+  "Pickup",
   "Van",
+  "Bus",
+  "Truck",
+  "Machinery",
+  "Motorcycle",
 ];
 
 export const FUEL_TYPES = [
@@ -177,7 +180,18 @@ export function filterVehiclesClientSide(
 
     // 5. Body Type Facets
     if (filters.bodyType && filters.bodyType.length > 0) {
-      if (!filters.bodyType.some(bt => bt.toLowerCase() === car.bodyType?.toLowerCase())) {
+      const carBt = (car.bodyType || "").toLowerCase();
+      const matchesBt = filters.bodyType.some(bt => {
+        const target = bt.toLowerCase();
+        if (target === "pickup") return carBt.includes("pickup") || carBt.includes("truck");
+        if (target === "truck") return carBt.includes("truck") || carBt.includes("dump");
+        if (target === "van") return carBt.includes("van") || carBt.includes("minibus") || carBt.includes("bus");
+        if (target === "bus") return carBt.includes("bus") || carBt.includes("coaster");
+        if (target === "machinery") return carBt.includes("machinery") || carBt.includes("loader") || carBt.includes("heavy");
+        if (target === "motorcycle") return carBt.includes("motorcycle") || carBt.includes("bike");
+        return carBt.includes(target) || target.includes(carBt);
+      });
+      if (!matchesBt) {
         return false;
       }
     }

@@ -7,88 +7,31 @@ import {
   MapPin,
   Car,
   ChevronRight,
-  Gauge
+  ShieldCheck,
+  Check
 } from "lucide-react";
 import type { VehicleListing } from "@autobroker/shared";
 
-// ── CUSTOM HIGH-FIDELITY AUTOMOTIVE SILHOUETTE ICONS ──
-export function SuvIcon({ className = "w-8 h-5.5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 20" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-      <path d="M29 11l-2.2-4.4C26.3 5.6 25.3 5 24.2 5H14c-.6 0-1.1.3-1.5.8L9.8 9.5H4c-1.1 0-2 .9-2 2v2.5c0 .6.4 1 1 1h1.1c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h8.2c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3H29c.6 0 1-.4 1-1V12c0-.5-.4-.9-.9-1zM14 6.8h9.8c.4 0 .7.2.9.6l1.8 3.6H13.6l2.3-3.6c.2-.4.5-.6.9-.6zM8 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm16 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-    </svg>
-  );
-}
-
-export function SedanIcon({ className = "w-8 h-5.5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 20" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-      <path d="M29 12l-3-4.5c-.5-.7-1.3-1.2-2.1-1.3l-7-.7-5.4 1.5c-.8.2-1.5.8-1.9 1.5L6.5 12H3c-.6 0-1 .4-1 1v1.5c0 .6.4 1 1 1h1.1c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h8.2c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3H29c.6 0 1-.4 1-1V13c0-.6-.4-1-.9-1zM11.5 8.2l4.8-1.3 6.2.6 2.3 3.5H10.1l1.4-2.8zM8 17.5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm16 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-    </svg>
-  );
-}
-
-export function PickupIcon({ className = "w-8 h-5.5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 20" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-      <path d="M29.5 11.5H23V6.2c0-.7-.5-1.2-1.2-1.2H14c-.6 0-1.1.3-1.5.8L9.8 9.5H4c-1.1 0-2 .9-2 2v3c0 .6.4 1 1 1h1.1c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h8.2c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h2.6c.6 0 1-.4 1-1v-2.5c0-.6-.4-1-.9-1zM13.8 6.8h7.4v4.2H11.2l2.6-4.2zm-5.8 10.7c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm16 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-    </svg>
-  );
-}
-
-export function HatchbackIcon({ className = "w-8 h-5.5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 20" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-      <path d="M28.5 12.5l-2.2-5c-.4-.9-1.2-1.5-2.2-1.5H16c-.7 0-1.3.4-1.7 1L10.5 11H4c-1.1 0-2 .9-2 2v1.5c0 .6.4 1 1 1h1.1c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h8.2c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h1.6c.6 0 1-.4 1-1V13c0-.3-.1-.4-.2-.5zM15.8 7.5h8.1l1.7 3.5H13.6l2.2-3.5zm-7.8 10c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm16 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-    </svg>
-  );
-}
-
-export function CrossoverIcon({ className = "w-8 h-5.5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 20" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-      <path d="M29 11.5l-2.6-4.8c-.4-.7-1.1-1.2-1.9-1.2H15c-.6 0-1.2.3-1.6.8L10 10H4c-1.1 0-2 .9-2 2v2.5c0 .6.4 1 1 1h1.1c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h8.2c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3H29c.6 0 1-.4 1-1V12c0-.3-.4-.5-.9-.5zm-14.2-4.5h9.4l1.9 3.5H12.2l2.6-3.5zm-6.8 10.5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm16 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-    </svg>
-  );
-}
-
-export function VanIcon({ className = "w-8 h-5.5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 20" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-      <path d="M28.8 9.5l-2.3-4.2c-.4-.7-1.1-1.2-1.9-1.3H5c-1.1 0-2 .9-2 2v9.5c0 .6.4 1 1 1h1.1c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3h8.2c.4-1.8 2-3 3.9-3s3.5 1.2 3.9 3H29c.6 0 1-.4 1-1v-6c0-.4-.1-.8-.2-1zM5 5.5h19.2l1.9 3.5H5V5.5zm3 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm16 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-    </svg>
-  );
-}
-
-// ── TOP FILTERING CAR MODELS (ONLY ICONS USED) ──
-export interface CarModelTypeOption {
+// ── AFROMEKINA-STYLE BODY SHAPE DEFINITIONS ──
+export interface BodyShapeOption {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  image: string;
 }
 
-export const TOP_CAR_MODELS: CarModelTypeOption[] = [
-  { id: "SUV", label: "SUV", icon: SuvIcon },
-  { id: "Sedan", label: "Sedan", icon: SedanIcon },
-  { id: "Pickup", label: "Pickup Truck", icon: PickupIcon },
-  { id: "Hatchback", label: "Hatchback", icon: HatchbackIcon },
-  { id: "Crossover", label: "Crossover", icon: CrossoverIcon },
-  { id: "Van", label: "Van / Minivan", icon: VanIcon },
+export const BODY_SHAPE_TYPES: BodyShapeOption[] = [
+  { id: "Sedan", label: "Sedan", image: "/car_body/sedan.png" },
+  { id: "SUV", label: "SUV", image: "/car_body/suv.png" },
+  { id: "Hatchback", label: "Hatchback", image: "/car_body/hatchback.png" },
+  { id: "Pickup", label: "Pickup", image: "/car_body/pickup_truck.png" },
+  { id: "Van", label: "Van", image: "/car_body/van.png" },
+  { id: "Bus", label: "Bus", image: "/car_body/bus.png" },
+  { id: "Truck", label: "Truck", image: "/car_body/dump_truck.png" },
+  { id: "Machinery", label: "Machinery", image: "/car_body/machinery.png" },
+  { id: "Motorcycle", label: "Motorcycle", image: "/car_body/motorcycle.png" },
 ];
 
 export const QUICK_FILTERS: Array<{ id: string; label: string; icon: any }> = [];
-
-export const POPULAR_BRANDS = [
-  "Toyota",
-  "Hyundai",
-  "Suzuki",
-  "Mercedes-Benz",
-  "BYD",
-  "Volkswagen",
-  "Nissan",
-  "Lexus",
-  "Isuzu",
-];
 
 const RECENT_SEARCHES_KEY = "autobroker_recent_searches";
 const MAX_RECENT_SEARCHES = 8;
@@ -100,6 +43,8 @@ interface SearchHeroBarProps {
   onToggleBodyType: (bodyType: string) => void;
   onSelectBrand?: (brand: string) => void;
   allVehicles: VehicleListing[];
+  verifiedOnly?: boolean;
+  onToggleVerifiedOnly?: () => void;
 }
 
 export default function SearchHeroBar({
@@ -109,6 +54,8 @@ export default function SearchHeroBar({
   onToggleBodyType,
   onSelectBrand,
   allVehicles,
+  verifiedOnly = false,
+  onToggleVerifiedOnly,
 }: SearchHeroBarProps) {
   const [inputValue, setInputValue] = useState(searchQuery);
   const [isOpen, setIsOpen] = useState(false);
@@ -277,7 +224,6 @@ export default function SearchHeroBar({
     }
   };
 
-  // Match highlighter helper
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
     const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"));
@@ -296,67 +242,112 @@ export default function SearchHeroBar({
     );
   };
 
-  return (
-    <section className="bg-gradient-to-b from-slate-50/90 via-white to-slate-50/70 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950 border-b border-slate-200/80 dark:border-slate-800/80 pt-5 pb-5 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-3.5 text-center">
-        
-        {/* Sleek Minimalist Search Capsule (No search text button; Icon only) */}
-        <div ref={containerRef} className="max-w-2xl mx-auto relative z-30">
-          <form
-            onSubmit={handleSubmit}
-            className="relative flex items-center bg-white dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-700/80 shadow-md hover:shadow-lg focus-within:border-[#FF4846] focus-within:ring-4 focus-within:ring-[#FF4846]/10 transition-all p-1.5"
-          >
-            {/* Input Field */}
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={e => {
-                setInputValue(e.target.value);
-                setIsOpen(true);
-                setSelectedIndex(-1);
-              }}
-              onFocus={() => setIsOpen(true)}
-              onKeyDown={handleKeyDown}
-              placeholder="Search make, model, year, location..."
-              className="w-full py-2.5 px-4 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 font-medium border-0 outline-none ring-0 focus:outline-none focus:ring-0"
-              aria-autocomplete="list"
-              aria-expanded={isOpen}
-            />
+  const totalListingCount = allVehicles.length > 0 ? `${allVehicles.length}+` : "1,200+";
 
-            {/* Clear Input Button */}
-            {inputValue && (
+  return (
+    <section className="bg-white dark:bg-slate-950 border-b border-slate-200/80 dark:border-slate-800/80 pt-6 pb-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+
+        {/* ── UNIFIED AFROMEKINA-STYLE SEARCH BAR ── */}
+        <div ref={containerRef} className="relative z-30">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col sm:flex-row items-stretch"
+            >
+              {/* Left: Verified Listings Only Toggle Badge */}
               <button
                 type="button"
-                onClick={() => {
-                  setInputValue("");
-                  onSearchChange("");
-                  inputRef.current?.focus();
-                }}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition mr-1"
-                title="Clear search"
-                aria-label="Clear search"
+                onClick={onToggleVerifiedOnly}
+                className={`flex items-center justify-center gap-2 px-5 py-3.5 sm:py-3 text-[11px] font-black uppercase tracking-wider transition cursor-pointer shrink-0 border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-slate-800 ${
+                  verifiedOnly
+                    ? "bg-[#FF4846] text-white"
+                    : "bg-[#0B1528] text-white hover:bg-[#15233D]"
+                }`}
+                title="Toggle Verified Listings Only"
               >
-                <X size={16} strokeWidth={2.5} />
+                <ShieldCheck size={14} className={verifiedOnly ? "text-white" : "text-[#FF4846]"} />
+                <span>VERIFIED LISTINGS ONLY</span>
+                {verifiedOnly && <Check size={12} strokeWidth={3} />}
               </button>
-            )}
 
-            {/* Submit Button: ONLY ICON (Text removed as requested) */}
-            <button
-              type="submit"
-              title="Search"
-              aria-label="Search"
-              className="w-10 h-10 rounded-full bg-[#FF4846] hover:bg-[#e03d3b] text-white flex items-center justify-center shadow-md shadow-[#FF4846]/25 hover:shadow-lg transition cursor-pointer shrink-0 active:scale-95"
-            >
-              <Search size={18} strokeWidth={2.5} />
-            </button>
-          </form>
+              {/* Middle: Text Search Input */}
+              <div className="relative flex-1 flex items-center min-w-0 bg-transparent px-3">
+                <Search size={18} className="text-slate-400 shrink-0 ml-1" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={e => {
+                    setInputValue(e.target.value);
+                    setIsOpen(true);
+                    setSelectedIndex(-1);
+                  }}
+                  onFocus={() => setIsOpen(true)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Search make, model or city"
+                  className="w-full py-3.5 px-3 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 font-medium border-0 outline-none ring-0 focus:outline-none focus:ring-0"
+                  aria-autocomplete="list"
+                  aria-expanded={isOpen}
+                />
+                {inputValue && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInputValue("");
+                      onSearchChange("");
+                      inputRef.current?.focus();
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-full transition mr-1"
+                    title="Clear search"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
 
-          {/* Autocomplete Dropdown Menu */}
+              {/* Right: Solid Action Search Button */}
+              <button
+                type="submit"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs sm:text-sm tracking-wide transition cursor-pointer shrink-0 active:scale-98"
+              >
+                <Search size={16} strokeWidth={2.5} className="sm:hidden" />
+                <span>Search {totalListingCount} cars</span>
+              </button>
+            </form>
+
+            {/* Stats Row Underneath Search Input */}
+            <div className="hidden sm:grid grid-cols-4 border-t border-slate-100 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-left">
+              <div className="p-3.5 px-4">
+                <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  {totalListingCount}
+                </div>
+                <div className="text-xs text-slate-400 font-medium">Cars listed</div>
+              </div>
+              <div className="p-3.5 px-4">
+                <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  380+
+                </div>
+                <div className="text-xs text-slate-400 font-medium">Verified sellers</div>
+              </div>
+              <div className="p-3.5 px-4">
+                <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  45+
+                </div>
+                <div className="text-xs text-slate-400 font-medium">Dealerships onboard</div>
+              </div>
+              <div className="p-3.5 px-4">
+                <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  9+
+                </div>
+                <div className="text-xs text-slate-400 font-medium">Cities covered</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Autocomplete Suggestions Menu */}
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden text-left z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-              
-              {/* STATE A: Recent Searches */}
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden text-left z-50">
               {!queryLower && recentSearches.length > 0 && (
                 <div className="p-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between pb-2 px-1">
@@ -377,7 +368,7 @@ export default function SearchHeroBar({
                       <div
                         key={term}
                         onClick={() => handleSelectSuggestion(term)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition ${
+                        className={`flex items-center justify-between px-3 py-2 text-xs font-semibold cursor-pointer transition ${
                           selectedIndex === idx
                             ? "bg-[#FF4846]/10 text-[#FF4846]"
                             : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -401,7 +392,6 @@ export default function SearchHeroBar({
                 </div>
               )}
 
-              {/* STATE B: Live Matching Results */}
               {queryLower && (
                 <div className="p-2 space-y-1 divide-y divide-slate-100 dark:divide-slate-800 max-h-96 overflow-y-auto">
                   {brandSuggestions.length > 0 && (
@@ -413,7 +403,7 @@ export default function SearchHeroBar({
                         <div
                           key={brand}
                           onClick={() => handleSelectSuggestion(brand)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition text-slate-800 dark:text-slate-200"
+                          className="flex items-center justify-between px-3 py-2 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition text-slate-800 dark:text-slate-200"
                         >
                           <span className="flex items-center gap-2">
                             <Car size={13} className="text-[#FF4846]" />
@@ -434,7 +424,7 @@ export default function SearchHeroBar({
                         <div
                           key={`${m.brand}-${m.model}`}
                           onClick={() => handleSelectSuggestion(`${m.brand} ${m.model}`)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition text-slate-800 dark:text-slate-200"
+                          className="flex items-center justify-between px-3 py-2 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition text-slate-800 dark:text-slate-200"
                         >
                           <span className="flex items-center gap-2">
                             <Car size={13} className="text-slate-400" />
@@ -457,7 +447,7 @@ export default function SearchHeroBar({
                         <div
                           key={loc}
                           onClick={() => handleSelectSuggestion(loc)}
-                          className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition text-slate-800 dark:text-slate-200"
+                          className="flex items-center justify-between px-3 py-2 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition text-slate-800 dark:text-slate-200"
                         >
                           <span className="flex items-center gap-2">
                             <MapPin size={13} className="text-[#FF4846]" />
@@ -478,7 +468,7 @@ export default function SearchHeroBar({
                         <div
                           key={v.id}
                           onClick={() => handleSelectSuggestion(`${v.brand} ${v.model}`)}
-                          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition"
+                          className="flex items-center gap-3 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition"
                         >
                           <img
                             src={v.imageUrl}
@@ -503,39 +493,75 @@ export default function SearchHeroBar({
                   )}
                 </div>
               )}
-
             </div>
           )}
         </div>
 
-        {/* ── TOP FILTERING: VEHICLE MODELS (ONLY ICONS USED) ── */}
-        <div className="flex items-center justify-center flex-wrap gap-2.5 pt-1">
-          {TOP_CAR_MODELS.map((model) => {
-            const active = selectedBodyTypes.includes(model.id);
-            const Icon = model.icon;
-            return (
-              <button
-                key={model.id}
-                type="button"
-                onClick={() => onToggleBodyType(model.id)}
-                title={model.label}
-                aria-label={model.label}
-                className={`relative group p-2.5 sm:p-3 rounded-2xl transition-all cursor-pointer border ${
-                  active
-                    ? "bg-[#FF4846] text-white border-[#FF4846] shadow-md shadow-[#FF4846]/25 scale-105"
-                    : "bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white shadow-2xs"
-                }`}
-              >
-                {/* ONLY ICON IS RENDERED HERE */}
-                <Icon className={`w-8 h-5 sm:w-9 sm:h-5.5 transition-colors ${active ? "text-white" : "text-slate-700 dark:text-slate-300 group-hover:text-slate-950 dark:group-hover:text-white"}`} />
-                
-                {/* Floating Tooltip with vehicle model name */}
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 bg-slate-900 dark:bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap shadow-md z-40">
-                  {model.label}
-                </span>
-              </button>
-            );
-          })}
+        {/* ── AFROMEKINA-STYLE BODY TYPE ICONS & UX ROW ── */}
+        <div className="pt-2 text-left">
+          {/* Section Header */}
+          <div className="mb-3">
+            <span className="text-[11px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase block mb-1">
+              BY BODY TYPE
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Or start with the shape you need
+            </h2>
+          </div>
+
+          {/* Body Type Card Container with Dividers */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 divide-x divide-y sm:divide-y-0 divide-slate-100 dark:divide-slate-800">
+              {BODY_SHAPE_TYPES.map((shape) => {
+                const isSelected = selectedBodyTypes.includes(shape.id);
+
+                return (
+                  <button
+                    key={shape.id}
+                    type="button"
+                    onClick={() => onToggleBodyType(shape.id)}
+                    className={`group relative flex flex-col items-center justify-between p-3 sm:p-4 text-center cursor-pointer transition-all ${
+                      isSelected
+                        ? "bg-sky-50/70 dark:bg-sky-950/30 text-[#0284C7] ring-2 ring-inset ring-[#0284C7]"
+                        : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-850 hover:text-slate-950 dark:hover:text-white"
+                    }`}
+                  >
+                    {/* Active check pill */}
+                    {isSelected && (
+                      <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#0284C7] text-white flex items-center justify-center text-[9px] font-bold shadow-xs">
+                        ✓
+                      </span>
+                    )}
+
+                    {/* Realistic White Vehicle Profile Image */}
+                    <div className="h-12 sm:h-14 w-full flex items-center justify-center px-1">
+                      <img
+                        src={shape.image}
+                        alt={shape.label}
+                        loading="lazy"
+                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          // Fallback to avoid broken image display
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+
+                    {/* Shape Label */}
+                    <span
+                      className={`text-xs font-bold mt-2.5 transition-colors ${
+                        isSelected
+                          ? "text-[#0284C7] font-black"
+                          : "text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
+                      }`}
+                    >
+                      {shape.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
       </div>

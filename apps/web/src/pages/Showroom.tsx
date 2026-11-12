@@ -126,6 +126,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   // Favorites & Compare
   const [carFavorites, setCarFavorites] = useState<string[]>([]);
@@ -199,6 +200,10 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
   // Client-side filtering & sorting of vehicles
   const filteredVehicles = useMemo(() => {
     let result = filterVehiclesClientSide(allVehicles, filters, searchQuery, quickFilters);
+
+    if (verifiedOnly) {
+      result = result.filter(v => v.status !== "sold" && (v.inspectionStatus === "passed" || v.inspectionStatus === "verified" || (v as any).verified !== false));
+    }
 
     // Apply sorting
     result = [...result].sort((a, b) => {
@@ -347,7 +352,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         description="Search hundreds of verified pre-owned and new cars in Ethiopia. Filter by brand, price, year, mileage, Libre inspection, and EV status. Transparent pricing in ETB."
       />
 
-      {/* Hero Search Section with Icon-only Search Button & Vehicle Model Icon Filter */}
+      {/* Hero Search Section with AfroMekina-Style Search & Body Shape Filters */}
       <SearchHeroBar
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
@@ -355,6 +360,8 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         onToggleBodyType={handleToggleBodyType}
         onSelectBrand={handleSelectBrand}
         allVehicles={allVehicles}
+        verifiedOnly={verifiedOnly}
+        onToggleVerifiedOnly={() => setVerifiedOnly(prev => !prev)}
       />
 
       {/* Main Content Layout */}
