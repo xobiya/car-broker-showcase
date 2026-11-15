@@ -6,11 +6,7 @@ import {
   Trash2,
   MapPin,
   Car,
-  ChevronRight,
-  ShieldCheck,
-  Check,
-  SlidersHorizontal,
-  Sparkles
+  ChevronRight
 } from "lucide-react";
 import type { VehicleListing } from "@autobroker/shared";
 
@@ -56,8 +52,6 @@ export default function SearchHeroBar({
   onToggleBodyType,
   onSelectBrand,
   allVehicles,
-  verifiedOnly = false,
-  onToggleVerifiedOnly,
 }: SearchHeroBarProps) {
   const [inputValue, setInputValue] = useState(searchQuery);
   const [isOpen, setIsOpen] = useState(false);
@@ -244,80 +238,61 @@ export default function SearchHeroBar({
     );
   };
 
-
-
   return (
     <section className="bg-slate-50 dark:bg-[#0B0F19] border-b border-slate-200/80 dark:border-slate-800/80 pt-6 pb-6 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* ── THEME-COHESIVE CENTERED SEARCH CAPSULE ── */}
-        <div ref={containerRef} className="max-w-3xl mx-auto relative z-30">
-          <div className="bg-white dark:bg-[#111827] rounded-full sm:rounded-3xl p-1.5 sm:p-2 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_35px_-5px_rgba(0,0,0,0.4)] border border-slate-200/90 dark:border-slate-800">
+        {/* ── CLEAN, CENTERED PROFESSIONAL SEARCH CAPSULE (NO VERIFY PILL, ICON BUTTON ONLY) ── */}
+        <div ref={containerRef} className="max-w-2xl mx-auto relative z-30">
+          <div className="bg-white dark:bg-[#111827] rounded-full p-2 pl-4 pr-2 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_35px_-5px_rgba(0,0,0,0.4)] border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus-within:border-[#FF4846] focus-within:ring-4 focus-within:ring-[#FF4846]/10 transition-all">
             <form
               onSubmit={handleSubmit}
               className="flex items-center gap-2"
             >
-              {/* Left: Verified Listings Only Toggle Pill */}
-              <button
-                type="button"
-                onClick={onToggleVerifiedOnly}
-                className={`flex items-center gap-1.5 px-3.5 py-2 sm:py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition cursor-pointer shrink-0 border ${
-                  verifiedOnly
-                    ? "bg-[#FF4846] text-white border-[#FF4846] shadow-sm shadow-[#FF4846]/25"
-                    : "bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600"
-                }`}
-                title="Filter by Verified Listings"
-              >
-                <ShieldCheck size={14} className={verifiedOnly ? "text-white" : "text-[#FF4846]"} />
-                <span className="hidden sm:inline">Verified Libre</span>
-                <span className="sm:hidden">Verified</span>
-                {verifiedOnly && <Check size={12} strokeWidth={3} />}
-              </button>
+              {/* Search Icon */}
+              <Search size={19} className="text-slate-400 shrink-0 ml-1 mr-1" />
 
-              {/* Subtle Divider */}
-              <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 shrink-0 hidden sm:block" />
+              {/* Clean Text Search Input */}
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={e => {
+                  setInputValue(e.target.value);
+                  setIsOpen(true);
+                  setSelectedIndex(-1);
+                }}
+                onFocus={() => setIsOpen(true)}
+                onKeyDown={handleKeyDown}
+                placeholder="Search make, model, year, location (e.g. Toyota RAV4, Bole)..."
+                className="w-full py-1.5 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 font-medium border-0 outline-none ring-0 focus:outline-none focus:ring-0"
+                aria-autocomplete="list"
+                aria-expanded={isOpen}
+              />
 
-              {/* Middle: Clean Search Input */}
-              <div className="relative flex-1 flex items-center min-w-0 px-2 py-1">
-                <Search size={18} className="text-slate-400 shrink-0 mr-2.5 hidden xs:block" />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={inputValue}
-                  onChange={e => {
-                    setInputValue(e.target.value);
-                    setIsOpen(true);
-                    setSelectedIndex(-1);
+              {/* Clear Input Button */}
+              {inputValue && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputValue("");
+                    onSearchChange("");
+                    inputRef.current?.focus();
                   }}
-                  onFocus={() => setIsOpen(true)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Search make, model, year, location (e.g. Toyota RAV4, Bole)..."
-                  className="w-full py-1 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 font-medium border-0 outline-none ring-0 focus:outline-none focus:ring-0"
-                  aria-autocomplete="list"
-                  aria-expanded={isOpen}
-                />
-                {inputValue && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInputValue("");
-                      onSearchChange("");
-                      inputRef.current?.focus();
-                    }}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition mr-1"
-                    title="Clear search"
-                  >
-                    <X size={15} />
-                  </button>
-                )}
-              </div>
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition mr-1"
+                  title="Clear search"
+                  aria-label="Clear search"
+                >
+                  <X size={15} />
+                </button>
+              )}
 
-              {/* Right: Sleek Icon-only Search Action Button */}
+              {/* Sleek Circular Search Action Button */}
               <button
                 type="submit"
                 aria-label="Search"
                 title="Search"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#FF4846] hover:bg-[#e03d3b] text-white flex items-center justify-center shadow-md shadow-[#FF4846]/25 hover:shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
+                className="w-11 h-11 rounded-full bg-[#FF4846] hover:bg-[#e03d3b] text-white flex items-center justify-center shadow-md shadow-[#FF4846]/25 hover:shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
               >
                 <Search size={18} strokeWidth={2.5} />
               </button>
@@ -476,7 +451,7 @@ export default function SearchHeroBar({
           )}
         </div>
 
-        {/* ── BROWSE BY BODY TYPE — MATCHING APPLICATION THEME ── */}
+        {/* ── BROWSE BY BODY TYPE — THEME-COHESIVE CARDS ── */}
         <div className="pt-2 text-left">
           {/* Section Header */}
           <div className="flex items-end justify-between mb-3 px-1">

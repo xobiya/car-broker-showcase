@@ -352,7 +352,7 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         description="Search hundreds of verified pre-owned and new cars in Ethiopia. Filter by brand, price, year, mileage, Libre inspection, and EV status. Transparent pricing in ETB."
       />
 
-      {/* Hero Search Section with AfroMekina-Style Search & Body Shape Filters */}
+      {/* Hero Search Section with Centered Search & Body Shape Filters */}
       <SearchHeroBar
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
@@ -360,8 +360,6 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
         onToggleBodyType={handleToggleBodyType}
         onSelectBrand={handleSelectBrand}
         allVehicles={allVehicles}
-        verifiedOnly={verifiedOnly}
-        onToggleVerifiedOnly={() => setVerifiedOnly(prev => !prev)}
       />
 
       {/* Main Content Layout */}
@@ -405,6 +403,8 @@ export default function Showroom({ onNotify, onInquireCar }: ShowroomProps) {
               totalMatches={totalMatches}
               isMinimized={isSidebarMinimized}
               onToggleMinimize={() => setIsSidebarMinimized(prev => !prev)}
+              verifiedOnly={verifiedOnly}
+              onToggleVerifiedOnly={() => setVerifiedOnly(prev => !prev)}
             />
           </aside>
 
